@@ -1,0 +1,834 @@
+@import "tailwindcss";
+
+@theme {
+  --color-void: #07080a;
+  --color-ink: #0d0f12;
+  --color-mist: #eceef2;
+  --color-haze: #bcc1ca;
+  --color-dim: #8b919c;
+  --color-line: #343a44;
+  --color-glow: #c9d6ea;
+  --color-cool: #9bbdf0;
+  --color-warm: #f0c994;
+  --color-panel: #12151b;
+  --color-s-health: #84d6b0;
+  --color-s-money: #f0c994;
+  --color-s-bonds: #f0a8bd;
+  --color-s-learn: #9bbdf0;
+  --font-gothic: "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Yu Gothic", "YuGothic", "Meiryo", sans-serif;
+  --font-mincho: var(--font-shippori), "Hiragino Mincho ProN", "Yu Mincho", "YuMincho", serif;
+}
+
+:root {
+  color-scheme: dark;
+  /* 動的に参照する色は、Tailwind に削られないよう :root にも置く */
+  --color-cool: #9bbdf0;
+  --color-warm: #f0c994;
+  --color-s-health: #84d6b0;
+  --color-s-money: #f0c994;
+  --color-s-bonds: #f0a8bd;
+  --color-s-learn: #9bbdf0;
+  --color-s-joy: #f7e08a;
+  --color-up: #5fd08a;
+  --color-down: #e5534b;
+}
+
+/* 昼と夜の配色は、色の変数をなめらかに変えて、ゆっくり切り替える */
+@property --color-void {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: #07080a;
+}
+@property --color-ink {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: #0d0f12;
+}
+@property --color-panel {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: #12151b;
+}
+@property --color-mist {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: #eceef2;
+}
+@property --color-haze {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: #bcc1ca;
+}
+@property --color-dim {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: #8b919c;
+}
+@property --color-line {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: #343a44;
+}
+@property --color-glow {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: #c9d6ea;
+}
+@property --color-cool {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: #9bbdf0;
+}
+@property --color-warm {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: #f0c994;
+}
+@property --color-s-health {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: #84d6b0;
+}
+@property --color-s-money {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: #f0c994;
+}
+@property --color-s-bonds {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: #f0a8bd;
+}
+@property --color-s-learn {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: #9bbdf0;
+}
+@property --color-s-joy {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: #f7e08a;
+}
+@property --color-up {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: #5fd08a;
+}
+@property --color-down {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: #e5534b;
+}
+
+@property --halo {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: rgba(2, 3, 6, 0.9);
+}
+@property --surf-hdr {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: rgba(7,8,10,0.92);
+}
+@property --surf-ftr {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: rgba(7,8,10,0.7);
+}
+@property --surf-p60 {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: rgba(18,21,27,0.6);
+}
+@property --surf-p80 {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: rgba(18,21,27,0.8);
+}
+@property --surf-v35 {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: rgba(7,8,10,0.35);
+}
+
+@property --surf-btn {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: rgba(240,201,148,0.05);
+}
+@property --surf-btnh {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: rgba(240,201,148,0.1);
+}
+@property --surf-btnsh {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: rgba(0,0,0,0);
+}
+
+html {
+  --surf-btn: rgba(240,201,148,0.05);
+  --surf-btnh: rgba(240,201,148,0.1);
+  --surf-btnsh: rgba(0,0,0,0);
+  --halo: rgba(2, 3, 6, 0.92);
+  --surf-hdr: rgba(7,8,10,0.92);
+  --surf-ftr: rgba(7,8,10,0.7);
+  --surf-p60: rgba(18,21,27,0.6);
+  --surf-p80: rgba(18,21,27,0.8);
+  --surf-v35: rgba(7,8,10,0.35);
+  transition: --halo 5s ease-in-out, --surf-btn 5s ease-in-out, --surf-btnh 5s ease-in-out, --surf-btnsh 5s ease-in-out, --surf-hdr 5s ease-in-out, --surf-ftr 5s ease-in-out, --surf-p60 5s ease-in-out, --surf-p80 5s ease-in-out, --surf-v35 5s ease-in-out, background-color 5s ease-in-out, --color-void 5s ease-in-out, --color-ink 5s ease-in-out, --color-panel 5s ease-in-out, --color-mist 5s ease-in-out, --color-haze 5s ease-in-out, --color-dim 5s ease-in-out, --color-line 5s ease-in-out, --color-glow 5s ease-in-out, --color-cool 5s ease-in-out, --color-warm 5s ease-in-out, --color-s-health 5s ease-in-out, --color-s-money 5s ease-in-out, --color-s-bonds 5s ease-in-out, --color-s-learn 5s ease-in-out, --color-s-joy 5s ease-in-out, --color-up 5s ease-in-out, --color-down 5s ease-in-out;
+}
+
+/* 昼のあいだは、明るい配色に切り替える(色の変数を入れ替える) */
+html[data-tod="day"] {
+  color-scheme: light;
+  --surf-btn: rgba(255,243,220,0.92);
+  --surf-btnh: #ffe7bd;
+  --surf-btnsh: rgba(120,80,20,0.18);
+  --halo: rgba(255, 255, 255, 0);
+  --surf-hdr: #ffffff;
+  --surf-ftr: #ffffff;
+  --surf-p60: rgba(255,255,255,0.88);
+  --surf-p80: rgba(255,255,255,0.88);
+  --surf-v35: rgba(234,242,249,0.62);
+  --color-void: #eaf2f9;
+  --color-ink: #dde8f2;
+  --color-panel: #f6f9fc;
+  --color-mist: #0a1420;
+  --color-haze: #1b2a3c;
+  --color-dim: #36495f;
+  --color-line: #a4b5c8;
+  --color-glow: #1f3a5f;
+  --color-cool: #1d5db0;
+  --color-warm: #a85a10;
+  --color-s-health: #178556;
+  --color-s-money: #a8620c;
+  --color-s-bonds: #bd3d68;
+  --color-s-learn: #1d5db0;
+  --color-s-joy: #8f7000;
+  --color-up: #17874a;
+  --color-down: #c42b2b;
+}
+
+html {
+  /* 全体の文字を一段大きくする(rem 基準なので Tailwind の文字サイズも連動する) */
+  font-size: 112.5%;
+}
+
+/* 背景色は html だけに付ける(body に付けると、背景の星や光のレイヤーを覆ってしまう) */
+html {
+  background: var(--color-void);
+}
+
+body {
+  color: var(--color-mist);
+  /* 文の中の改行(かっこ書きの前など)を、そのまま表示する */
+  white-space: pre-line;
+}
+
+/* 日本語の改行: 行の右はしまで文字をつめて折り返す(文節の途中でも切る)。行頭に句読点や閉じかっこが来ないようにする */
+body {
+  word-break: normal;
+  line-break: strict;
+  overflow-wrap: anywhere;
+}
+h1,
+h2,
+h3,
+button,
+dt {
+  text-wrap: balance;
+}
+p,
+li,
+dd {
+  text-wrap: wrap;
+}
+/* 数字と単位・短い見出しは、途中で切らない */
+.keep {
+  white-space: nowrap;
+  overflow-wrap: normal;
+  word-break: keep-all;
+}
+
+body {
+  font-family: var(--font-mincho);
+  font-weight: 500;
+  line-height: 1.8;
+  font-feature-settings: "palt" 0;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+::selection {
+  background: rgba(184, 196, 214, 0.2);
+}
+
+/* 入力欄のオートフィルで白くならないようにする */
+input:-webkit-autofill,
+textarea:-webkit-autofill {
+  -webkit-text-fill-color: var(--color-mist);
+  -webkit-box-shadow: 0 0 0 1000px var(--color-void) inset;
+  transition: background-color 9999s;
+}
+
+/* 列ごとにスクロールする画面で、スクロールバーが目立たないようにする */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-line) transparent;
+}
+
+/* 再生画面でも、いちばん下に、フッターを置く。PC では、画面の高さにおさまるよう、1行のフッターにする */
+body[data-play="1"] {
+  overflow-x: hidden;
+}
+@media (min-width: 1024px) {
+  body[data-play="1"] {
+    height: 100dvh;
+    overflow: hidden;
+  }
+  body[data-play="1"] footer .footer-full {
+    display: none;
+  }
+  body[data-play="1"] footer .footer-compact {
+    display: flex;
+  }
+  body[data-play="1"] footer {
+    height: 2.5rem;
+    overflow: hidden;
+    border-top-width: 1px;
+  }
+}
+
+/* 天気の背景: 雲・雨・雪・雷 */
+@keyframes drift {
+  from {
+    transform: translateX(-60vw);
+  }
+  to {
+    transform: translateX(110vw);
+  }
+}
+.cloud {
+  left: 0;
+  animation: drift linear infinite;
+}
+@keyframes rain {
+  from {
+    transform: translate(0, -14vh) rotate(12deg);
+    opacity: 0;
+  }
+  10% {
+    opacity: 0.55;
+  }
+  to {
+    transform: translate(-8vh, 112vh) rotate(12deg);
+    opacity: 0.3;
+  }
+}
+@keyframes rain-tile {
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(var(--t));
+  }
+}
+.rain-layer {
+  animation: rain-tile linear infinite;
+  will-change: transform;
+}
+.rain-drop {
+  width: 1px;
+  background: linear-gradient(to bottom, rgba(155, 189, 240, 0), rgba(155, 189, 240, 0.7));
+  animation: rain linear infinite;
+}
+@keyframes snow {
+  from {
+    transform: translate(0, -6vh);
+    opacity: 0;
+  }
+  15% {
+    opacity: 0.85;
+  }
+  50% {
+    transform: translate(var(--sway), 50vh);
+  }
+  to {
+    transform: translate(calc(var(--sway) * -1), 106vh);
+    opacity: 0.5;
+  }
+}
+.snow-flake {
+  animation: snow linear infinite;
+}
+@keyframes flash {
+  0%,
+  86%,
+  100% {
+    opacity: 0;
+  }
+  87% {
+    opacity: 0.7;
+  }
+  88% {
+    opacity: 0.05;
+  }
+  90% {
+    opacity: 1;
+  }
+  93% {
+    opacity: 0;
+  }
+}
+.lightning {
+  background: rgba(200, 215, 255, 0.4);
+  opacity: 0;
+  will-change: opacity;
+  animation: flash 9s linear infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .cloud,
+  .rain-drop,
+  .rain-layer,
+  .snow-flake,
+  .lightning {
+    animation: none;
+  }
+}
+
+/* 街の灯り: 屋上の赤いランプ、またたく窓 */
+@keyframes beacon {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.12;
+  }
+}
+.beacon {
+  animation: beacon 2.4s ease-in-out infinite;
+}
+@keyframes win-flicker {
+  0%,
+  100% {
+    opacity: 0.55;
+  }
+  45% {
+    opacity: 0.2;
+  }
+  60% {
+    opacity: 0.6;
+  }
+}
+.win-flicker {
+  animation: win-flicker 7s ease-in-out infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .beacon,
+  .win-flicker {
+    animation: none;
+  }
+}
+
+/* 昼は、背景の太陽や空が見えるよう、列の下地をうすくする */
+.bg-void\/35 {
+  background-color: var(--surf-v35);
+}
+/* 昼は、文字が読みやすいよう、面(パネル)を、白に近い色で、しっかり塗る */
+.bg-panel\/60 {
+  background-color: var(--surf-p60);
+}
+.bg-panel\/80 {
+  background-color: var(--surf-p80);
+}
+
+/* 流れ星: 斜めに、すっと流れて、消える */
+@keyframes meteor {
+  0% {
+    transform: translate(0, 0) rotate(28deg);
+    opacity: 0;
+  }
+  12% {
+    opacity: 1;
+  }
+  100% {
+    transform: translate(220px, 120px) rotate(28deg);
+    opacity: 0;
+  }
+}
+.meteor {
+  height: 2px;
+  border-radius: 2px;
+  background: linear-gradient(to right, rgba(255, 255, 255, 0), rgba(255, 255, 255, 0.9));
+  box-shadow: 0 0 6px 1px rgba(255, 255, 255, 0.45);
+  opacity: 0;
+  animation: meteor 1.5s ease-out forwards;
+}
+@media (prefers-reduced-motion: reduce) {
+  .meteor {
+    animation: none;
+  }
+}
+
+
+/* ボタンなど、押せるものは、すべて、カーソルが指のかたちになる(押せないものは、禁止のかたち) */
+button,
+[role="button"],
+[role="option"],
+summary,
+select,
+input[type="checkbox"],
+input[type="radio"],
+input[type="range"],
+label[for] {
+  cursor: pointer;
+}
+button:disabled,
+[role="button"][aria-disabled="true"] {
+  cursor: not-allowed;
+}
+
+/* 昼は、主なボタン(「別の人生をシミュレートする」など)の背景を、しっかり塗って、空の色に埋もれないようにする */
+.group > span.absolute.inset-0[class*="border-warm/60"] {
+  background-color: var(--surf-btn);
+  box-shadow: 0 2px 10px var(--surf-btnsh);
+}
+html[data-tod="day"] .group > span.absolute.inset-0[class*="border-warm/60"] {
+  border-color: var(--color-warm);
+}
+.group:hover > span.absolute.inset-0[class*="border-warm/60"] {
+  background-color: var(--surf-btnh);
+}
+/* ボタンの背景(枠)は、文字のうしろに置く */
+.group:has(> span.absolute.inset-0[class*="border-warm/60"]) {
+  isolation: isolate;
+}
+.group > span.absolute.inset-0[class*="border-warm/60"] {
+  z-index: -1;
+}
+
+/* 昼は、ヘッダーとフッターの背景を、白にする */
+header.bg-void\/50 {
+  background-color: var(--surf-hdr);
+}
+footer.bg-void\/70 {
+  background-color: var(--surf-ftr);
+}
+html[data-tod="day"] header.bg-void\/50,
+html[data-tod="day"] footer.bg-void\/70 {
+  backdrop-filter: none;
+}
+/* 昼のヘッダー・フッターは、白い背景に、すぐ、濃い文字の色にする(空の色の切り替えを、待たない) */
+html[data-tod="day"] header,
+html[data-tod="day"] footer {
+  --color-mist: #0a1420;
+  --color-haze: #1b2a3c;
+  --color-dim: #36495f;
+  --color-line: #a4b5c8;
+  --color-warm: #a85a10;
+  --color-glow: #1f3a5f;
+  --color-void: #ffffff;
+  --color-panel: #f6f9fc;
+}
+
+/* スワイプで引っぱったとき、ヘッダーの上やフッターの下に、背景が見えないようにする */
+html,
+body {
+  overscroll-behavior-y: none;
+}
+html[data-tod="day"] {
+  background: #ffffff;
+}
+
+/* 街の電車: 高架を、ゆっくり、左から右へ走る */
+@keyframes train-run {
+  from {
+    transform: translateX(-200px);
+  }
+  to {
+    transform: translateX(1700px);
+  }
+}
+.train {
+  animation: train-run 46s linear infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .train {
+    animation: none;
+  }
+}
+
+/* 高い建物のランプ: ゆっくり、息をするように点滅する */
+@keyframes beacon-slow {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.1;
+  }
+}
+.beacon-slow {
+  animation: beacon-slow 5.5s ease-in-out infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .beacon-slow {
+    animation: none;
+  }
+}
+
+/* 飛行機: 昼は飛行機雲、夜は点滅する小さな光。たまに(約2分に一度)、空を横切る */
+@property --ch {
+  syntax: "<percentage>";
+  inherits: false;
+  initial-value: 0%;
+}
+@property --ct {
+  syntax: "<percentage>";
+  inherits: false;
+  initial-value: 0%;
+}
+@keyframes contrail-fly {
+  /* 先頭(--ch)は、左から右へ進む。尾(--ct)は、線の45%ぶん遅れて付いてくる。先頭が右端に着いたあと、約8秒かけて、尾の先から、じわじわと消えていく */
+  0% {
+    --ch: 0%;
+    --ct: 0%;
+  }
+  9% {
+    --ch: 45%;
+    --ct: 0%;
+  }
+  20% {
+    --ch: 100%;
+    --ct: 55%;
+  }
+  27% {
+    --ch: 100%;
+    --ct: 100%;
+  }
+  100% {
+    --ch: 100%;
+    --ct: 100%;
+  }
+}
+.contrail {
+  width: 120vw;
+  transform: translateX(-10vw) rotate(-6deg);
+  transform-origin: 0 50%;
+  background: rgba(255, 255, 255, 0.88);
+  filter: blur(0.6px);
+  -webkit-mask-image: linear-gradient(90deg, transparent var(--ct), #000 min(calc(var(--ct) + 30%), var(--ch)), #000 var(--ch), transparent calc(var(--ch) + 0.5%));
+  mask-image: linear-gradient(90deg, transparent var(--ct), #000 min(calc(var(--ct) + 30%), var(--ch)), #000 var(--ch), transparent calc(var(--ch) + 0.5%));
+  animation: contrail-fly 120s linear infinite;
+  animation-delay: 0s;
+}
+@keyframes plane-fly {
+  0% {
+    transform: translate(112vw, 0);
+    opacity: 0;
+  }
+  2% {
+    opacity: 1;
+  }
+  34% {
+    transform: translate(-6vw, 7vh);
+    opacity: 1;
+  }
+  36% {
+    transform: translate(-8vw, 7.4vh);
+    opacity: 0;
+  }
+  100% {
+    transform: translate(-8vw, 7.4vh);
+    opacity: 0;
+  }
+}
+@keyframes plane-blink {
+  0%,
+  55%,
+  100% {
+    opacity: 0.12;
+  }
+  62%,
+  72% {
+    opacity: 1;
+  }
+}
+.plane-light {
+  animation: plane-fly 150s linear infinite;
+  animation-delay: -118s;
+  opacity: 0;
+}
+.plane-blink {
+  animation: plane-blink 1.7s ease-in-out infinite;
+}
+.plane-blink-b {
+  animation: plane-blink 1.7s ease-in-out infinite;
+  animation-delay: 0.85s;
+}
+@media (prefers-reduced-motion: reduce) {
+  .contrail,
+  .plane-light {
+    animation: none;
+    opacity: 0;
+  }
+}
+
+/* 観覧車: ゆっくり回る。ゴンドラは、逆向きに回して、いつも下を向かせる */
+@keyframes ferris-turn {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+@keyframes ferris-counter {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(-360deg);
+  }
+}
+.ferris {
+  transform-box: view-box;
+  transform-origin: 0 0;
+  animation: ferris-turn 140s linear infinite;
+}
+.ferris-gondola {
+  transform-box: view-box;
+  transform-origin: 0 0;
+  animation: ferris-counter 140s linear infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .ferris,
+  .ferris-gondola {
+    animation: none;
+  }
+}
+
+/* 夜と昼の切り替え: ヘッダーとフッターも、空と同じ時間(5秒)をかけて、ゆっくり、白(または夜の色)に変わる */
+header,
+footer {
+  transition:
+    border-color 5s ease-in-out,
+    --color-mist 5s ease-in-out,
+    --color-haze 5s ease-in-out,
+    --color-dim 5s ease-in-out,
+    --color-line 5s ease-in-out,
+    --color-warm 5s ease-in-out,
+    --color-glow 5s ease-in-out,
+    --color-void 5s ease-in-out,
+    --color-panel 5s ease-in-out;
+}
+
+
+/* 最初の表示のあいだだけ、色の変化(グラデーション)を止める */
+html.no-anim,
+html.no-anim *,
+html.no-anim *::before,
+html.no-anim *::after {
+  transition: none !important;
+}
+
+/* 背景(雨・雲・空)は、ずっと動いている。すりガラス(背景のぼかし)は、そのたびに、描きなおしになって、昼夜の切り替えや、雨・雷のときに、画面がちらつく原因になる。ぼかしは使わない */
+[class*="backdrop-blur"] {
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+}
+
+/* 背景(空・街)は、色の変数を使わない。昼夜の切り替え中に、変数が変わるたび、背景の中の何千もの要素が、スタイルの再計算になって、画面がちらつく。ここで、変数の受けわたしを止める */
+.ambient-root {
+  color: #8a8f99;
+  --color-void: initial;
+  --color-ink: initial;
+  --color-panel: initial;
+  --color-mist: initial;
+  --color-haze: initial;
+  --color-dim: initial;
+  --color-line: initial;
+  --color-glow: initial;
+  --color-cool: initial;
+  --color-warm: initial;
+  --color-s-health: initial;
+  --color-s-money: initial;
+  --color-s-bonds: initial;
+  --color-s-learn: initial;
+  --color-s-joy: initial;
+  --color-up: initial;
+  --color-down: initial;
+  --surf-hdr: initial;
+  --surf-ftr: initial;
+  --surf-p60: initial;
+  --surf-p80: initial;
+  --surf-v35: initial;
+  --surf-btn: initial;
+  --surf-btnh: initial;
+  --surf-btnsh: initial;
+}
+
+/* ゴシック体(読みやすさを優先する、注意書きなどに使う) */
+.font-gothic {
+  font-family: var(--font-gothic);
+}
+
+@keyframes fadein {
+  from {
+    background-color: transparent;
+  }
+}
+
+/* 太陽や月の明るい光の上でも、文字が読めるよう、文字のまわりに、背景の色(夜は暗く、昼は白)のふちをつける。
+   ふちの色は、昼夜の切り替えに合わせて、ゆっくり変わる。 */
+main,
+footer {
+  text-shadow: 0 0 2px var(--halo), 0 0 6px var(--halo), 0 0 14px var(--halo);
+}
+/* 背景がもともと不透明なもの(ボタン・入力欄・ポップアップなど)の中は、ふちを、つけない */
+main button,
+main input,
+main select,
+main textarea,
+main [role="dialog"],
+main [role="listbox"],
+.no-halo {
+  text-shadow: none;
+}
+
+/* 夜: 月の明るい円と、文字が重なると、文字が見えなくなる。
+   文字を「差の絶対値」で、うしろの色と重ねると、明るい円の上では、文字が暗くなり、暗い空の上では、そのままの色で見える(自動で、コントラストが、取れる)。
+   昼は、文字が暗い色で、太陽の白い光の上でも、読めるので、使わない。夕方・朝方は、空の色がちがうので、使わない。 */
+html:not([data-tod-lock]):not([data-phase]) main :is(h1, h2, h3, h4, p, li, dt, dd),
+html:not([data-tod-lock])[data-phase="night"] main :is(h1, h2, h3, h4, p, li, dt, dd) {
+  mix-blend-mode: difference;
+}
+/* 選択肢の枠や、ボタンの中は、もともとの背景の上に、文字があるので、そのまま */
+html:not([data-tod-lock]):not([data-phase]) main :is(button, input, select, textarea, [role="dialog"]) :is(p, li, h2, h3, dt, dd),
+html:not([data-tod-lock])[data-phase="night"] main :is(button, input, select, textarea, [role="dialog"]) :is(p, li, h2, h3, dt, dd) {
+  mix-blend-mode: normal;
+}
+
+/* 昼は、明るい青空の上で、文字が読みにくいので、少し太くする(夜は、これまでどおり) */
+html[data-tod="day"] body {
+  font-weight: 600;
+}
+
+/* 昼の、オレンジ・青の文字は、ごくうすい白い縁で、青空から浮かせる */
+html[data-tod="day"] main .text-warm,
+html[data-tod="day"] main .text-cool,
+html[data-tod="day"] footer .text-warm {
+  text-shadow: 0 0 1px rgba(255, 255, 255, 0.95), 0 0 3px rgba(255, 255, 255, 0.7);
+}
+
+/* 本文ページ(コンセプトなど)は、昼だけ、白い背景に乗せる(夜は、背景なし) */
+.page-card {
+  background-color: rgba(255, 255, 255, 0);
+  transition: background-color 5s ease-in-out;
+}
+html[data-tod="day"] .page-card {
+  background-color: rgba(255, 255, 255, 0.88);
+}

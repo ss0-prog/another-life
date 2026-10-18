@@ -1,0 +1,33 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // 保存した結果: 自分のデータだけ読み書きできる
+    match /users/{uid}/echoes/{id} {
+      allow read, write: if request.auth != null && request.auth.uid == uid;
+    }
+
+    // 記憶した入力情報: 自分のデータだけ読み書きできる
+    match /users/{uid}/profile/{id} {
+      allow read, write: if request.auth != null && request.auth.uid == uid;
+    }
+
+    // みんなの人生(本人が公開を選んだもの): だれでも読める。作成・削除はログインした本人だけ。
+    match /shared/{id} {
+      allow read: if true;
+      allow create: if request.auth != null
+                    && request.resource.data.owner == request.auth.uid
+                    && request.resource.data.sample == false
+                    && request.resource.size() < 100000;
+      allow update: if false;
+      allow delete: if request.auth != null && resource.data.owner == request.auth.uid;
+    }
+
+    // お問い合わせ: 書き込みだけできる。読めるのは運営(コンソール)だけ。
+    match /contacts/{id} {
+      allow read, update, delete: if false;
+      allow create: if request.resource.data.message is string
+                    && request.resource.data.message.size() > 0
+                    && request.resource.data.message.size() <= 2000;
+    }
+  }
+}

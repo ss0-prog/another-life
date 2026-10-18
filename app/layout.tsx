@@ -33,6 +33,8 @@ export const metadata: Metadata = {
     images: [{ url: "/og.png", width: 1200, height: 630, alt: SITE_NAME }],
   },
   twitter: { card: "summary_large_image", title: t.meta.title, description: t.meta.description, images: ["/og.png"] },
+  // 検索に載せたくない間(身内確認など)は、環境変数 NEXT_PUBLIC_NOINDEX=1 で、検索への登録をことわる
+  robots: process.env.NEXT_PUBLIC_NOINDEX === "1" ? { index: false, follow: false } : undefined,
   // Google Search Console の所有確認(環境変数が設定されているときだけ出す)
   verification: process.env.NEXT_PUBLIC_GSC_VERIFICATION ? { google: process.env.NEXT_PUBLIC_GSC_VERIFICATION } : undefined,
 };

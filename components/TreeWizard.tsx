@@ -762,7 +762,7 @@ export function TreeWizard({ t, onSubmit, auth, prefill }: Props) {
             <div className="flex items-center gap-1.5" role="group" aria-label="答える詳しさ">
               <span className="mr-1 text-[11px] tracking-[0.2em] text-dim">詳しさ</span>
               {LEVELS.map((l) => (
-                <button key={l.level} type="button" onClick={() => setLevel(l.level)} aria-pressed={level === l.level} className={`border px-2.5 py-1 text-xs tracking-wider transition-colors ${level === l.level ? "border-warm bg-warm/15 text-mist" : "border-line text-haze hover:border-haze hover:text-mist"}`}>
+                <button key={l.level} type="button" onClick={() => setLevel(l.level)} aria-pressed={level === l.level} className={`border px-2.5 py-1 text-xs tracking-wider transition-colors ${level === l.level ? "border-warm bg-[color-mix(in_srgb,var(--color-warm)_16%,var(--color-panel))] text-mist" : "border-line bg-panel/90 text-haze hover:border-haze hover:text-mist"}`}>
                   {l.name}
                 </button>
               ))}
@@ -788,7 +788,7 @@ export function TreeWizard({ t, onSubmit, auth, prefill }: Props) {
             <p className="mt-2 text-sm leading-7 tracking-wider text-haze">答えなかった項目はふつうの値でおぎないます。あとからいつでも変えられます。</p>
             <div className="mt-6 grid gap-3 sm:grid-cols-3">
               {LEVELS.map((l) => (
-                <button key={l.level} type="button" onClick={() => setLevel(l.level)} className="group relative flex flex-col items-center border border-line bg-panel/70 px-4 py-5 text-center transition-colors hover:border-warm">
+                <button key={l.level} type="button" onClick={() => setLevel(l.level)} className="group relative flex flex-col items-center border border-line bg-panel/95 px-4 py-5 text-center transition-colors hover:border-warm">
                   <span className="text-lg font-bold tracking-[0.2em] text-mist">{l.name}</span>
                   <span className="font-gothic mt-1 text-sm font-bold tracking-wider text-warm">{l.sub}</span>
                   <span className="font-gothic mt-3 text-xs leading-6 tracking-wider text-haze">{l.note}</span>

@@ -2,14 +2,14 @@ import type { Metadata } from "next";
 import { PageShell, Section } from "@/components/PageShell";
 
 export const metadata: Metadata = {
-  title: "データについて・ヒント",
+  title: "データについて",
   alternates: { canonical: "/sources" },
   description: "どの数字が公的統計で、どれが概算や仮定なのか。",
 };
 
 export default function SourcesPage() {
   return (
-    <PageShell title="データについて・ヒント" lead="このサイトの数字には、公的統計に合わせたものと、概算や仮定のものがあります。区別してお伝えします。">
+    <PageShell title="データについて" lead="このサイトの数字には、公的統計に合わせたものと、概算や仮定のものがあります。区別してお伝えします。">
       <Section title="公的統計に合わせているもの">
         <p>
           <strong className="text-warm">寿命(死亡率)。</strong>

@@ -16,9 +16,9 @@ export function PageShell({ title, lead, children }: { title: string; lead?: str
   return (
     <div className="mx-auto w-full max-w-5xl px-[2.5vw] pb-24 pt-10 sm:px-12">
       <div className="page-card rounded-sm px-4 py-8 sm:px-10 sm:py-10">
-      <h1 className="text-center text-3xl tracking-[0.3em] text-mist">{title}</h1>
-      {lead && <p className="mx-auto mt-6 max-w-2xl w-fit text-left text-base leading-9 tracking-wider text-haze">{soften(lead, 16)}</p>}
-      <div className="mt-14 space-y-14">{children}</div>
+      <h1 className="text-center text-2xl tracking-[0.2em] text-mist sm:text-3xl sm:tracking-[0.3em]">{title}</h1>
+      {lead && <p className="mx-auto mt-6 max-w-2xl w-fit text-left text-sm leading-7 tracking-wide text-haze sm:text-base sm:leading-9 sm:tracking-wider">{soften(lead, 16)}</p>}
+      <div className="mt-10 space-y-10 sm:mt-14 sm:space-y-14">{children}</div>
       </div>
     </div>
   );
@@ -27,8 +27,8 @@ export function PageShell({ title, lead, children }: { title: string; lead?: str
 export function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <section>
-      <h2 className="border-l-2 border-warm pl-4 text-xl tracking-[0.2em] text-warm">{title}</h2>
-      <div className="mt-5 space-y-4 text-base leading-9 tracking-wider text-mist">{softenNode(children)}</div>
+      <h2 className="border-l-2 border-warm pl-3 text-base tracking-[0.15em] text-warm sm:pl-4 sm:text-xl sm:tracking-[0.2em]">{title}</h2>
+      <div className="mt-4 space-y-3 text-[13px] leading-7 tracking-wide text-mist sm:mt-5 sm:space-y-4 sm:text-base sm:leading-9 sm:tracking-wider">{softenNode(children)}</div>
     </section>
   );
 }

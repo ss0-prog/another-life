@@ -142,7 +142,7 @@ export function AssetPanel({ t, state, month, onTrade, onStartStocks, onPlan, on
       <p className="mt-1 text-[11px] leading-4 tracking-wider text-dim">{minor ? "親からもらうお金。使い道は自分で決められます" : "貯金・運用資産・借金をまとめたお金の状況です。「合計」は借金を引いた実質の資産"}</p>
 
       <div className="mt-5 text-center">
-        <p className="tabular-nums text-mist text-4xl">
+        <p className="tabular-nums text-mist text-3xl sm:text-4xl">
           {minor ? (Number.isFinite(state.wallet.cash) ? Math.round(state.wallet.cash) : 0).toLocaleString("ja-JP") : man(net)}
           <span className="ml-1 text-xs text-haze">{minor ? t.unitYen : t.unit}</span>
         </p>
@@ -160,7 +160,7 @@ export function AssetPanel({ t, state, month, onTrade, onStartStocks, onPlan, on
               額面 {state.person.tax.gross}万円 − 所得税 {state.person.tax.incomeTax}万円 − 住民税 {state.person.tax.resident}万円 − 社会保険料 {state.person.tax.social}万円 = 手取り {state.person.tax.net}万円({Math.round((state.person.tax.net / state.person.tax.gross) * 100)}%)
             </p>
             <p>社会保険料の内訳は、健康・介護保険 {state.person.tax.health}万円・年金 {state.person.tax.pension}万円・雇用保険 {state.person.tax.employment}万円。{state.person.tax.credit > 0 ? `住宅ローン控除で、所得税が${state.person.tax.credit}万円ほど減っています。` : ""}生活費にふくまれる消費税は、年に約{state.person.tax.consumption}万円の目安です。</p>
-            <p>税の計算は、実際の制度をもとにした簡略版です(くわしくは「データについて・ヒント」)。</p>
+            <p>税の計算は、実際の制度をもとにした簡略版です(くわしくは「データについて」)。</p>
           </div>
         )}
         {!minor && <p className="mt-2 text-[11px] leading-4 tracking-wider text-dim">普通預金の金利: 年{(savingsRate(state.person.econ) * 100).toFixed(3)}%(景気で上下する架空の水準)</p>}
@@ -176,7 +176,7 @@ export function AssetPanel({ t, state, month, onTrade, onStartStocks, onPlan, on
         <div className="flex items-baseline justify-between">
           <span className="text-xs tracking-[0.2em] text-haze">{t.swing}</span>
           {swings.length > 0 && (
-            <span className="text-2xl tabular-nums" style={{ color: swings[swings.length - 1] >= 0 ? "var(--color-up)" : "var(--color-down)" }}>
+            <span className="text-xl tabular-nums sm:text-2xl" style={{ color: swings[swings.length - 1] >= 0 ? "var(--color-up)" : "var(--color-down)" }}>
               {signed(swings[swings.length - 1])}
             </span>
           )}
@@ -195,7 +195,7 @@ export function AssetPanel({ t, state, month, onTrade, onStartStocks, onPlan, on
       {state.wallet.debts.length > 0 && (
         <div className="mt-4 rounded-sm border px-4 py-3 text-center" style={{ borderColor: "var(--color-s-bonds)" }}>
           <p className="text-xs tracking-[0.2em]" style={{ color: "var(--color-s-bonds)" }}>{t.debt}</p>
-          <p className="mt-1 text-2xl tabular-nums" style={{ color: "var(--color-s-bonds)" }}>
+          <p className="mt-1 text-xl tabular-nums sm:text-2xl" style={{ color: "var(--color-s-bonds)" }}>
             -{man(debtTotal(state.wallet.debts))}
             <span className="ml-1 text-xs">{t.unit}</span>
           </p>

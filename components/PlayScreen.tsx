@@ -55,6 +55,15 @@ export function PlayScreen({ t, initial, birthYear, selfAge, ghost, dev = false,
     setState(u);
   };
   const [month, setMonth] = useState(0);
+  // スマホ(lg より狭い画面)では、資産の枠を、年齢と役職のすぐ下に出す。
+  const [narrow, setNarrow] = useState(false);
+  useEffect(() => {
+    const mq = window.matchMedia("(max-width: 1023px)");
+    const on = () => setNarrow(mq.matches);
+    on();
+    mq.addEventListener("change", on);
+    return () => mq.removeEventListener("change", on);
+  }, []);
   const [running, setRunning] = useState(true);
   const [speed, setSpeed] = useState(1);
   // 枝分かれした選択の、ここまで選んだ道。
@@ -221,6 +230,7 @@ export function PlayScreen({ t, initial, birthYear, selfAge, ghost, dev = false,
   // スマホは、overflow-x-clip(スクロール領域を作らない)にする。hiddenだと、この列が、スクロール領域になって、上にはりつく部品(sticky)が、ページのスクロールに、ついてこない。
   const col = "min-h-0 min-w-0 overflow-x-clip lg:overflow-x-hidden bg-void/35 px-[2.5vw] py-2 sm:px-8 sm:py-6 lg:overflow-y-auto lg:py-8";
 
+  const assetPanel = <AssetPanel t={t.assets} state={state} month={month} onTrade={onTrade} onStartStocks={onStartStocks} onPlan={onPlan} onSpend={onSpend} onKidNisa={onKidNisa} onBorrow={onBorrow} offers={offers} />;
   return (
     <div className="grid w-full flex-1 divide-line lg:h-[calc(100dvh-3.5rem-2.5rem)] lg:grid-cols-[minmax(17rem,0.9fr)_minmax(0,1.7fr)_minmax(17rem,0.9fr)] lg:divide-x">
       {/* 左: 年の移り変わり */}
@@ -228,19 +238,20 @@ export function PlayScreen({ t, initial, birthYear, selfAge, ghost, dev = false,
         <p className="text-sm tracking-[0.4em] text-warm">{t.branchBadge}</p>
         <p className="mt-1 text-xs leading-5 tracking-wider text-dim">{t.notes.branch}</p>
         <div className="mt-5">
-          <div className="text-5xl font-bold tabular-nums tracking-widest text-mist drop-shadow-[0_0_24px_rgba(240,201,148,0.35)]">{p.age}<span className="ml-2 text-xl font-medium text-haze">歳</span></div>
-          <p className="mt-1 text-lg tabular-nums tracking-[0.2em] text-warm">{birthYear + p.age}年</p>
-          <p className="mt-3 text-base tracking-[0.15em] text-haze">
+          <div className="text-4xl font-bold tabular-nums tracking-widest text-mist sm:text-5xl drop-shadow-[0_0_24px_rgba(240,201,148,0.35)]">{p.age}<span className="ml-2 text-lg font-medium text-haze sm:text-xl">歳</span></div>
+          <p className="mt-1 text-base tabular-nums tracking-[0.2em] text-warm sm:text-lg">{birthYear + p.age}年</p>
+          <p className="mt-2 text-sm tracking-[0.12em] text-haze sm:mt-3 sm:text-base sm:tracking-[0.15em]">
             {lifeLabel(p, jpData)} / {p.city}
           </p>
         </div>
+        {narrow && <div className="mt-5">{assetPanel}</div>}
 
         <div className="mt-6 grid grid-cols-2 gap-x-6 gap-y-4">
           <NoteBlock label={t.econ} note={t.notes.econ}>
-            <p className="mt-1 text-lg" style={{ color: econColor }}>{env.econLabel}</p>
+            <p className="mt-1 text-base sm:text-lg" style={{ color: econColor }}>{env.econLabel}</p>
           </NoteBlock>
           <NoteBlock right label={t.income} note={t.notes.income}>
-            <p className="mt-1 text-lg tabular-nums text-mist">{income === null ? "—" : `${income.toLocaleString("ja-JP")}${t.unitMan}`}</p>
+            <p className="mt-1 text-base tabular-nums text-mist sm:text-lg">{income === null ? "—" : `${income.toLocaleString("ja-JP")}${t.unitMan}`}</p>
           </NoteBlock>
         </div>
 
@@ -455,7 +466,7 @@ export function PlayScreen({ t, initial, birthYear, selfAge, ghost, dev = false,
             return true;
           }}
         />
-        <AssetPanel t={t.assets} state={state} month={month} onTrade={onTrade} onStartStocks={onStartStocks} onPlan={onPlan} onSpend={onSpend} onKidNisa={onKidNisa} onBorrow={onBorrow} offers={offers} />
+        {!narrow && assetPanel}
         <JapanMap homes={p.homes ?? []} city={p.city} age={p.age} abroad={!!p.abroad} />
       </section>
       <AchievementToaster state={state} />
@@ -470,32 +481,36 @@ export function PlayScreen({ t, initial, birthYear, selfAge, ghost, dev = false,
         </div>
       )}
       {showPopup && tp && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/55 px-[2.5vw] py-6 backdrop-blur-sm">
-          <div className="max-h-[90dvh] w-full max-w-2xl overflow-y-auto">
-          <motion.div key={`${tp.id}-${p.age}`} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.9 }} className="relative rounded-sm border border-warm/50 bg-panel px-6 py-7 shadow-[0_0_50px_rgba(240,201,148,0.12)]">
-            {trail.length > 0 && (
-              <button type="button" onClick={() => setTrail(trail.slice(0, -1))} aria-label="ひとつ前の質問にもどる" title="ひとつ前の質問にもどる" className="absolute left-3 top-3 border border-line px-3 py-1 text-sm font-bold tracking-wider text-haze hover:border-haze hover:text-mist">
-                &lt;&lt; 戻る
+        <div className="fixed inset-0 z-[65] flex items-center justify-center bg-black/55 px-[2.5vw] py-3 backdrop-blur-sm sm:py-6">
+          <div className="max-h-[calc(100dvh-1.5rem)] w-full max-w-2xl overflow-y-auto sm:max-h-[90dvh]">
+          <motion.div key={`${tp.id}-${p.age}`} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.9 }} className="relative rounded-sm border border-warm/50 bg-panel px-4 py-4 sm:px-6 sm:py-7 shadow-[0_0_50px_rgba(240,201,148,0.12)]">
+            <div className="mb-4 flex items-center justify-between gap-2">
+              {trail.length > 0 ? (
+                <button type="button" onClick={() => setTrail(trail.slice(0, -1))} aria-label="ひとつ前の質問にもどる" title="ひとつ前の質問にもどる" className="border border-line px-3 py-1 text-xs font-bold tracking-wider text-haze hover:border-haze hover:text-mist sm:text-sm">
+                  &lt;&lt; 戻る
+                </button>
+              ) : (
+                <span />
+              )}
+              <button type="button" onClick={() => setClosedKey(popupKey)} className="border border-line px-3 py-1 text-xs tracking-wider text-haze hover:border-haze hover:text-mist" aria-label="画面を閉じて考える(時間は止まったまま)">
+                閉じて、考える ✕
               </button>
-            )}
-            <button type="button" onClick={() => setClosedKey(popupKey)} className="absolute right-3 top-3 border border-line px-3 py-1 text-xs tracking-wider text-haze hover:border-haze hover:text-mist" aria-label="画面を閉じて考える(時間は止まったまま)">
-              閉じて、考える ✕
-            </button>
-            <h3 className="text-center text-2xl font-bold tracking-[0.2em] text-warm">{soften(question?.title ?? "")}</h3>
+            </div>
+            <h3 className="text-center text-xl font-bold tracking-[0.2em] text-warm sm:text-2xl">{soften(question?.title ?? "")}</h3>
             {trail.length > 0 && (
-              <p className="mx-auto mt-2 w-fit text-left text-xs leading-6 tracking-wider text-dim">
+              <p className="mx-auto mt-2 text-center text-xs leading-6 tracking-wider text-dim sm:w-fit sm:text-left">
                 {t.picked}: {trail.map((x) => x.label).join(" › ")}
               </p>
             )}
-            <p className="mx-auto mt-3 w-fit text-left text-lg font-bold leading-8 tracking-wider text-mist">{soften(question?.prompt ?? "")}</p>
+            <p className="mx-auto mt-3 text-center text-base font-bold leading-7 tracking-wider text-mist sm:w-fit sm:text-left sm:text-lg sm:leading-8">{soften(question?.prompt ?? "")}</p>
             {env.econ !== 0 && (env.econ < -0.6 || env.econ > 0.6) && (
               <p className="mt-2 text-center text-xs tracking-wider" style={{ color: econColor }}>
                 {t.econ}: {env.econLabel}
               </p>
             )}
-            <div className="mt-6 flex flex-col gap-3">
+            <div className="mt-4 flex flex-col gap-2.5 sm:mt-6 sm:gap-3">
               {options.map((o) => (
-                <button key={o.id} type="button" disabled={Boolean(lockReason(o))} onClick={() => pick(o)} className={`${chipClass(false)} text-left ${lockReason(o) ? "!cursor-not-allowed opacity-45" : ""}`}>
+                <button key={o.id} type="button" disabled={Boolean(lockReason(o))} onClick={() => pick(o)} className={`${chipClass(false)} text-center sm:text-left ${lockReason(o) ? "!cursor-not-allowed opacity-45" : ""}`}>
                   <span className="font-bold">{soften(o.label)}</span>
                   {lockReason(o) && <span className="mt-1 block text-xs font-bold leading-6 tracking-wider" style={{ color: "var(--color-down)" }}>{lockReason(o)}</span>}
                   {o.detail && <span className="mt-1 block text-xs leading-6 tracking-wider text-dim">{soften(o.detail(p, env, jpData))}</span>}

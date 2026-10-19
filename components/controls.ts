@@ -1,6 +1,6 @@
 export const chipClass = (active: boolean) =>
   `border px-4 py-2 text-sm leading-6 tracking-wider transition-colors ${
-    active ? "border-warm bg-warm/10 text-mist" : "border-line text-haze hover:border-haze hover:text-mist"
+    active ? "border-warm bg-[color-mix(in_srgb,var(--color-warm)_14%,var(--color-panel))] text-mist" : "border-line bg-panel/90 text-haze hover:border-haze hover:text-mist"
   }`;
 
 export const numberInputClass =

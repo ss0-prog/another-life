@@ -833,3 +833,17 @@ html[data-tod="day"] footer .text-warm {
 html[data-tod="day"] .page-card {
   background-color: rgba(255, 255, 255, 0.88);
 }
+
+/* 昼夜の切り替え中(5秒かけて色が変わる間)は、毎コマ、描きなおしが重い「文字の影」と「背景のぼかし」を、いったん止める。
+   雨や雷のときや、シミュレーション画面で、動きがカクつくのを防ぐ。終わったあと、影はやわらかく戻す。 */
+html[data-tod-lock] main,
+html[data-tod-lock] footer {
+  text-shadow: none;
+}
+html[data-tod-lock] [class*="backdrop-blur"] {
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+html:not([data-tod-lock]) :is(main, footer) {
+  transition: text-shadow 0.9s ease;
+}

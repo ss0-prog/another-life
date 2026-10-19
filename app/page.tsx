@@ -243,7 +243,7 @@ export default function Home() {
                 <p className="text-xs tracking-[0.5em] text-haze">{t.home.ifTitle}</p>
                 <div className="mt-5 space-y-5 text-sm leading-8 tracking-[0.08em] text-haze">
                   {t.home.ifBody.map((line, i) => (
-                    <p key={i} className={`whitespace-pre-line ${i === 0 || i === t.home.ifBody.length - 1 ? "text-mist" : ""}`}>{line}</p>
+                    <p key={i} className={`whitespace-pre-line ${i === 0 || i === t.home.ifBody.length - 1 ? "text-mist" : ""}`}>{i === 0 ? <span className="fancy-underline">{line}</span> : line}</p>
                   ))}
                 </div>
               </motion.div>

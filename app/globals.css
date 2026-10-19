@@ -925,3 +925,16 @@ html[data-tod="day"] footer .text-warm {
 html[data-tod="day"] .page-card {
   background-color: rgba(255, 255, 255, 0.88);
 }
+
+/* 印象に残したい一文の下線: あたたかい色から、つめたい色へ、両はしが、すっと消える、細い線(二つの宇宙の色)。折り返しても、行ごとに、かかる */
+.fancy-underline {
+  background-image:
+    linear-gradient(90deg, transparent 0%, var(--color-warm) 16%, var(--color-cool) 84%, transparent 100%),
+    linear-gradient(90deg, transparent 0%, color-mix(in srgb, var(--color-warm) 26%, transparent) 20%, color-mix(in srgb, var(--color-cool) 26%, transparent) 80%, transparent 100%);
+  background-repeat: no-repeat;
+  background-position: 0 100%, 0 100%;
+  background-size: 100% 2px, 100% 7px;
+  padding-bottom: 0.5em;
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+}

@@ -865,7 +865,7 @@ export function Ambient() {
         className="absolute inset-x-0 bottom-0 h-[70%]"
         style={{
           background: "radial-gradient(ellipse 85% 75% at 50% 100%, rgba(255,176,105,0.9) 0%, rgba(255,150,100,0.35) 38%, rgba(255,150,100,0) 72%)",
-          opacity: phase === "dawn" ? HORIZON_GLOW[weather] : phase === "dusk" ? HORIZON_GLOW[weather] * 0.65 : 0,
+          opacity: phase === "dawn" ? HORIZON_GLOW[weather] : phase === "dusk" ? HORIZON_GLOW[weather] * 0.45 : 0,
           transition: armed ? `opacity ${ease}` : "none",
         }}
       />

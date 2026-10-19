@@ -516,9 +516,9 @@ export const branches: CountryData["branches"] = {
     defaultAge: 28,
     minAge: 20,
     options: [
-      { id: "married", label: "結婚する", matches: (s) => s.married, apply: (p, r, d) => ((p.married = true), (p.withParents = false), (p.partner = randomPartner(r, d, p.age, "married", p.mbti)), `${fullName(p.partner)}さんと結婚した`) },
+      { id: "married", label: "結婚する", matches: (s) => s.married, apply: (p, r, d) => ((p.married = true), (p.withParents = false), (p.partner = randomPartner(r, d, p.age, "married", p.mbti, p)), `${fullName(p.partner)}さんと結婚した`) },
       { id: "single", label: "ひとりで生きていく", matches: (s) => !s.married, apply: (p) => ((p.stayingSingle = true), (p.married = false), (p.marriageBias = 0.1), "ひとりで生きていくと決めた") },
-      { id: "child", label: "子どもを持つ", matches: (s) => s.kids > 0, apply: (p, r, d) => ((p.married = true), (p.childWish = 2), (p.partner = randomPartner(r, d, p.age, "married", p.mbti)), `${fullName(p.partner)}さんと結婚して、子どもを持つと決めた`) },
+      { id: "child", label: "子どもを持つ", matches: (s) => s.kids > 0, apply: (p, r, d) => ((p.married = true), (p.childWish = 2), (p.partner = randomPartner(r, d, p.age, "married", p.mbti, p)), `${fullName(p.partner)}さんと結婚して、子どもを持つと決めた`) },
       { id: "childfree", label: "子どもを持たない", matches: (s) => s.kids === 0 && s.married, apply: (p) => ((p.childFree = true), "子どもを持たない暮らしを選んだ") },
     ] satisfies BranchOption[],
     motives: [
@@ -838,7 +838,9 @@ export const turningPoints: TurningPoint[] = [
     prompt: "学びの先に、どんな道を選ぶだろう。大学院、留学、仕事探し、就職など、選べます。",
     promptFn: (p) => {
       const g = p.gradAge ?? (p.edu === "grad" ? 24 : p.edu === "univ" ? 22 : p.edu === "vocational" ? 20 : 18);
-      return p.age < g ? "一年後に、卒業が控えています。卒業したあと、どうするか。大学院、留学、仕事探し、就職など、いまのうちに決めておきましょう(卒業のときから、その道に進みます)。" : "学びの先に、どんな道を選ぶだろう。大学院、留学、仕事探し、就職など、選べます。";
+      // 大学院は、大学を出た人だけが選べる。大学院を出た人には、書かない。
+      const ways = p.edu === "univ" ? "大学院、留学、仕事探し、就職など" : "留学、仕事探し、就職など";
+      return p.age < g ? `一年後に、卒業が控えています。卒業したあと、どうするか。${ways}、いまのうちに決めておきましょう(卒業のときから、その道に進みます)。` : `学びの先に、どんな道を選ぶだろう。${ways}、選べます。`;
     },
     // 留学中は、聞かない(留学を終えたときに、次の道を選ぶ)。
     // 卒業してから、6年までの間だけ。長く職についていない大人や、専業主婦(夫)などには、聞かない。
@@ -898,7 +900,7 @@ export const turningPoints: TurningPoint[] = [
         id: "abroad",
         label: "留学する",
         apply: () => "",
-        detail: () => "語学留学なら1年、大学や専門学校なら3年(大学院への留学は、「大学院に進学する」から選べます)。費用は、家計と奨学金で、まかなえる範囲の道だけが出ます。留学を終えたら、現地で働くか、国を変えるか、帰国するかを選べます。",
+        detail: (p) => `語学留学なら1年、大学や専門学校なら3年${p.edu === "univ" ? "(大学院への留学は、「大学院に進学する」から選べます)" : ""}。費用は、家計と奨学金で、まかなえる範囲の道だけが出ます。留学を終えたら、現地で働くか、国を変えるか、帰国するかを選べます。`,
         children: () => ({
           title: "どんな留学?",
           prompt: "留学のかたちを選びます。そのあと、行き先の国を選びます。",
@@ -1001,7 +1003,7 @@ export const turningPoints: TurningPoint[] = [
           prompt: "働きながら学ぶか、離れて学ぶか。",
           options: [
             opt("cert", "働きながら、資格をとる", (p) => ((p.payMult *= 1.04), bump(p, { learn: 8, money: -2, health: -2 }), "働きながら、資格の勉強を続けた"), { detail: () => "費用は数万〜数十万円。時間のやりくりが大変。" }),
-            opt("school", "仕事を減らして、大学院に通う", (p) => ((p.payMult *= 1.08), bump(p, { learn: 12, money: -8 }), "仕事を減らして、大学院に通い始めた"), { detail: () => "学費と収入減で、数年は家計が苦しくなる。" }),
+            opt("school", "仕事を減らして、大学院に通う", (p) => ((p.payMult *= 1.08), bump(p, { learn: 12, money: -8 }), "仕事を減らして、大学院に通い始めた"), { show: (q) => q.edu !== "grad", detail: () => "学費と収入減で、数年は家計が苦しくなる。" }),
           ],
         }),
       },

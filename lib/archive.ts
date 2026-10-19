@@ -8,7 +8,7 @@ import { createRng, pick } from "@/lib/sim/rng";
 import type { BranchKind, CurrentSelf, LifeSummary, Setup } from "@/lib/sim/types";
 import type { Echo } from "@/lib/types";
 
-// 公開してよい形(持病・MBTI・自由記述・細かい地名を除いたもの)の人生。
+// 公開してよい形(持病・MBTI・性自認・惹かれる相手・自由記述・細かい地名を除いたもの)の人生。
 export type PublicLife = Pick<LifeSummary, "deathAge" | "stats" | "assets"> & { echo: Echo; deathCause?: string };
 
 export type ArchiveEntry = {

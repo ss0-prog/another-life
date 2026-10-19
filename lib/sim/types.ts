@@ -21,6 +21,11 @@ export type Edu = "univ" | "vocational" | "hs_work" | "grad";
 export type Money = "tight" | "modest" | "comfortable" | "ample";
 export type Housing = "parents" | "rent_single" | "rent_family" | "owned_house" | "owned_flat";
 export type Sex = "female" | "male" | "none";
+// 性自認(自分をどんな性だと感じているか)と、恋愛・性的指向(どんな人に惹かれるか)。
+// sex(生まれたときの性別)は、平均寿命や賃金の統計の計算に使う。この二つは、恋人や家族の描き方に使う。
+export type GenderId = "cis" | "trans_man" | "trans_woman" | "nonbinary" | "unsure";
+export type Orientation = "hetero" | "homo" | "bi" | "ace";
+export type PartnerGender = "man" | "woman" | "nonbinary";
 export type Condition = "none" | "heart" | "diabetes" | "asthma" | "sensory" | "other";
 export type Ailment = "none" | "hypertension" | "diabetes2" | "mental" | "cancer" | "heart_acq" | "intractable" | "chronic_pain" | "other";
 export type School = "none" | "hs" | "vocational" | "univ" | "grad";
@@ -61,6 +66,8 @@ export type CurrentSelf = {
   age: number;
   prefecture: string; // 生まれた都道府県
   sex: Sex;
+  genderId?: GenderId; // 性自認(書かなければ、生まれたときの性別と同じ)
+  orientation?: Orientation; // 恋愛・性的指向(書かなければ、異性)
   condition: Condition;
   mbti: string | null;
   edu: Edu;
@@ -140,6 +147,8 @@ export type Person = {
   // 在学中の人の、卒業する年齢(なければ標準の年齢)。
   gradAge: number | null;
   sex: Sex;
+  genderId?: GenderId;
+  orientation?: Orientation;
   condition: Condition;
   mbti: string | null;
   background: Background;
@@ -208,7 +217,7 @@ export type Debt = { lender: LenderId; amount: number; rate: number; since: numb
 export type LenderDef = { id: LenderId; label: string; rate: number; bonds: number; joy: number; health: number; note: string };
 
 // 恋人・配偶者。名前は、乱数で作る。
-export type Partner = { given: string; family: string; since: number; status: "crush" | "dating" | "married" | "ex"; mbti?: string | null };
+export type Partner = { given: string; family: string; since: number; status: "crush" | "dating" | "married" | "ex"; mbti?: string | null; gender?: PartnerGender; sex?: "female" | "male" };
 
 // 海外で暮らしているとき。country は国の名前。収入・物価は、日本を1としたときの倍率。
 // 留学中は study、在留資格は visa(留学 → 就労 → 永住 → 国籍)。permAt は、永住権が認められる年齢。

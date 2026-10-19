@@ -12,7 +12,7 @@ import { SUMMIT_BY_JOB, SUMMIT_BY_OCC, summitChance } from "@/lib/sim/data/jp-su
 import { savingsRate } from "@/lib/sim/economy";
 import { LENDERS, LENDER_ORDER, lenderAvailable } from "@/lib/sim/data/jp-debt";
 import { fitMult, fitScore } from "@/lib/sim/mbti";
-import { jobLabel, leaveLocal, moveHome, kidCall, kidTitle, condOf, addDebt, assignJob, bump, chargeWithDebt, clamp, debtTotal, fullName, lifeLabel, moveTo, newCity, randomPartner } from "@/lib/sim/helpers";
+import { jobLabel, leaveLocal, moveHome, kidCall, kidTitle, condOf, addDebt, assignJob, bump, chargeWithDebt, clamp, debtTotal, fullName, lifeLabel, moveTo, newCity, noBearer, randomPartner } from "@/lib/sim/helpers";
 import { economyAt } from "@/lib/sim/economy";
 import { WEATHER_EVENT, weatherAt } from "@/lib/sim/weather";
 import { marketOf, priceAt } from "@/lib/sim/market";
@@ -170,6 +170,8 @@ function personAt(self: CurrentSelf, seed: number, age: number, data: CountryDat
     // 在学中の人は、「あと何年で卒業」と答えた年が、卒業の年になる(浪人や留年があっても、その答えどおり)。分かれた人生でも、分かれた時点で18歳以上なら、すでに在学していたので、同じ年に卒業する。
     gradAge: (self.school ?? "none") !== "none" && (real || age >= 18) ? self.age + Math.max(0, self.yearsLeft ?? 1) : null,
     sex: self.sex,
+    genderId: self.genderId,
+    orientation: self.orientation,
     condition: self.condition,
     mbti: self.mbti,
     background,
@@ -189,11 +191,11 @@ function personAt(self: CurrentSelf, seed: number, age: number, data: CountryDat
     bankrupt: null,
     abroad: null,
     partner: married
-      ? namedPartner(randomPartner(rng, data, Math.max(20, age - 4), "married", self.mbti), self.partnerName)
+      ? namedPartner(randomPartner(rng, data, Math.max(20, age - 4), "married", self.mbti, self), self.partnerName)
       : real && marital === "partnered"
-        ? namedPartner(randomPartner(rng, data, Math.max(20, age - 2), "dating", self.mbti), self.partnerName)
+        ? namedPartner(randomPartner(rng, data, Math.max(20, age - 2), "dating", self.mbti, self), self.partnerName)
         : real && (marital === "divorced" || marital === "widowed")
-          ? randomPartner(rng, data, Math.max(20, age - 8), "ex", self.mbti)
+          ? randomPartner(rng, data, Math.max(20, age - 8), "ex", self.mbti, self)
           : null,
     scheduled: [],
     mood: "ok",
@@ -1319,7 +1321,7 @@ export function tick(state: GameState, data: CountryData = jpData): GameState {
   }
 
   if (!p.married && a >= 20) {
-    const rate = interpolate(data.curves.marriageRate, a) * (0.8 + p.extra.charm / 250) * data.regionFactor.marriage[p.region] * (p.stayingSingle ? 0.1 : 1) * p.marriageBias * mbtiSocial * (0.7 + (p.stats.bonds / 100) * 0.6) * (datingYears < 0 ? 1 : datingYears < 1 ? 0.25 : datingYears < 2 ? 0.8 : 1.8);
+    const rate = interpolate(data.curves.marriageRate, a) * (p.orientation === "ace" ? 0.4 : 1) * (0.8 + p.extra.charm / 250) * data.regionFactor.marriage[p.region] * (p.stayingSingle ? 0.1 : 1) * p.marriageBias * mbtiSocial * (0.7 + (p.stats.bonds / 100) * 0.6) * (datingYears < 0 ? 1 : datingYears < 1 ? 0.25 : datingYears < 2 ? 0.8 : 1.8);
     const proposing = p.partner?.status === "dating" && p.proposeAt !== null && a > p.proposeAt;
     if (p.partner?.status === "dating") {
       // 結婚の話は、付き合っている人とだけ。付き合って1年以上たってから(自分から切り出す場合を除く)。
@@ -1337,7 +1339,8 @@ export function tick(state: GameState, data: CountryData = jpData): GameState {
     }
   }
   if (p.married && !p.childFree && p.kids < 3 && a <= 44) {
-    const rate = interpolate(data.curves.birthRate, a) * (p.kids === 0 ? 1 : 0.7) * p.childWish;
+    // 二人とも産める体でないときは、養子縁組や里親などの道になるので、子どもを持つ人は少なくなる(設計上の仮定)。
+    const rate = interpolate(data.curves.birthRate, a) * (p.kids === 0 ? 1 : 0.7) * p.childWish * (noBearer(p) ? 0.25 : 1);
     if (roll(seed, a, S.birth) < rate && !next.queue.includes("have_child")) {
       // 子どもを持つかどうかも、自分で選ぶ。
       push(p.kids === 0 ? `${p.partner ? p.partner.given + "さん" : "パートナー"}と、子どもを持つかどうかを話し合った` : "もうひとり子どもを持つかどうか、家族で話し合った", 55);
@@ -1891,8 +1894,8 @@ export function summarize(state: GameState, data: CountryData = jpData): LifeSum
     timeline: pickTimeline(state.events, state.seed),
     scene: data.compose(p, incomeBand(rng, data, p, economyAt(state.seed, p.age)), rng, data),
   };
-  // 公開用: 持病・MBTI の情報を消して情景を作り直し、自由記述は「近い方向」に置き換え、地名は地域の区分だけにする。
-  const safePerson: Person = { ...p, condition: "none", mbti: null };
+  // 公開用: 持病・MBTI・性自認・惹かれる相手の情報を消して情景を作り直し、自由記述は「近い方向」に置き換え、地名は地域の区分だけにする。
+  const safePerson: Person = { ...p, condition: "none", mbti: null, genderId: undefined, orientation: undefined };
   const tagLabel = (t: Tag) => data.tags.find((x) => x.id === t)?.label ?? "";
   const safeEvents = state.events.map((e) => (e.free ? { ...e, event: `自分の言葉で選んだ(${e.label || (e.tag ? tagLabel(e.tag) : "")})` } : e));
   const places = [...Object.values(data.cities).flat(), ...data.prefectures.map((x) => x.name), ...data.countries.flatMap((c) => [c.name, ...c.cities])].sort((x, y) => y.length - x.length);

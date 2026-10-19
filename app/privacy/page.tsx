@@ -12,7 +12,7 @@ export default function PrivacyPage() {
   return (
     <PageShell title="プライバシー" lead="入力された情報を、どこで、どのように扱うのかをまとめています。">
       <Section title="入力した内容">
-        <p>年齢、出生地、性別、先天性の持病、MBTI、仕事、貯金などの入力は、あなたの端末(ブラウザ)の中でのみ計算に使われ、サーバーには送信されません。</p>
+        <p>年齢、出生地、性別、性自認、惹かれる相手、先天性の持病、MBTI、仕事、貯金などの入力は、あなたの端末(ブラウザ)の中でのみ計算に使われ、サーバーには送信されません。</p>
       </Section>
 
       <Section title="結果の保存">
@@ -28,7 +28,7 @@ export default function PrivacyPage() {
         <p>ログインしたうえで、結果の保存時に「公開する」を選んだ場合に限り、結果が<Link href="/archive" className="underline underline-offset-4 hover:text-warm">みんなの人生</Link>に掲載されます。</p>
         <ul className="list-disc space-y-3 pl-6">
           <li>公開されるのは、二つの人生の要約(年表、情景、能力値、最終的な資産)と、ターニングポイントの種類および年齢です。</li>
-          <li>先天性の持病、MBTI、年齢や出生地などの入力内容は公開されません。自由記述の文章は「自分の言葉で選んだ」とだけ表示し、地名は伏せます。</li>
+          <li>先天性の持病、MBTI、性自認、惹かれる相手、年齢や出生地などの入力内容は公開されません。自由記述の文章は「自分の言葉で選んだ」とだけ表示し、地名は伏せます。</li>
           <li>公開した結果は、ご本人だけがあとから取り下げられます。</li>
         </ul>
       </Section>

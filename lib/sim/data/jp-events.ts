@@ -3,7 +3,7 @@ import { industryQuestion } from "@/lib/sim/data/jp-industry";
 import { applyChangeIncome, changeIncome, incomeOf, round10 } from "@/lib/sim/salary";
 import { STUDY_MAIN, STUDY_OTHERS, countryById } from "@/lib/sim/data/jp-countries";
 import type { TurningQuestion } from "@/lib/sim/types";
-import { addDebt, assignJob, bump, chargeWithDebt, fullName, kidCall, moveAbroad, moveHome, moveTo, npcMbti, partnerCall, randomPartner } from "@/lib/sim/helpers";
+import { addDebt, assignJob, bump, chargeWithDebt, fullName, kidCall, moveAbroad, moveHome, moveTo, bearerOf, noBearer, npcMbti, partnerCall, randomPartner } from "@/lib/sim/helpers";
 import { compat, compatMark, idealChance, isE, isJ, isN, isT, IDEAL, typeCall } from "@/lib/sim/mbti";
 import { interpolate, weighted } from "@/lib/sim/rng";
 import type { AutoEvent, CountryData, EventQuestionDef, GameState, Occ, Person, TurningOption } from "@/lib/sim/types";
@@ -317,7 +317,7 @@ export const lifeEvents: AutoEvent[] = [
   // ---- 恋愛 ----
   ev("crush", (p) => (!p.married && inAge(p, 16, 45) && (!p.partner || p.partner.status === "ex") ? 1.2 : 0), (s, r, d) => {
     const p = s.person;
-    p.partner = randomPartner(r, d, p.age, "crush", p.mbti);
+    p.partner = randomPartner(r, d, p.age, "crush", p.mbti, p);
     bump(p, { bonds: 2 });
     return `気になる人ができた。${typeCall(p.partner.mbti)}の${fullName(p.partner)}さんのことが、気になりはじめた${p.mbti && p.partner.mbti ? `(相性 ${compatMark(compat(p.mbti, p.partner.mbti))} ${compat(p.mbti, p.partner.mbti)}%)` : ""}`;
   }, 42),
@@ -556,7 +556,7 @@ const meetResult = (p: Person, r: () => number, d: CountryData, odds: MeetOdds, 
       bump(p, { bonds: 3, joy: 3 });
       return `${where}で、気の合う人と話が弾んだ`;
     }
-    p.partner = randomPartner(r, d, p.age, "crush", p.mbti);
+    p.partner = randomPartner(r, d, p.age, "crush", p.mbti, p);
     bump(p, { bonds: 4, joy: 6 });
     return `${where}で、${p.partner.given}さんと出会い、連絡先を交換した。気になる存在になった`;
   }
@@ -633,10 +633,13 @@ export const eventQuestions: EventQuestionDef[] = [
     weight: (p) => {
       const pt = p.partner;
       if (!pt || (pt.status !== "dating" && pt.status !== "married") || recent(p, "pregnancy", 2)) return 0;
-      if (p.sex === "none") return 0;
+      // 子どもを産める体の人が、二人のどちらかにいるときだけ。(ふたりとも男性の体なら、この出来事は起きない)
+      const selfBears = p.sex === "female";
+      const partnerBears = (pt.sex ?? (p.sex === "male" ? "female" : "male")) === "female";
+      if (!selfBears && !partnerBears) return 0;
       if (p.married && (p.childFree || p.kids >= 3)) return 0;
       const fert = p.age <= 34 ? 1 : p.age <= 40 ? Math.max(0.15, 1 - (p.age - 34) * 0.14) : 0;
-      const inRange = p.sex === "female" ? inAge(p, 18, 40) : inAge(p, 18, 50);
+      const inRange = selfBears ? inAge(p, 18, 40) : inAge(p, 18, 50);
       return inRange ? (pt.status === "dating" ? 1.2 : 0.3) * fert : 0;
     },
     // 相手の気持ち(賛成・迷い・反対)は、相性・つながり・結婚しているかで、決まる。
@@ -647,12 +650,15 @@ export const eventQuestions: EventQuestionDef[] = [
       const x = r();
       p.history.stance = x < support ? 2 : x < support + 0.25 ? 1 : 0;
       p.history.pregnancy = p.age;
+      // 産む人: 自分(1)か、相手(0)か。二人とも産める体なら、半々。
+      const b = bearerOf(r, p, p.partner ? { ...p.partner, sex: p.partner.sex ?? (p.sex === "male" ? "female" : "male") } : null);
+      p.history.bearer = b ?? (p.sex === "female" ? 1 : 0);
     },
-    intro: (p) => (p.sex === "female" ? `妊娠していることが、わかった` : `${p.partner ? p.partner.given + "さん" : "パートナー"}から、妊娠したことを、告げられた`),
+    intro: (p) => (p.history.bearer === 1 ? `妊娠していることが、わかった` : `${p.partner ? p.partner.given + "さん" : "パートナー"}から、妊娠したことを、告げられた`),
     question: (p) => {
       const n = p.partner ? `${p.partner.given}さん` : "パートナー";
       const st = p.history.stance ?? 1;
-      const female = p.sex === "female";
+      const female = p.history.bearer === 1;
       const stanceText = st === 2 ? `${n}は、産んで、一緒に育てたいと言っている。` : st === 1 ? `${n}は、気持ちが決まらず、迷っている。` : `${n}は、いまは産むことに、反対している。`;
       return {
         title: female ? "妊娠がわかった" : `${n}の妊娠`,
@@ -666,7 +672,7 @@ export const eventQuestions: EventQuestionDef[] = [
             p.kids += 1;
             const sex: "boy" | "girl" = r() < 0.5 ? "boy" : "girl";
             p.kidList.push({ name: "", bornAge: p.age, sex });
-            if (p.sex === "female") {
+            if (p.history.bearer === 1) {
               // 出産・育児で、仕事を休む。
               bump(p, { health: -4, joy: 8, bonds: 6 });
               if (p.occ !== null && p.occ !== "retired") { p.payMult *= 0.94; p.extra.career = Math.max(0, p.extra.career - 3); }
@@ -696,7 +702,7 @@ export const eventQuestions: EventQuestionDef[] = [
           opt("no", female ? "産まない選択をする" : "相手の気持ちを尊重し、産まない選択を受け入れる", (p, r) => {
             const st = p.history.stance ?? 1;
             const n = p.partner ? `${p.partner.given}さん` : "パートナー";
-            bump(p, { joy: -8, health: p.sex === "female" ? -4 : 0, bonds: -2 });
+            bump(p, { joy: -8, health: p.history.bearer === 1 ? -4 : 0, bonds: -2 });
             p.extra.stress = Math.min(100, p.extra.stress + 10);
             if (st === 2 && p.partner && r() < 0.4) {
               p.partner.status = "ex";
@@ -722,7 +728,7 @@ export const eventQuestions: EventQuestionDef[] = [
     weight: () => 0,
     intro: () => "子どもが生まれて、仕事と育児の、両立を考えた",
     question: (p) => {
-      const female = p.sex === "female";
+      const female = p.history.bearer === undefined ? p.sex === "female" : p.history.bearer === 1;
       return {
         title: "育児休業を取るか",
         prompt: female ? "仕事を休んで、子育てに専念するか、早めに復帰するかを、決めます。" : "育児休業を取って、子育てに加わるか、仕事を続けるかを、決めます。",
@@ -998,7 +1004,7 @@ export const eventQuestions: EventQuestionDef[] = [
     weight: (p) => (!p.married && inAge(p, 15, 42) && p.partner?.status !== "dating" && !recent(p, "askedOut", 4) ? 0.9 * (0.6 + p.extra.charm / 100) : 0),
     prepare: (s, r, d) => {
       const p = s.person;
-      if (!p.partner || p.partner.status === "ex") p.partner = randomPartner(r, d, p.age, "crush", p.mbti);
+      if (!p.partner || p.partner.status === "ex") p.partner = randomPartner(r, d, p.age, "crush", p.mbti, p);
     },
     intro: (p) => (p.partner ? `${fullName(p.partner)}さんから、付き合ってほしいと言われた` : "だれかに、付き合ってほしいと言われた"),
     question: (p) => ({
@@ -1107,7 +1113,7 @@ export const eventQuestions: EventQuestionDef[] = [
         opt("meet", "新しい出会いを探し、パートナーをもつ", (p, r, d) => {
           mark(p, "remarry");
           if (r() < 0.55) {
-            p.partner = randomPartner(r, d, p.age, "dating", p.mbti);
+            p.partner = randomPartner(r, d, p.age, "dating", p.mbti, p);
             bump(p, { bonds: 8, joy: 8 });
             return `${fullName(p.partner)}さんと出会い、これからを、ともに歩むことになった`;
           }
@@ -1398,18 +1404,23 @@ export const eventQuestions: EventQuestionDef[] = [
     intro: () => "子どものことを考えた",
     question: (p) => ({
       title: p.kids === 0 ? "子どもを持つか?" : "もうひとり、子どもを持つか?",
-      prompt: "家族のかたちを、どうするだろう。",
+      prompt: noBearer(p) ? "ふたりとも、子どもを産める体ではありません。養子縁組や里親など、家族を迎える方法もあります。家族のかたちを、どうするだろう。" : "家族のかたちを、どうするだろう。",
       options: [
-        opt("yes", p.kids === 0 ? "子どもを授かりたい" : "もうひとり授かりたい", (p, r) => {
+        opt("yes", noBearer(p) ? (p.kids === 0 ? "子どもを迎えたい(養子縁組・里親など)" : "もうひとり迎えたい") : p.kids === 0 ? "子どもを授かりたい" : "もうひとり授かりたい", (p, r) => {
           p.kids += 1;
           // 男子か女子かは、50%ずつ。
           const sex: "boy" | "girl" = r() < 0.5 ? "boy" : "girl";
           p.kidList.push({ name: "", bornAge: p.age, sex });
-          bump(p, { bonds: 6, joy: 8, money: -3, health: p.sex === "female" ? -4 : -1 });
-          // 出産・育児で、女性は、仕事を休むことが多く、収入とキャリアに響きやすい。
-          if (p.sex === "female" && p.occ !== null && p.occ !== "retired") { p.payMult *= 0.95; p.extra.career = Math.max(0, p.extra.career - 3); }
+          const adopted = noBearer(p);
+          // 産む人は、自分か相手か。二人とも産める体なら、半々。
+          const selfBears = !adopted && p.sex === "female" && (p.partner?.sex !== "female" || r() < 0.5);
+          bump(p, { bonds: 6, joy: 8, money: -3, health: selfBears ? -4 : -1 });
+          // 出産・育児で、産んだ人は、仕事を休むことが多く、収入とキャリアに響きやすい。
+          if (selfBears && p.occ !== null && p.occ !== "retired") { p.payMult *= 0.95; p.extra.career = Math.max(0, p.extra.career - 3); }
+          p.history.bearer = selfBears ? 1 : 0;
           p.history.leaveAsk = p.age;
-          return p.kids === 1 ? `第一子(${sex === "boy" ? "男子" : "女子"})が生まれた` : `第${p.kids}子(${sex === "boy" ? "男子" : "女子"})が生まれた`;
+          const nth = p.kids === 1 ? "第一子" : `第${p.kids}子`;
+          return adopted ? `${nth}(${sex === "boy" ? "男子" : "女子"})を、家族に迎えた` : `${nth}(${sex === "boy" ? "男子" : "女子"})が生まれた`;
         }, { auto: true, detail: () => "毎日はにぎやかになるが、お金・時間・体力の負担も大きい。" }),
         opt("later", "もう少し先にする", (p) => {
           p.childWish *= 0.7;
@@ -1457,7 +1468,7 @@ export const eventQuestions: EventQuestionDef[] = [
     // 気になる人がいなければ、ここで出会う(名前は、乱数で決まる)。
     prepare: (s, r, d) => {
       const p = s.person;
-      if (!p.partner || p.partner.status === "ex") p.partner = randomPartner(r, d, p.age, "crush", p.mbti);
+      if (!p.partner || p.partner.status === "ex") p.partner = randomPartner(r, d, p.age, "crush", p.mbti, p);
     },
     intro: (p) => (p.partner ? `気になる人の${fullName(p.partner)}さんと、距離が縮まった` : "気になる人と、距離が縮まった"),
     question: (p) => ({

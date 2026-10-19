@@ -313,7 +313,7 @@ const rules: IntentRule[] = [
       p.married = true;
       p.withParents = false;
       p.stayingSingle = false;
-      const spouse = p.partner && p.partner.status === "dating" ? p.partner : randomPartner(rng, data, p.age, "dating", p.mbti);
+      const spouse = p.partner && p.partner.status === "dating" ? p.partner : randomPartner(rng, data, p.age, "dating", p.mbti, p);
       spouse.status = "married";
       p.partner = spouse;
       bump(p, { bonds: 8, money: -3 });
@@ -378,7 +378,7 @@ const rules: IntentRule[] = [
       bump(p, { bonds: 4 });
       // 「恋人」「彼氏」などの言葉があれば、交際相手が現れる(名前は、乱数で決まる)。
       if (/恋人|彼氏|彼女|同棲/.test(m.input ?? "") && (!p.partner || p.partner.status === "ex")) {
-        p.partner = randomPartner(rng, data, p.age, "dating", p.mbti);
+        p.partner = randomPartner(rng, data, p.age, "dating", p.mbti, p);
         return `${fullName(p.partner)}さんと出会い、交際が始まった`;
       }
       return "出会いを求めて、動き始めた";

@@ -81,6 +81,12 @@ export function PlayScreen({ t, initial, birthYear, selfAge, ghost, dev = false,
 
   // いまの年齢の空模様を、背景に伝える。再生画面を離れたら、晴れに戻す。
   useEffect(() => {
+    // 見た目の確認用: ?weather=rain のように指定されていれば、その空模様のまま、変えない。
+    const forced = new URLSearchParams(window.location.search).get("weather");
+    if (forced === "clear" || forced === "cloudy" || forced === "rain" || forced === "snow" || forced === "thunder") {
+      setWeather(forced);
+      return;
+    }
     setWeather(weatherAt(state.seed, state.person.age));
   }, [state.seed, state.person.age]);
   useEffect(() => () => setWeather("clear"), []);

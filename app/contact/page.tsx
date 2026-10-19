@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { PageShell } from "@/components/PageShell";
 import { primaryButtonClass } from "@/components/controls";
 import { contactAvailable, sendContact } from "@/lib/contact";
@@ -13,6 +13,15 @@ export default function ContactPage() {
   const [message, setMessage] = useState("");
   const [botcheck, setBotcheck] = useState(false);
   const [status, setStatus] = useState<Status>("idle");
+  const [popup, setPopup] = useState<Status | null>(null);
+
+  // 結果は、ポップアップで大きく見せる。Esc で閉じられる。
+  useEffect(() => {
+    if (!popup) return;
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && setPopup(null);
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [popup]);
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -20,6 +29,7 @@ export default function ContactPage() {
     setStatus("sending");
     const r = await sendContact({ name, reply, message, botcheck });
     setStatus(r);
+    setPopup(r);
     if (r === "sent") {
       setName("");
       setReply("");
@@ -59,12 +69,30 @@ export default function ContactPage() {
               <span className="absolute inset-0 border border-warm/60 bg-warm/5 transition-colors group-hover:border-warm group-hover:bg-warm/10" />
               {status === "sending" ? "送信しています" : "送信する"}
             </button>
-            {status === "sent" && <p role="status" className="text-sm tracking-wider text-haze">送信しました。ありがとうございます。</p>}
-            {status === "mailto" && <p role="status" className="text-sm tracking-wider text-haze">メールソフトを開きました。そちらから送信してください。</p>}
-            {status === "wait" && <p role="status" className="text-sm tracking-wider text-haze">続けて送るときは、少し時間をあけてください(1分ほど)。</p>}
-            {status === "failed" && <p role="alert" className="text-sm tracking-wider text-haze">送信できませんでした。時間をおいて、もう一度お試しください。</p>}
           </div>
         </form>
+      )}
+      {popup && popup !== "idle" && popup !== "sending" && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-void/75 px-6 backdrop-blur-sm" onClick={() => setPopup(null)}>
+          <div role="dialog" aria-modal="true" aria-labelledby="contact-popup-title" className="w-full max-w-md border border-line bg-panel px-7 py-9 text-center shadow-2xl" onClick={(e) => e.stopPropagation()}>
+            <h2 id="contact-popup-title" className={`text-2xl font-bold tracking-[0.15em] ${popup === "failed" ? "text-down" : "text-warm"}`}>
+              {popup === "sent" ? "送信しました" : popup === "mailto" ? "メールソフトを開きました" : popup === "wait" ? "少し、お待ちください" : "送信できませんでした"}
+            </h2>
+            <p className="mt-5 text-left text-base leading-8 tracking-wider text-mist">
+              {popup === "sent"
+                ? "ありがとうございます。お問い合わせは、運営者に届きました。お返事が必要なときは、入力いただいた返信先に、ご連絡します。"
+                : popup === "mailto"
+                  ? "メールソフトの画面から、内容を確認して、送信してください。"
+                  : popup === "wait"
+                    ? "続けて送るときは、1分ほど、時間をあけてください。"
+                    : "通信がうまくいかなかったようです。時間をおいて、もう一度お試しください。"}
+            </p>
+            <button type="button" autoFocus onClick={() => setPopup(null)} className={`${primaryButtonClass} mt-8`}>
+              <span className="absolute inset-0 border border-warm/60 bg-warm/5 transition-colors group-hover:border-warm group-hover:bg-warm/10" />
+              閉じる
+            </button>
+          </div>
+        </div>
       )}
     </PageShell>
   );

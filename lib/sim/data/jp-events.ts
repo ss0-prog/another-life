@@ -377,10 +377,14 @@ export const lifeEvents: AutoEvent[] = [
     money(s, v);
     return `思いがけず、${man(v)}ほどの臨時収入があった`;
   }, 48),
-  ev("lottery", (p) => (p.age >= 18 ? 0.03 : 0), (s, r) => {
-    const v = 200 + r() * 800;
-    money(s, v);
-    return `宝くじで、${man(v)}が当たった`;
+  // 宝くじの高額当せん(100万円以上): 1枚あたり約5万分の1(3等以上)。毎年、買う人が、数枚〜数十枚ほど買うと仮定して、年に約0.01%。当たるのは、ほとんどが3等(100万円)。
+  ev("lottery", (p) => (p.age >= 18 ? 0.0001 : 0), (s, r) => {
+    const big = [LOTTERY_PRIZES[0], LOTTERY_PRIZES[1], LOTTERY_PRIZES[2], LOTTERY_PRIZES[3]];
+    let x = r() * big.reduce((a, b) => a + b.count, 0);
+    let pz = big[3];
+    for (const b of big) { if (x < b.count) { pz = b; break; } x -= b.count; }
+    money(s, pz.yen / 10000);
+    return `宝くじで、${pz.name}が当たった(${man(pz.yen / 10000)})`;
   }, 66),
   ev("appliance", (p) => (p.age >= 20 ? 0.8 : 0), (s, r) => (homeMoney(s, r, -(3 + r() * 8)), "冷蔵庫や洗濯機が壊れて、思わぬ出費になった"), 30),
   ev("debt", (p) => (working(p) && p.stats.money < 32 ? 0.25 : 0), (s, r) => {
@@ -570,19 +574,40 @@ const selfChange = (p: Person, d: CountryData, econ: number, occ: Occ, id: strin
   return { now: base.now, next: base.now * p.jobOfferFactor * level * (p.occ === occ ? 1 : 0.95) };
 };
 
-// 宝くじ: 1枚300円。戻る額は、買った額の4〜5割ほど(当せんの割合は、設計上の仮定。1等は、ほぼ当たらない)。
+// 宝くじ: 1枚300円。当せん金と本数は、年末ジャンボ宝くじ(第984回・23ユニット・発売総額1,380億円)の、公式サイトの一覧にもとづく。
+// 1ユニットは2,000万枚で、総枚数は4億6千万枚。当せん金の総額は、法律で、発売総額の50%以内と決まっている(この一覧も、ほぼ50%)。
+const LOTTERY_TICKETS = 460_000_000;
+const LOTTERY_PRIZES: { name: string; yen: number; count: number }[] = [
+  { name: "1等", yen: 700_000_000, count: 23 },
+  { name: "1等の前後賞", yen: 150_000_000, count: 46 },
+  { name: "2等", yen: 10_000_000, count: 184 },
+  { name: "3等", yen: 1_000_000, count: 9_200 },
+  { name: "1等の組違い賞", yen: 100_000, count: 4_577 },
+  { name: "4等", yen: 50_000, count: 46_000 },
+  { name: "5等", yen: 10_000, count: 460_000 },
+  { name: "6等", yen: 3_000, count: 4_600_000 },
+  { name: "7等", yen: 300, count: 46_000_000 },
+];
+// 1枚買ったとき、当たる等級(はずれなら null)。
+const drawTicket = (r: () => number) => {
+  let x = r() * LOTTERY_TICKETS;
+  for (const pz of LOTTERY_PRIZES) {
+    if (x < pz.count) return pz;
+    x -= pz.count;
+  }
+  return null;
+};
 const lottery = (p: Person, r: () => number, yen: number) => {
   p.history.lotCount = (p.history.lotCount ?? 0) + 1;
   const n = Math.floor(yen / 300);
   let win = 0;
   let top = "";
   for (let i = 0; i < n; i++) {
-    const x = r();
-    if (x < 1 / 20000000) { win += 700000000; top = "1等"; }
-    else if (x < 1 / 20000000 + 1 / 100000) { win += 100000; top = top || "高額当せん"; }
-    else if (x < 1 / 20000000 + 1 / 100000 + 1 / 1000) win += 10000;
-    else if (x < 1 / 20000000 + 1 / 100000 + 1 / 1000 + 1 / 100) win += 3000;
-    else if (x < 1 / 20000000 + 1 / 100000 + 1 / 1000 + 1 / 100 + 1 / 10) win += 300;
+    const pz = drawTicket(r);
+    if (!pz) continue;
+    win += pz.yen;
+    if (pz.name === "1等") top = "1等";
+    else if (pz.yen >= 100_000 && top !== "1等") top = pz.name;
   }
   addCash(p, (win - n * 300) / 10000);
   if (top === "1等") return (bump(p, { joy: 30, money: 40, bonds: -5 }), "宝くじで、1等が当たった。受け取ったのは、数億円。人生が、大きく動きはじめた");

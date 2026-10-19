@@ -664,7 +664,7 @@ export function TreeWizard({ t, onSubmit, auth, prefill }: Props) {
 
   // カメラ: いちばん新しい節が、画面の下寄りに来るように、木全体を動かす。
   const camX = size.w / 2 - tip.x;
-  const camY = size.h * (size.w < 520 ? 0.76 : 0.56) - tip.y;
+  const camY = size.h * (size.w < 520 ? 0.76 : 0.5) - tip.y;
   const fadeText = `transition-opacity duration-[800ms] ease-out ${rewinding ? "pointer-events-none opacity-0" : ""}`;
   // 画面の幅に合わせた、文字の大きさの倍率
   const fs = size.w < 520 ? 0.62 : size.w < 800 ? 0.82 : 1;
@@ -702,7 +702,7 @@ export function TreeWizard({ t, onSubmit, auth, prefill }: Props) {
         </button>
       )}
       {/* 木 */}
-      <div className="relative h-[18vh] min-h-36 w-full sm:h-[28vh] sm:min-h-56">
+      <div className="relative h-[18vh] min-h-36 w-full sm:h-[24vh] sm:min-h-48">
       <div ref={box} className={full ? "fixed inset-0 z-[80] overflow-hidden bg-void/95 animate-[fadein_0.8s_ease-out]" : "absolute inset-0 overflow-hidden [mask-image:linear-gradient(to_bottom,transparent,black_10%,black_94%,transparent)]"}>
         <svg viewBox={`0 0 ${size.w} ${size.h}`} className="absolute inset-0 h-full w-full" role="img" aria-label={t.title}>
           <motion.g initial={false} animate={{ x: camX, y: camY }} transition={{ type: "spring", stiffness: 40, damping: 15 }}>

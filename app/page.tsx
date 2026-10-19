@@ -193,7 +193,21 @@ export default function Home() {
               </motion.p>
               </div>
               <motion.div className="mt-12 w-full space-y-6 text-center text-sm leading-8 tracking-[0.15em] text-haze" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 2, duration: 2 }}>
-                <p className="whitespace-pre-line">{t.home.lead}</p>
+                {/* 一行目の途中の改行は、スマホ(幅640px未満)だけ。PCでは、つづけて一行に出す。三行目(最後)の前は、いつも改行する */}
+                <p>
+                  {(() => {
+                    const [a, b, c] = t.home.lead.split("\n");
+                    return (
+                      <>
+                        {a}
+                        <br className="sm:hidden" />
+                        {b}
+                        <br />
+                        {c}
+                      </>
+                    );
+                  })()}
+                </p>
               </motion.div>
               {saved && (
                 <div className="mt-12 w-full max-w-2xl rounded-sm border border-warm/50 bg-panel/80 px-6 py-6 text-center backdrop-blur-sm">

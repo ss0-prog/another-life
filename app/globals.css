@@ -940,16 +940,7 @@ html[data-tod="day"] .page-card {
   right: 0;
   bottom: 0;
   height: 2px;
-  background: linear-gradient(90deg, transparent 0%, var(--color-warm) 16%, var(--color-cool) 84%, transparent 100%);
-}
-.fancy-underline::before {
-  content: "";
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  height: 6px;
-  background: linear-gradient(90deg, transparent 0%, color-mix(in srgb, var(--color-warm) 22%, transparent) 20%, color-mix(in srgb, var(--color-cool) 22%, transparent) 80%, transparent 100%);
+  background: linear-gradient(90deg, transparent 0%, var(--color-warm) 14%, var(--color-cool) 84%, transparent 100%);
 }
 
 /* どの画面幅でも、かならず、一行に収める一文: 親(.cq)の幅に合わせて、文字の大きさを小さくする(本来の大きさを、こえない) */

@@ -62,7 +62,7 @@ export function CompareResult({ t, real, alt, onSave, canPublish, onAgain, altLa
         />
       </FadeIn>
 
-      <div className="mt-16 grid gap-16 md:grid-cols-2 md:gap-10">
+      <div className="mt-16 grid gap-16 md:grid-cols-2 md:gap-x-10 md:gap-y-0">
         <LifeCard t={t} heading={t.realHeading} life={real} delay={0.8} accent="cool" />
         <LifeCard t={t} heading={t.altHeading} life={alt} delay={1.2} accent="warm" />
       </div>
@@ -143,7 +143,7 @@ export type LifeView = Pick<LifeSummary, "deathAge" | "stats" | "assets" | "turn
 export function LifeCard({ t, heading, life, delay, accent }: { t: Messages["result"]; heading: string; life: LifeView; delay: number; accent: "cool" | "warm" }) {
   const { echo } = life;
   return (
-    <section className="rounded-sm border border-line bg-panel/80 px-6 py-10 backdrop-blur-sm" style={{ borderTop: `2px solid var(--color-${accent})` }}>
+    <section className="rounded-sm border border-line bg-panel/80 px-6 py-10 backdrop-blur-sm md:row-span-6 md:grid md:grid-rows-subgrid" style={{ borderTop: `2px solid var(--color-${accent})` }}>
       <FadeIn delay={delay}>
         <p className="text-center text-sm tracking-[0.3em]" style={{ color: `var(--color-${accent})` }}>{heading}</p>
         <p className="mt-6 text-center text-4xl tabular-nums tracking-widest text-mist">
@@ -151,13 +151,18 @@ export function LifeCard({ t, heading, life, delay, accent }: { t: Messages["res
           <span className="ml-2 text-sm text-haze">{t.endAge}</span>
         </p>
         {life.deathCause && <p className="mt-2 text-center text-sm tracking-[0.2em] text-dim">{t.cause}: {life.deathCause}</p>}
-        {life.death && <DeathExplain death={life.death} />}
+      </FadeIn>
+      {/* 以下の行は、左右の人生で、同じ高さにそろえる(内容が少ないほうは、空の行になる) */}
+      <FadeIn delay={delay}>{life.death ? <DeathExplain death={life.death} /> : null}</FadeIn>
+      <FadeIn delay={delay}>
         <p className="mx-auto mt-6 w-fit text-left text-base leading-8 tracking-wider text-mist">{soften(echo.status.summary)}</p>
         <dl className="mt-4 space-y-1 text-center text-base leading-7 tracking-wider text-haze">
           <dd>{echo.status.occupation}</dd>
           <dd>{echo.status.city}</dd>
           <dd>{echo.status.living}</dd>
         </dl>
+      </FadeIn>
+      <FadeIn delay={delay}>
         <div className="mx-auto mt-8 grid max-w-md grid-cols-5 gap-2 min-[480px]:gap-3">
           {STAT_KEYS.map((k) => (
             <div key={k} className="text-center">
@@ -195,7 +200,7 @@ export function LifeCard({ t, heading, life, delay, accent }: { t: Messages["res
         </ol>
       </FadeIn>
 
-      {life.turning && life.turning.length > 0 && (
+      {life.turning && life.turning.length > 0 ? (
         <FadeIn delay={delay + 1.2} className="mt-12">
           <p className="text-center text-sm tracking-[0.3em] text-haze">人生の大きな分かれ目</p>
           <p className="mt-1 text-center text-xs tracking-wider text-dim">能力値や資産が大きく動いた出来事です</p>
@@ -222,6 +227,8 @@ export function LifeCard({ t, heading, life, delay, accent }: { t: Messages["res
             ))}
           </ol>
         </FadeIn>
+      ) : (
+        <div />
       )}
     </section>
   );

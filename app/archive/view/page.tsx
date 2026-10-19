@@ -45,7 +45,7 @@ function ArchiveEntry() {
       <h1 className="mt-4 text-center text-xl leading-9 tracking-[0.2em] text-mist">{entry.branchLabel}</h1>
       <p className="mt-2 text-center text-sm tracking-wider text-haze">{entry.branchAge}歳で分かれた二つの人生</p>
 
-      <div className="mt-14 grid gap-10 md:grid-cols-2">
+      <div className="mt-14 grid gap-10 md:grid-cols-2 md:gap-y-0">
         <LifeCard t={t} heading={t.realHeading} life={entry.real} delay={0.3} accent="cool" />
         <LifeCard t={t} heading={t.altHeading} life={entry.alt} delay={0.6} accent="warm" />
       </div>

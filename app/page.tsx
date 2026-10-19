@@ -160,7 +160,7 @@ export default function Home() {
           {phase.name === "home" && (
             <motion.div
               key="home"
-              className="mx-auto flex w-full max-w-4xl flex-col items-center px-[2.5vw] pb-24 pt-14 sm:px-6 sm:pt-20"
+              className="mx-auto flex w-full max-w-4xl flex-col items-center px-[2.5vw] pb-24 pt-12 sm:px-6 sm:pt-[4.5rem]"
               initial={false}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0, filter: "blur(4px)" }}
@@ -180,7 +180,12 @@ export default function Home() {
                 animate={{ opacity: 1, filter: "blur(0px)" }}
                 transition={{ delay: 0.8, duration: 2.4, ease: "easeOut" }}
               >
-                <IfMark colon className="h-[1.15em] w-auto shrink-0 text-mist" />
+                <IfMark className="h-[1.15em] w-auto shrink-0 text-mist" />
+                {/* コロン: ロゴとタイトルの、ちょうど真ん中に置く(左右の間隔が、同じになるように) */}
+                <svg aria-hidden viewBox="0 2 7 62" className="h-[1.15em] w-auto shrink-0 text-mist" fill="currentColor">
+                  <circle cx="3.5" cy="31" r="3.4" />
+                  <circle cx="3.5" cy="53" r="3.4" />
+                </svg>
                 <h1 className="-mr-[0.2em] min-w-0 flex-1 whitespace-nowrap text-center tracking-[0.2em] text-mist [text-align-last:justify] sm:-mr-[0.35em] sm:tracking-[0.35em]">{t.home.title}</h1>
               </motion.div>
               <motion.p className="mt-4 whitespace-nowrap text-center text-sm tracking-[0.5em] text-haze sm:text-base" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1.6, duration: 1.8 }}>

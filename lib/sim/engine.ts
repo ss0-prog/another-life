@@ -1600,7 +1600,7 @@ export function tick(state: GameState, data: CountryData = jpData): GameState {
     const gain = allow + otoshidama;
     const everyday = Math.round((gain * (0.82 + 0.14 * roll(seed, a, S.allow))) / 100) * 100;
     next.wallet.cash += gain - everyday;
-    push(`お正月に、お年玉を${otoshidama.toLocaleString("ja-JP")}円もらった。お小遣いは、月に${monthly.toLocaleString("ja-JP")}円(いまは${Math.round(next.wallet.cash).toLocaleString("ja-JP")}円)`, 18);
+    push(`お正月に、お年玉を${otoshidama.toLocaleString("ja-JP")}円もらった。お小遣いは、月に${monthly.toLocaleString("ja-JP")}円`, 18);
   }
 
   // 物価: 実際の統計がある年は、その年の物価上昇率を使う。ない年(未来)は、毎回ランダム。物価が大きく上がった年は、暮らしが苦しくなる。

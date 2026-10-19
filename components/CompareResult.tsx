@@ -62,7 +62,7 @@ export function CompareResult({ t, real, alt, onSave, canPublish, onAgain, altLa
         />
       </FadeIn>
 
-      <div className="mt-16 grid gap-16 md:grid-cols-2 md:gap-x-10 md:gap-y-0">
+      <div className="mx-auto mt-16 grid max-w-5xl gap-16 md:grid-cols-2 md:gap-x-10 md:gap-y-0">
         <LifeCard t={t} heading={t.realHeading} life={real} delay={0.8} accent="cool" />
         <LifeCard t={t} heading={t.altHeading} life={alt} delay={1.2} accent="warm" />
       </div>

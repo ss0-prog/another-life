@@ -225,6 +225,7 @@ export default function Home() {
                   <li key={step} className="rounded-sm border border-line bg-panel/70 px-4 py-5 text-center backdrop-blur-sm">
                     <span className="text-2xl text-warm">{i + 1}</span>
                     <p className="mt-2 text-sm leading-7 tracking-wider text-haze">{step}</p>
+                    {t.home.stepsDetail?.[i] && <p className="mt-2 text-left text-xs leading-6 tracking-wider text-dim">{t.home.stepsDetail[i]}</p>}
                   </li>
                 ))}
               </motion.ol>

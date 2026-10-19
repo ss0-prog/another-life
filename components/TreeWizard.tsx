@@ -171,9 +171,9 @@ const jobKw: Record<string, RegExp | undefined> = Object.fromEntries(jpData.jobs
 // かんたんは、最低限の質問だけ。答えなかった項目は、年齢や住んでいる場所から、ふつうの値でおぎなう。
 export type Level = 1 | 2 | 3;
 export const LEVELS: { level: Level; name: string; sub: string; note: string }[] = [
-  { level: 1, name: "かんたん", sub: "約11問・1分", note: "年齢・仕事・結婚など最低限だけ。まず試してみたい人に。" },
-  { level: 2, name: "ふつう", sub: "約20問・3分", note: "住まい・貯金・持病なども答える。結果があなたに近づく。" },
-  { level: 3, name: "くわしく", sub: "約29問・4分", note: "専攻・性格・いまの暮らしの感覚まで。いちばんあなたに近い。" },
+  { level: 1, name: "簡単に", sub: "約11問・1分", note: "年齢・仕事・結婚など最低限だけ。まず試してみたい人に。" },
+  { level: 2, name: "普通", sub: "約20問・3分", note: "住まい・貯金・持病なども答える。結果があなたに近づく。" },
+  { level: 3, name: "詳しく", sub: "約29問・4分", note: "専攻・性格・いまの暮らしの感覚まで。いちばんあなたに近い。" },
 ];
 const STEP_LEVEL: Partial<Record<keyof Values, Level>> = {
   genderId: 2, orientation: 2, condition: 2, ailment: 2, workStyle: 2, region: 2, housing: 2, kids: 2, savings: 2, debt: 2,

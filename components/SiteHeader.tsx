@@ -143,7 +143,7 @@ export function SiteHeader() {
             onClick={() => setMenuOpen((o) => !o)}
             aria-expanded={menuOpen}
             aria-label="メニュー"
-            className="flex h-10 w-10 items-center justify-center border border-line text-haze hover:text-mist"
+            className="flex h-9 w-9 items-center justify-center border border-line text-haze hover:text-mist sm:h-10 sm:w-10"
           >
             <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" aria-hidden>
               <path d="M4 7h16M4 12h16M4 17h16" />

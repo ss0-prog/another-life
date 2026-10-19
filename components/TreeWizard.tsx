@@ -802,7 +802,7 @@ export function TreeWizard({ t, onSubmit, auth, prefill }: Props) {
         {choosing ? (
           <motion.div initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} className="w-full text-center">
             <p className="text-xs tracking-[0.4em] text-warm">はじめに</p>
-            <h2 className="mt-3 text-xl font-bold leading-9 tracking-[0.12em] text-mist sm:text-2xl">どのくらいくわしく答えますか？</h2>
+            <h2 className="cq mt-3 text-xl font-bold leading-9 tracking-[0.12em] text-mist sm:text-2xl"><span className="fit-line [--fit:17.9]">どのくらいくわしく答えますか？</span></h2>
             <p className="mt-2 text-sm leading-7 tracking-wider text-haze">答えなかった項目はふつうの値でおぎないます。あとからいつでも変えられます。</p>
             <div className="mt-6 grid gap-3 sm:grid-cols-3">
               {LEVELS.map((l) => (

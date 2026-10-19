@@ -130,11 +130,11 @@ export default function SourcesPage() {
       </Section>
 
       <Section title="税と社会保険料について">
-        <p>年収(額面)から、毎年の税と社会保険料を引いた手取りで、お金の出入りを動かしています。計算は、実在の制度のしくみに合わせた、シミュレーション用の簡略版です。年ごとの改正は追わず、おおまかな現行の制度に合わせています。制度の転記ではなく、公表資料との照合も済んでいません。実際の税額や保険料を、計算するものではありません。</p>
+        <p>年収(額面)から、毎年の税と社会保険料を引いた手取りで、お金の出入りを動かしています。計算は、実在の制度のしくみに合わせた、シミュレーション用の簡略版です。年ごとの改正は追わず、おおまかな現行の制度に合わせています。制度の転記ではありません。数字の一部は、下の出典で確認ずみですが、確認できていないものもあります(出典と、確認の状況は、この節の終わりに書きました)。実際の税額や保険料を、計算するものではありません。</p>
         <p><strong className="text-warm">実在の制度のしくみに合わせているもの。</strong></p>
         <ul className="list-disc space-y-3 pl-6">
           <li>所得税は、課税所得に応じて税率が上がる累進課税(5%・10%・20%・23%・33%・40%・45%の7段階)で、復興特別所得税(2.1%)を上乗せしています。</li>
-          <li>給与所得控除・公的年金等控除・基礎控除(48万円)・社会保険料控除・16歳以上の子どもの扶養控除(38万円)を引いて、課税所得を出しています。</li>
+          <li>給与所得控除(令和7年分以後の式)・公的年金等控除・基礎控除(令和7年分の、所得に応じた95〜48万円)・社会保険料控除・16歳以上の子どもの扶養控除(38万円)を引いて、課税所得を出しています。</li>
           <li>住民税は、所得割10%と、均等割(年に5,000円)です。</li>
           <li>会社員・公務員は、健康保険・厚生年金・雇用保険の保険料が、給料から引かれます。40〜64歳は介護保険料が加わり、厚生年金は70歳まで払います。</li>
           <li>自営の人は、国民年金(60歳まで)と国民健康保険を、全額自分で払います。会社が半分払う厚生年金・健康保険には入れません。</li>
@@ -143,7 +143,7 @@ export default function SourcesPage() {
         </ul>
         <p><strong className="text-warm">簡略化や仮定にしているもの。</strong></p>
         <ul className="list-disc space-y-3 pl-6">
-          <li>税率や保険料率は、おおまかな現行の水準に丸めた数字です(健康保険は労働者の負担を5%、厚生年金は9.15%、雇用保険は0.55%、国民健康保険は所得の約10%、年金生活者の保険料は年金の6%など)。自治体や健康保険組合ごとの違い、保険料の上限・下限の細かい決まりは、入れていません。</li>
+          <li>税率や保険料率は、おおまかな現行の水準に丸めた数字です(健康保険は労働者の負担を5%、厚生年金は労使折半で9.15%、雇用保険は0.55%、国民健康保険は所得の約10%、年金生活者の保険料は年金の6%など)。自治体や健康保険組合ごとの違い、保険料の上限・下限の細かい決まりは、入れていません。</li>
           <li>配偶者の収入は、本人の3割5分と仮定し、もうひとりの働き手として、別に計算しています。配偶者控除・扶養の細かい要件は、入れていません。</li>
           <li>非正規で年収が約106万円までの人は、扶養の範囲(または学生)として、社会保険に入らないと仮定しています。</li>
           <li>自営の人の収入は、青色申告をしている前提で、必要経費を引いたあとの所得に近いものとして扱っています。個人事業税や、消費税の納税義務は、入れていません。</li>
@@ -153,7 +153,45 @@ export default function SourcesPage() {
           <li>入れていないもの: 児童手当などの給付、医療費控除、ふるさと納税、iDeCo、扶養にかかわる各種の控除、株の利益にかかる税、相続税・贈与税。株の売買や、投資の利益は、非課税として扱っています。</li>
           <li>住民税は、本来は前の年の収入にかかりますが、同じ年の収入にかけています。</li>
         </ul>
-        <p>税と社会保険料の割合は、おおまかに、年収300万円の会社員で約2割(21%)、500万円で約2割(22%)、1,000万円で約3割弱(28%)、1,500万円で約3割(32%)です(手取りは、年収の7〜8割台)。これらは、このシミュレーションの計算結果で、実際の統計ではありません。</p>
+        <p>税と社会保険料の割合は、おおまかに、年収300万円の会社員で約2割(20%)、500万円で約2割(22%)、1,000万円で約3割弱(28%)、1,500万円で約3割(32%)です(手取りは、年収の7〜8割台)。これらは、このシミュレーションの計算結果で、実際の統計ではありません。</p>
+        <p><strong className="text-warm">出典と、確認の状況。</strong>国税庁・日本年金機構・厚生労働省の公式ページで、次の数字を確認しました(確認日: 2026年10月19日)。</p>
+        <ul className="list-disc space-y-2 pl-6 text-sm leading-8 text-haze">
+          <li>
+            所得税の速算表(7段階の税率と控除額)と、復興特別所得税(2.1%): {" "}
+            <a href="https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2260.htm" target="_blank" rel="noreferrer" className="underline underline-offset-4 hover:text-warm">国税庁 タックスアンサー No.2260</a>
+            (令和9年以降は税率が変わると書かれていますが、このサイトでは追っていません)
+          </li>
+          <li>
+            給与所得控除(令和7年分以後): {" "}
+            <a href="https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1410.htm" target="_blank" rel="noreferrer" className="underline underline-offset-4 hover:text-warm">国税庁 No.1410</a>
+          </li>
+          <li>
+            基礎控除(令和7年分): {" "}
+            <a href="https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1199.htm" target="_blank" rel="noreferrer" className="underline underline-offset-4 hover:text-warm">国税庁 No.1199</a>
+            。扶養控除(16歳以上は38万円): {" "}
+            <a href="https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1180.htm" target="_blank" rel="noreferrer" className="underline underline-offset-4 hover:text-warm">国税庁 No.1180</a>
+            (19〜22歳の特定扶養親族の63万円は、入れていません)
+          </li>
+          <li>
+            退職所得控除と、退職所得の2分の1課税: {" "}
+            <a href="https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1420.htm" target="_blank" rel="noreferrer" className="underline underline-offset-4 hover:text-warm">国税庁 No.1420</a>
+          </li>
+          <li>
+            住宅ローン控除の控除率(年末残高の0.7%): {" "}
+            <a href="https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1211-1.htm" target="_blank" rel="noreferrer" className="underline underline-offset-4 hover:text-warm">国税庁 No.1211-1</a>
+            (実際の控除期間と上限額は、住宅の種類や入居した年で変わります。ここでは13年・年21万円に単純化しています)
+          </li>
+          <li>
+            厚生年金の保険料率(18.3%。労使で半分ずつ): {" "}
+            <a href="https://www.nenkin.go.jp/service/kounen/hokenryo/ryogaku/ryogakuhyo/index.html" target="_blank" rel="noreferrer" className="underline underline-offset-4 hover:text-warm">日本年金機構 厚生年金保険料額表</a>
+          </li>
+          <li>
+            育児休業給付(賃金の67%、181日目以降は50%。非課税。休業中の健康保険・厚生年金の保険料は免除): {" "}
+            <a href="https://www.mhlw.go.jp/stf/seisakunitsuite/bunya/0000158500.html" target="_blank" rel="noreferrer" className="underline underline-offset-4 hover:text-warm">厚生労働省 育児休業給付Q&amp;A</a>
+          </li>
+        </ul>
+        <p>公的年金等控除は、国税庁 No.1600 の式(65歳以上は、年金収入330万円までは110万円)の一部だけを確認でき、330万円をこえる区分の式は、確認できていません。</p>
+        <p>次のものは、公表資料で確認できておらず、おおまかな水準として置いた仮定です。健康保険の労働者負担(5%)と、40〜64歳の介護保険料(0.8%)・標準報酬の上限・雇用保険料率(0.55%)・国民健康保険料(所得の約10%)・国民年金の保険料(年20万円)・住民税の税率(10%)と均等割(年5,000円)・基礎控除(43万円)・年金生活者の保険料(年金の6%)・消費税の平均(約7.5%)。保険料率は、年度や加入先で変わります。</p>
       </Section>
 
       <Section title="借金について">

@@ -40,21 +40,33 @@ const bracketTax = (taxable: number) => {
 // 課税所得が1万円ふえたときの、所得税の増え方(住民税を除く)。
 const marginalIncomeTax = (taxable: number) => (taxable <= 0 ? 0 : BRACKETS.find(([cap]) => taxable <= cap)![1] * RECON);
 
-// 給与所得控除。
+// 給与所得控除(令和7年分以後。国税庁 No.1410)。
 function salaryDeduction(g: number): number {
-  if (g <= 162.5) return Math.min(g, 65);
-  if (g <= 180) return g * 0.4 - 10;
+  if (g <= 190) return Math.min(g, 65);
   if (g <= 360) return g * 0.3 + 8;
   if (g <= 660) return g * 0.2 + 44;
   if (g <= 850) return g * 0.1 + 110;
   return 195;
 }
-// 公的年金等控除。
+// 公的年金等控除(65歳以上、ほかの所得が1,000万円以下。国税庁 No.1600 の式を、記憶から写したもので、一部は未照合)。
 function pensionDeduction(g: number): number {
-  if (g <= 410) return Math.min(g, 110);
-  if (g <= 770) return g * 0.25 + 7.5;
-  if (g <= 1000) return g * 0.15 + 85;
+  if (g <= 330) return Math.min(g, 110);
+  if (g <= 410) return g * 0.25 + 27.5;
+  if (g <= 770) return g * 0.15 + 68.5;
+  if (g <= 1000) return g * 0.05 + 145.5;
   return 195.5;
+}
+// 基礎控除(所得税、令和7年分。国税庁 No.1199)。合計所得金額で変わる。
+function basicDeduction(totalIncome: number): number {
+  if (totalIncome <= 132) return 95;
+  if (totalIncome <= 336) return 88;
+  if (totalIncome <= 489) return 68;
+  if (totalIncome <= 655) return 63;
+  if (totalIncome <= 2350) return 58;
+  if (totalIncome <= 2400) return 48;
+  if (totalIncome <= 2450) return 32;
+  if (totalIncome <= 2500) return 16;
+  return 0;
 }
 
 type Kind = "wage" | "self" | "pension";
@@ -88,7 +100,7 @@ function taxOne(kind: Kind, gross: number, age: number, nonregular: boolean, o: 
   }
   const social = health + pension + employment;
   const dep = (o.kids16 ?? 0) * 38;
-  const taxable = Math.max(0, gross - ded - social - 48 - dep);
+  const taxable = Math.max(0, gross - ded - social - basicDeduction(Math.max(0, gross - ded)) - dep);
   let incomeTax = bracketTax(taxable);
   let credit = 0;
   if (o.homeCredit && incomeTax > 0) {
@@ -145,7 +157,7 @@ export function sideTax(p: Person, data: CountryData, econ: number, payMan: numb
   if (!main) return Math.max(0, payMan - 103) * 0.15;
   if (payMan <= 20) return 0;
   const t = householdTax(p, data, econ);
-  const taxable = Math.max(0, t.gross - salaryDeduction(t.gross) - t.social - 48);
+  const taxable = Math.max(0, t.gross - salaryDeduction(t.gross) - t.social - 58);
   return payMan * (marginalIncomeTax(taxable) + 0.1);
 }
 

@@ -754,11 +754,25 @@ const FLOCK = [
 ];
 function Crow({ active }: { active: boolean }) {
   const [flight, setFlight] = useState<{ id: number; dir: 1 | -1; top: number; sec: number } | null>(null);
+  // 夕方でなくなった(夜になるなど)とき、飛んでいるカラスは、急に消さず、ゆっくり、ぼやけて、薄れて消える。
+  const [fading, setFading] = useState(false);
+  const flightRef = useRef(flight);
+  flightRef.current = flight;
   useEffect(() => {
-    if (!active) {
-      setFlight(null);
+    if (active) {
+      setFading(false);
       return;
     }
+    if (!flightRef.current) return;
+    setFading(true);
+    const t = setTimeout(() => {
+      setFlight(null);
+      setFading(false);
+    }, 3200);
+    return () => clearTimeout(t);
+  }, [active]);
+  useEffect(() => {
+    if (!active) return;
     const still = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     let n = 0;
     let next: ReturnType<typeof setTimeout>;
@@ -776,12 +790,11 @@ function Crow({ active }: { active: boolean }) {
     return () => {
       clearTimeout(next);
       clearTimeout(hide);
-      setFlight(null);
     };
   }, [active]);
   if (!flight) return null;
   return (
-    <div key={flight.id} className={flight.dir === 1 ? "crow-pass-r" : "crow-pass-l"} style={{ top: `${flight.top}vh`, animationDuration: `${flight.sec}s` }}>
+    <div key={flight.id} className={flight.dir === 1 ? "crow-pass-r" : "crow-pass-l"} style={{ top: `${flight.top}vh`, animationDuration: `${flight.sec}s`, opacity: fading ? 0 : 1, filter: fading ? "blur(6px)" : "blur(0px)", transition: "opacity 3s ease-in-out, filter 3s ease-in-out" }}>
       {FLOCK.map((c, i) => (
         <div key={i} className="crow-bob absolute" style={{ left: c.dx * flight.dir, top: c.dy, animationDelay: `${c.bob}s` }}>
           {/* ごく簡単な形: 小さな胴体と、羽ばたく二枚の羽 */}
@@ -852,7 +865,7 @@ export function Ambient() {
         className="absolute inset-x-0 bottom-0 h-[70%]"
         style={{
           background: "radial-gradient(ellipse 85% 75% at 50% 100%, rgba(255,176,105,0.9) 0%, rgba(255,150,100,0.35) 38%, rgba(255,150,100,0) 72%)",
-          opacity: phase === "dawn" || phase === "dusk" ? HORIZON_GLOW[weather] : 0,
+          opacity: phase === "dawn" ? HORIZON_GLOW[weather] : phase === "dusk" ? HORIZON_GLOW[weather] * 0.65 : 0,
           transition: armed ? `opacity ${ease}` : "none",
         }}
       />

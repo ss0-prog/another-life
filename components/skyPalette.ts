@@ -44,7 +44,7 @@ const DAY: Record<Weather, Stop[]> = {
 };
 // 朝焼けと夕焼け(晴れの日の色)。曇りや雨の日は、その空模様の色に、うすく、焼けの色が、さす。
 const DAWN: Stop[] = [[0, "#2a2d5c"], [28, "#7b5a92"], [62, "#e58f70"], [100, "#ffd29a"]];
-const DUSK: Stop[] = [[0, "#1f274f"], [32, "#62406f"], [68, "#d9654b"], [100, "#ffb069"]];
+const DUSK: Stop[] = [[0, "#121734"], [32, "#3a2548"], [68, "#8a3d35"], [100, "#c97a45"]];
 const GLOW: Record<Weather, number> = { clear: 1, cloudy: 0.62, snow: 0.5, rain: 0.36, thunder: 0.26 };
 
 export function skyPalette(weather: Weather, phase: Phase): string[] {

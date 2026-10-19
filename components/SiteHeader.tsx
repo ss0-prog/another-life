@@ -213,7 +213,7 @@ export function SiteHeader() {
               {t.home.steps.map((st, k) => (
                 <li key={st} className="flex gap-2">
                   <span className="text-warm">{k + 1}</span>
-                  {st}
+                  {st.replace("\n", "")}
                 </li>
               ))}
             </ol>

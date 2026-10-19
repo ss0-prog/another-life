@@ -220,13 +220,13 @@ export default function Home() {
               <motion.p className="mt-20 text-xs tracking-[0.5em] text-haze" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 2.4, duration: 1.4 }}>
                 {t.home.howTo}
               </motion.p>
-              <motion.ol className="mt-4 grid w-full gap-4 sm:grid-cols-3" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 2.6, duration: 1.6 }}>
+              <motion.ol className="mt-4 grid w-full gap-4 lg:grid-cols-3" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 2.6, duration: 1.6 }}>
                 {t.home.steps.map((step, i) => (
                   <li key={step} className="flex flex-col items-center rounded-sm border border-line bg-panel/70 px-5 py-6 text-center backdrop-blur-sm">
                     <span className="text-2xl text-warm">{i + 1}</span>
-                    <p className="mt-2 text-sm font-bold leading-7 tracking-wider text-mist">{step}</p>
+                    <p className="mt-2 whitespace-pre-line text-sm font-bold leading-7 tracking-wider text-mist">{step}</p>
                     <span aria-hidden className="mt-3 h-px w-8 bg-line" />
-                    {t.home.stepsDetail?.[i] && <p className="mt-3 text-xs leading-6 tracking-[0.06em] text-haze">{t.home.stepsDetail[i]}</p>}
+                    {t.home.stepsDetail?.[i] && <p className="mt-3 w-full text-left text-xs leading-6 tracking-[0.06em] text-haze">{t.home.stepsDetail[i]}</p>}
                   </li>
                 ))}
               </motion.ol>

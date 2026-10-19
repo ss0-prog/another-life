@@ -36,6 +36,7 @@ let rainGain: GainNode | null = null;
 let rainFilter: BiquadFilterNode | null = null;
 let wet: GainNode | null = null;
 let noiseBuf: AudioBuffer | null = null;
+let reverbBus: ConvolverNode | null = null;
 let mood: Mood = { phase: "night", weather: "clear" };
 let on = false;
 let chordIdx = 0;
@@ -90,6 +91,7 @@ function build() {
 
   const reverb = ctx.createConvolver();
   reverb.buffer = makeImpulse(ctx, 5);
+  reverbBus = reverb;
   wet = ctx.createGain();
   wet.gain.value = 0.55;
   reverb.connect(wet).connect(master);
@@ -222,6 +224,67 @@ export function watchLightning() {
     window.removeEventListener("animationstart", on_);
     window.removeEventListener("animationiteration", on_);
   };
+}
+
+// ---- 効果音(木の枝の分岐): BGMがオンのときだけ鳴る ----
+const SFX_SCALE = [60, 62, 64, 67, 69]; // Cメジャー・ペンタトニック
+
+// やわらかい一音(ぽん)。
+function tone(freq: number, delay: number, sec: number, vol: number) {
+  if (!ctx || !master) return;
+  const t = ctx.currentTime + delay;
+  const o = ctx.createOscillator();
+  const g = ctx.createGain();
+  o.type = "sine";
+  o.frequency.value = freq;
+  g.gain.setValueAtTime(0, t);
+  g.gain.linearRampToValueAtTime(vol, t + 0.012);
+  g.gain.exponentialRampToValueAtTime(0.0001, t + sec);
+  o.connect(g);
+  g.connect(master);
+  if (reverbBus) g.connect(reverbBus);
+  o.start(t);
+  o.stop(t + sec + 0.05);
+}
+// 木が育つほど、音が少しずつ高くなる。
+const stepNote = (i: number) => SFX_SCALE[i % SFX_SCALE.length] + 12 * Math.min(1, Math.floor(i / SFX_SCALE.length));
+
+// 枝が伸びる: さーっと伸びる風のような音 → 葉が開く小さな音 → 先端の節が、ぽんと出る。
+export function sfxGrow(index: number) {
+  if (!ctx || !master || !noiseBuf || !on) return;
+  const t = ctx.currentTime;
+  const src = ctx.createBufferSource();
+  src.buffer = noiseBuf;
+  src.loop = true;
+  const bp = ctx.createBiquadFilter();
+  bp.type = "bandpass";
+  bp.Q.value = 0.8;
+  bp.frequency.setValueAtTime(250, t);
+  bp.frequency.exponentialRampToValueAtTime(900, t + 1);
+  const g = ctx.createGain();
+  g.gain.setValueAtTime(0, t);
+  g.gain.linearRampToValueAtTime(0.12, t + 0.5);
+  g.gain.linearRampToValueAtTime(0, t + 1.1);
+  src.connect(bp).connect(g).connect(master);
+  src.start(t, Math.random() * 3);
+  src.stop(t + 1.2);
+  const n = stepNote(index);
+  tone(midi(n + 12), 0.7, 0.5, 0.02);
+  tone(midi(n + 19), 0.82, 0.5, 0.016);
+  tone(midi(n), 0.9, 2.2, 0.07);
+}
+
+// ひとつ前へ戻る: 小さく、下がる音。
+export function sfxBack() {
+  if (!ctx || !on) return;
+  tone(midi(64), 0, 0.9, 0.05);
+  tone(midi(60), 0.1, 1.2, 0.05);
+}
+
+// 枝がさかのぼる: 一本もどるたびに、短く、下がっていく音。
+export function sfxRewind(remaining: number) {
+  if (!ctx || !on) return;
+  tone(midi(stepNote(remaining)), 0, 1.1, 0.045);
 }
 
 export function startBgm() {

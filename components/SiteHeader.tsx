@@ -5,7 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { getMessages } from "@/lib/i18n";
 import { useEffect, useRef, useState } from "react";
-import { loadTimeOfDay, setTimeOfDay, useTimeLocked, useTimeOfDay } from "@/lib/timeStore";
+import { TOD_LABEL, loadTimeOfDay, nextTod, setTimeOfDay, useTimeLocked, useTimeOfDay } from "@/lib/timeStore";
 import { useAuth } from "@/lib/useAuth";
 import { BgmDriver, BgmToggle } from "@/components/BgmToggle";
 import { TodIcon } from "@/components/TodIcon";
@@ -85,9 +85,9 @@ export function SiteHeader() {
             </Link>
             ),
           )}
-          <button type="button" onClick={() => setTimeOfDay(tod === "day" ? "night" : "day")} disabled={todLocked} aria-pressed={tod === "day"} className="flex items-center gap-2 border border-line px-3 py-1 text-haze hover:border-haze hover:text-mist disabled:opacity-50">
-            <TodIcon day={tod === "day"} className="h-4 w-4 translate-y-[1.5px]" />
-            {tod === "day" ? "昼" : "夜"}
+          <button type="button" onClick={() => setTimeOfDay(nextTod(tod))} disabled={todLocked} aria-pressed={tod !== "night"} className="flex items-center gap-2 border border-line px-3 py-1 text-haze hover:border-haze hover:text-mist disabled:opacity-50">
+            <TodIcon tod={tod} className="h-4 w-4 translate-y-[1.5px]" />
+            {TOD_LABEL[tod]}
           </button>
           <BgmToggle variant="nav" />
           <button
@@ -129,13 +129,13 @@ export function SiteHeader() {
         <div className="flex shrink-0 items-center gap-1.5 sm:gap-2 lg:hidden">
           <button
             type="button"
-            onClick={() => setTimeOfDay(tod === "day" ? "night" : "day")}
+            onClick={() => setTimeOfDay(nextTod(tod))}
             disabled={todLocked}
-            aria-pressed={tod === "day"}
-            aria-label={tod === "day" ? "昼の空(夜にする)" : "夜の空(昼にする)"}
+            aria-pressed={tod !== "night"}
+            aria-label={`${TOD_LABEL[tod]}の空(${TOD_LABEL[nextTod(tod)]}にする)`}
             className="flex h-9 w-9 items-center justify-center border border-line text-lg text-haze hover:text-mist disabled:opacity-50 sm:h-10 sm:w-10"
           >
-            <TodIcon day={tod === "day"} className="h-5 w-5" />
+            <TodIcon tod={tod} className="h-5 w-5" />
           </button>
           <BgmToggle variant="icon" />
           <button
@@ -188,9 +188,9 @@ export function SiteHeader() {
           <div>
             <p className="text-xs tracking-[0.3em] text-warm">表示とログイン</p>
             <div className="mt-3 flex flex-col gap-3 text-sm tracking-[0.15em]">
-              <button type="button" onClick={() => setTimeOfDay(tod === "day" ? "night" : "day")} disabled={todLocked} aria-pressed={tod === "day"} className="flex items-center gap-2 border border-line px-3 py-2 text-haze hover:border-haze hover:text-mist disabled:opacity-50">
-                <TodIcon day={tod === "day"} className="h-4 w-4 translate-y-[1.5px]" />
-                {tod === "day" ? "昼の空(夜にする)" : "夜の空(昼にする)"}
+              <button type="button" onClick={() => setTimeOfDay(nextTod(tod))} disabled={todLocked} aria-pressed={tod !== "night"} className="flex items-center gap-2 border border-line px-3 py-2 text-haze hover:border-haze hover:text-mist disabled:opacity-50">
+                <TodIcon tod={tod} className="h-4 w-4 translate-y-[1.5px]" />
+                {`${TOD_LABEL[tod]}の空(${TOD_LABEL[nextTod(tod)]}にする)`}
               </button>
               <BgmToggle variant="drawer" />
               <button

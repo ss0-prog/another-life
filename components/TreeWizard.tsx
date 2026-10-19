@@ -7,6 +7,7 @@ import { JobPicker } from "@/components/JobPicker";
 import { chipClass, numberInputClass, primaryButtonClass } from "@/components/controls";
 import { IDEAL, idealChance, MBTI_NAME, typeLabel } from "@/lib/sim/mbti";
 import { soften } from "@/lib/jp";
+import { sfxBack, sfxGrow, sfxRewind } from "@/lib/bgm";
 import { SURVEY, type SurveyKey } from "@/lib/sim/survey";
 import { HS_FIELDS, UNIV_FIELDS, VOC_FIELDS } from "@/lib/sim/data/jp-majors";
 import { DEFAULT_JOB, OCC_LABEL } from "@/lib/sim/data/jp-jobs";
@@ -615,6 +616,7 @@ export function TreeWizard({ t, onSubmit, auth, prefill }: Props) {
 
   const commit = (raw: string) => {
     if (!step) return;
+    sfxGrow(answers.length);
     const geom = grow(tip, answers.length, size.w);
     setAnswers([...answers, { id: step.id, value: raw, label: step.label(raw), node: step.node, geom }]);
     setText("");
@@ -625,7 +627,10 @@ export function TreeWizard({ t, onSubmit, auth, prefill }: Props) {
   // 子どもの年齢と性別は、一緒に答える("30|boy" の形)。
   const commitNum = (x: string) => commit(step?.withSex ? `${x}|${sexPick}` : x);
 
-  const back = () => setAnswers(answers.slice(0, -1));
+  const back = () => {
+    sfxBack();
+    setAnswers(answers.slice(0, -1));
+  };
 
   const numberOk = () => {
     if (!step) return false;
@@ -650,7 +655,10 @@ export function TreeWizard({ t, onSubmit, auth, prefill }: Props) {
     later(() => setFull(true), 500);
     const FADE = 900; // 文字が消えるまで
     const step = Math.min(380, Math.max(170, 3400 / Math.max(1, n))); // 枝を1本もどす間隔
-    for (let i = 1; i <= n; i++) later(() => setCut(n - i), FADE + (i - 1) * step);
+    for (let i = 1; i <= n; i++) later(() => {
+        setCut(n - i);
+        sfxRewind(n - i);
+      }, FADE + (i - 1) * step);
     later(() => onSubmit(self, branch), FADE + n * step + 1100);
   };
 

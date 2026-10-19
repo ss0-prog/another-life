@@ -2,9 +2,11 @@
 
 import { useSyncExternalStore } from "react";
 
-// 昼と夜。ボタンで切り替え、選んだ状態は、このブラウザに覚えておく。
-// 切り替えるときは、いきなり変えず、夜→(朝焼け)→昼、昼→(夕焼け)→夜 と、ゆっくり移り変わる。
-export type TimeOfDay = "night" | "day";
+// 昼・夕方・夜。ボタンで、昼 → 夕方 → 夜 → 昼 の順に切り替え、選んだ状態は、このブラウザに覚えておく。
+// 切り替えるときは、いきなり変えず、夜→(朝焼け)→昼、昼→夕方→夜 と、ゆっくり移り変わる。夕方は、太陽も月も出ていない、夕焼けの空。
+export type TimeOfDay = "night" | "day" | "evening";
+export const TOD_LABEL: Record<TimeOfDay, string> = { day: "昼", evening: "夕方", night: "夜" };
+export const nextTod = (t: TimeOfDay): TimeOfDay => (t === "day" ? "evening" : t === "evening" ? "night" : "day");
 export type Phase = "night" | "dawn" | "day" | "dusk";
 
 const KEY = "betsu-uchu:time";
@@ -41,9 +43,9 @@ export function loadTimeOfDay() {
   loaded = true;
   try {
     const v = window.localStorage.getItem(KEY);
-    if (v === "day" || v === "night") {
+    if (v === "day" || v === "night" || v === "evening") {
       current = v;
-      phase = v;
+      phase = v === "evening" ? "dusk" : v;
       emit();
     }
     // 最初の表示だけは、色の変化をつけない(layout の最初のスクリプトが、つけた印を、はずす)。
@@ -72,14 +74,21 @@ export function setTimeOfDay(t: TimeOfDay) {
     /* noop */
   }
   if (timer) clearTimeout(timer);
-  // まず、朝焼け(夕焼け)の空へ。そのあと、昼(夜)の空へ。
-  phase = t === "day" ? "dawn" : "dusk";
-  emit();
-  timer = setTimeout(() => {
-    phase = t;
+  if (t === "day") {
+    // 夜 → 朝焼け → 昼
+    phase = "dawn";
+    emit();
+    timer = setTimeout(() => {
+      phase = "day";
+      timer = null;
+      emit();
+    }, PHASE_MS);
+  } else {
+    // 夕方は、夕焼けの空のまま、とどまる。夜へは、そのまま、夜の空へ移る。
+    phase = t === "evening" ? "dusk" : "night";
     timer = null;
     emit();
-  }, PHASE_MS);
+  }
 }
 
 const subscribe = (cb: () => void) => {

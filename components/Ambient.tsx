@@ -535,7 +535,7 @@ function Skyline({ phase }: { phase: Phase }) {
     <div className="absolute inset-x-0 bottom-0 h-[30vh] min-h-44 w-full">
       <div className="absolute inset-0" style={layer("night", phase !== "day")}><SkylineImg phase="night" mode="glow" /></div>
       {/* 夜の街は、昼のあいだは、見えなくする(昼の街の屋上から、夜の赤いランプが、はみ出して、見えてしまうため)。ほかの層と同じ時間で、ゆっくり入れ替える(灯りが、急に消えたり、点いたりしないように) */}
-      <div className="absolute inset-0" style={{ opacity: phase === "day" ? 0 : 1, transition: "opacity 5s ease-in-out" }}><SkylineImg phase="night" mode="city" /><EdgeBuilding phase="night" /></div>
+      <div className="absolute inset-0" style={{ opacity: phase === "night" || phase === "dawn" ? 1 : 0, transition: "opacity 5s ease-in-out" }}><SkylineImg phase="night" mode="city" /><EdgeBuilding phase="night" /></div>
       <div className="absolute inset-0" style={layer("dusk", phase === "dusk" || phase === "dawn")}><SkylineImg phase="dusk" mode="all" /><EdgeBuilding phase="dusk" /></div>
       <div className="absolute inset-0" style={layer("day", phase === "day")}><SkylineImg phase="day" mode="all" /><EdgeBuilding phase="day" /></div>
     </div>
@@ -551,7 +551,7 @@ const Y_EDGE = 66; // 画面のはし(出入りするところ)の高さ(%)
 const ZENITH = 8; // いちばん高いときの高さ(%)
 const A_IN = 0.07; // 画面の左はしに来るときの、弧の進み具合
 const A_OUT = 0.93; // 画面の右はしを出るときの、弧の進み具合
-const REST_T = { day: 10, night: 26 }; // 26 = 翌日の午前2時
+const REST_T = { day: 10, evening: 18, night: 26 }; // 26 = 翌日の午前2時
 
 // 時刻(0〜24+)から、天体の位置(%)・見えるか・高さ(0〜1)を求める。
 // 画面の左はしから出て、弧を描いて、右はしへ出ていく。画面の外では、見えない。
@@ -567,7 +567,7 @@ function bodyAt(hour: number): { x: number; y: number; o: number; e: number } {
 const P0 = 0.94;
 const slowEnd = (p: number) => (p < P0 ? p : P0 + (p - P0) - ((p - P0) * (p - P0)) / (2 * (1 - P0))) / (P0 + (1 - P0) / 2);
 
-function Celestial({ phase, tod, animate, dimMoon }: { phase: Phase; tod: "day" | "night"; animate: boolean; dimMoon: boolean }) {
+function Celestial({ phase, tod, animate, dimMoon }: { phase: Phase; tod: "day" | "evening" | "night"; animate: boolean; dimMoon: boolean }) {
   const sunRef = useRef<HTMLDivElement>(null);
   const moonRef = useRef<HTMLDivElement>(null);
   const hourRef = useRef(REST_T[tod] % 24); // いまの時刻
@@ -795,7 +795,7 @@ export function Ambient() {
       <AnimatePresence>
         <motion.div key={weather} className="absolute inset-0" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 3 }}>
           {clearish && (
-            <div className="absolute inset-0" style={{ opacity: nightish ? (phase === "dusk" ? 0.55 : 1) : 0, ...FADE }}>
+            <div className="absolute inset-0" style={{ opacity: nightish ? (phase === "dusk" ? 0.3 : 1) : 0, ...FADE }}>
               <Stars dim={weather === "cloudy"} />
             </div>
           )}

@@ -180,7 +180,7 @@ export default function Home() {
                 animate={{ opacity: 1, filter: "blur(0px)" }}
                 transition={{ delay: 0.8, duration: 2.4, ease: "easeOut" }}
               >
-                <IfMark className="h-[1.15em] w-auto shrink-0 text-mist" />
+                <IfMark colon className="h-[1.15em] w-auto shrink-0 text-mist" />
                 <h1 className="-mr-[0.2em] min-w-0 flex-1 whitespace-nowrap text-center tracking-[0.2em] text-mist [text-align-last:justify] sm:-mr-[0.35em] sm:tracking-[0.35em]">{t.home.title}</h1>
               </motion.div>
               <motion.p className="mt-4 whitespace-nowrap text-center text-sm tracking-[0.5em] text-haze sm:text-base" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1.6, duration: 1.8 }}>

@@ -3,6 +3,7 @@ import { HOME_PRICE, monthlyMan, passRate } from "@/lib/sim/data/jp-turning";
 import { COUNTRIES } from "@/lib/sim/data/jp-countries";
 import { assignJob, bump, fullName, moveAbroad, moveHome, moveTo, randomPartner } from "@/lib/sim/helpers";
 import { incomeOf } from "@/lib/sim/salary";
+import { netIncome } from "@/lib/sim/tax";
 import { weighted } from "@/lib/sim/rng";
 import type { CountryData, GameState, IntentRule, Occ, Region } from "@/lib/sim/types";
 
@@ -406,10 +407,11 @@ const rules: IntentRule[] = [
       const p = s.person;
       if (p.owned) return "";
       const price = HOME_PRICE[p.region] * 0.85;
-      const takeHome = incomeOf(p, data, p.econ) * (p.married ? 1.35 : 1) * data.cashflow.takeHome;
+      const takeHome = netIncome(p, data, p.econ);
       if (monthlyMan(price) * 12 > takeHome * 0.35) return "住宅の購入を考えたが、ローンの審査が通らなかった";
       p.owned = true;
       p.withParents = false;
+      p.owns.home = p.age;
       bump(p, { money: -3 });
       return "ローンを組んで、住まいを買った";
     },

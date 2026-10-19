@@ -153,6 +153,16 @@ export function AssetPanel({ t, state, month, onTrade, onStartStocks, onPlan, on
             <span className="block text-[11px] text-dim">積立 {man(state.wallet.kidFund.contributed)}万円。自分の資産には数えません。</span>
           </p>
         )}
+        {!minor && state.person.tax && state.person.tax.gross > 0 && (
+          <div className="mt-3 text-left text-[11px] leading-5 tracking-wider text-dim">
+            <p className="text-haze">今年の手取り(世帯の目安)</p>
+            <p className="tabular-nums">
+              額面 {state.person.tax.gross}万円 − 所得税 {state.person.tax.incomeTax}万円 − 住民税 {state.person.tax.resident}万円 − 社会保険料 {state.person.tax.social}万円 = 手取り {state.person.tax.net}万円({Math.round((state.person.tax.net / state.person.tax.gross) * 100)}%)
+            </p>
+            <p>社会保険料の内訳は、健康・介護保険 {state.person.tax.health}万円・年金 {state.person.tax.pension}万円・雇用保険 {state.person.tax.employment}万円。{state.person.tax.credit > 0 ? `住宅ローン控除で、所得税が${state.person.tax.credit}万円ほど減っています。` : ""}生活費にふくまれる消費税は、年に約{state.person.tax.consumption}万円の目安です。</p>
+            <p>税の計算は、実際の制度をもとにした簡略版です(くわしくは「データについて・ヒント」)。</p>
+          </div>
+        )}
         {!minor && <p className="mt-2 text-[11px] leading-4 tracking-wider text-dim">普通預金の金利: 年{(savingsRate(state.person.econ) * 100).toFixed(3)}%(景気で上下する架空の水準)</p>}
         {stocks && (
           <p className="mt-2 text-xs tracking-wider text-haze">

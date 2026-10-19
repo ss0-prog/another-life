@@ -170,6 +170,8 @@ export type Person = {
   prev: { occ: Occ; job: string | null; payMult: number } | null;
   // 選択の結果などで増減した貯金(円)。エンジンが、貯金に反映して0に戻す。
   cashDelta: number;
+  // 今年の、税と社会保険料の内訳(万円、世帯ぶん)。毎年のお金の処理で更新する。
+  tax?: TaxSnap;
   // 出来事の理由づけに使う、直近の出来事(種類 → 起きた年齢)。
   history: Record<string, number>;
   scheduled: Scheduled[];
@@ -432,7 +434,8 @@ export type BranchOption = {
 
 // 人生ひとつ分の要約。比較画面で使う。
 export type Extra = { stress: number; trust: number; career: number; charm: number };
-export type SeriesPoint = { age: number; net: number; joy: number; health: number; inc?: number; mar?: boolean; kids?: number; money?: number; bonds?: number; learn?: number; cash?: number; inv?: number; debt?: number; econ?: number; flow?: number; stress?: number; trust?: number; career?: number; charm?: number };
+export type SeriesPoint = { age: number; net: number; joy: number; health: number; inc?: number; tax?: number; soc?: number; take?: number; mar?: boolean; kids?: number; money?: number; bonds?: number; learn?: number; cash?: number; inv?: number; debt?: number; econ?: number; flow?: number; stress?: number; trust?: number; career?: number; charm?: number };
+export type TaxSnap = { gross: number; incomeTax: number; resident: number; health: number; pension: number; employment: number; social: number; credit: number; net: number; consumption: number };
 // 人生の大きな分かれ目(能力値や資産が大きく動いた出来事)。
 export type TurningMoment = { age: number; event: string; fx?: EventFx; impact: number };
 
@@ -512,7 +515,6 @@ export type CountryData = {
   spendCategories: SpendCategoryDef[];
   assets: AssetDef[];
   cashflow: {
-    takeHome: number; // 手取りの割合
     saveRate: number; // 黒字のうち貯金に回る割合
     pension: number; // 退職後の年収(万円)
     retiredNeed: number; // 退職後の生活費(万円)

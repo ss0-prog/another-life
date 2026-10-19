@@ -26,7 +26,7 @@ export function partnerWorks(p: Person): boolean {
 // 親(自分の両親)のどちらかが、まだ元気か。
 export const parentsAround = (p: Person) => p.age < p.parentDeath.mother || p.age < p.parentDeath.father;
 
-// 毎年の、預け先の費用(万円)と、くらしへの影響。kidAge は、いちばん下の子の年齢。income は、自分の年収の目安(万円)。
+// 毎年の、預け先の費用(万円)と、くらしへの影響。kidAge は、いちばん下の子の年齢。income は、自分の手取りの目安(万円)。
 export type CareYear = { costMan: number; bump: Partial<Record<"bonds" | "joy" | "health" | "money", number>>; stress: number; career: number; text?: string };
 export function careYear(p: Person, kind: CareKind, kidAge: number, income: number, r: () => number): CareYear {
   const small = kidAge < 3;
@@ -50,10 +50,10 @@ export function careYear(p: Person, kind: CareKind, kidAge: number, income: numb
     case "sitter":
       return { costMan: small ? 120 : 90, bump: {}, stress: -2, career: 0 };
     case "home_self":
-      // 仕事を減らして家で育てる間は、収入が大きく減る(自分の年収の4割ほど)。
+      // 仕事を減らして家で育てる間は、収入が大きく減る(自分の手取りの4割ほど)。
       return { costMan: Math.round(income * 0.4), bump: { joy: 1 }, stress: 2, career: -2 };
     case "home_partner":
-      // パートナーが家にいる間は、世帯の収入が減る。自分は、仕事に集中できる。
+      // パートナーが家にいる間は、世帯の収入が減る(相手の手取りの3割半ほどと仮定)。自分は、仕事に集中できる。
       return { costMan: Math.round(income * 0.35), bump: { bonds: 2 }, stress: -1, career: 1 };
   }
 }

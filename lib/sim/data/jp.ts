@@ -149,7 +149,6 @@ export const jpData: CountryData = {
   ],
   // 貯金の増え方の仮定。手取りから生活費を引いた黒字の一部が貯金に回る。
   cashflow: {
-    takeHome: 0.8,
     saveRate: 0.14,
     pension: 200,
     retiredNeed: 230,

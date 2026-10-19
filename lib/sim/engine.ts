@@ -19,6 +19,7 @@ import { economyAt } from "@/lib/sim/economy";
 import { WEATHER_EVENT, weatherAt } from "@/lib/sim/weather";
 import { marketOf, priceAt } from "@/lib/sim/market";
 import { drawChangeFactor, incomeOf } from "@/lib/sim/salary";
+import { consumptionTaxOf, householdTax, netIncome, sideTax, taxSnap, type TaxResult } from "@/lib/sim/tax";
 import { createRng, interpolate, interpolateLog, pick, weighted, type Rng } from "@/lib/sim/rng";
 import { MAX_LESSONS } from "@/lib/sim/types";
 import type {
@@ -284,18 +285,20 @@ function startWallet(p: Person, data: CountryData, savingsMan: number | null): W
   return { cash: toYen(savingsMan ?? guess), units: { index: 0, world: 0, balanced: 0, reit: 0, gold: 0, growth: 0, crypto: 0, bond: 0 }, contributed: 0, stocks: false, debts: [] };
 }
 
-// 1年ぶんの貯金の増減(万円)。手取りから生活費を引き、黒字の一部が貯金に回る。
-function yearlyFlow(p: Person, data: CountryData, econ: number, inDebt = false): number {
-  if (p.occ === null) return 0;
+// 1年ぶんの貯金の増減(万円)。税と社会保険料を引いた手取りから生活費を引き、黒字の一部が貯金に回る。
+// 内訳(税・社会保険料・手取り・消費税の目安)も返す。
+export type YearMoney = { flow: number; tax: TaxResult; need: number };
+function yearlyMoney(p: Person, data: CountryData, econ: number, inDebt = false): YearMoney {
+  if (p.occ === null) return { flow: 0, tax: householdTax(p, data, econ), need: 0 };
   // 実家で暮らしている間は、生活費が半分ほどで済む。
   const base = (320 + p.kids * 100 + (p.owned ? 60 : 0) + { tokyo: 30, metro: 10, local: -10, rural: -25 }[p.region]) * (p.abroad?.costFactor ?? 1) * (p.housingKind ? { lodging: 0.5, dorm: 0.6, share: 0.82, facility: 0.8, homeless: 0.55 }[p.housingKind] : 1);
-  const income = incomeOf(p, data, econ) * (p.married && p.occ !== "retired" ? 1.35 : 1);
+  const t = householdTax(p, data, econ);
   // 収入の低い人は、暮らしの水準を、収入にあわせて切り詰める(生活費は、手取りの9割ちょっとが上限)。
-  const need = p.occ === "retired" ? data.cashflow.retiredNeed : Math.min(p.withParents ? base * 0.5 : base, income * data.cashflow.takeHome * 0.93);
-  // 年金は、手取りの割合をかけない(現役より、税や保険料の負担が軽い)。
-  const surplus = (p.occ === "retired" ? income : income * data.cashflow.takeHome) - need;
+  const need = p.occ === "retired" ? data.cashflow.retiredNeed : Math.min(p.withParents ? base * 0.5 : base, t.net * 0.93);
+  const surplus = t.net - need;
   // 借金があるあいだは、暮らしを切り詰めて、黒字の大半を返済にまわす。
-  return surplus > 0 ? surplus * (inDebt ? 0.9 : data.cashflow.saveRate) : surplus;
+  const flow = surplus > 0 ? surplus * (inDebt ? 0.9 : data.cashflow.saveRate) : surplus;
+  return { flow, tax: { ...t, consumption: consumptionTaxOf(need) }, need };
 }
 
 // 分岐した人生: 分岐した年齢から再スタートし、選ばなかった道を反映する。
@@ -1372,6 +1375,7 @@ export function tick(state: GameState, data: CountryData = jpData): GameState {
     p.owned = true;
     p.housingKind = null;
     p.withParents = false;
+    p.owns.home = a;
     push("ローンを組んで、住まいを買った", 50);
   }
   if (p.withParents && a >= 24 && roll(seed, a, S.parents) < 0.06) p.withParents = false;
@@ -1397,7 +1401,31 @@ export function tick(state: GameState, data: CountryData = jpData): GameState {
   }
   // 貯金の増減(1年ぶんを、年のはじめにまとめて反映する)。
   const econ = economyAt(seed, a);
-  const flow = toYen(yearlyFlow(p, data, econ, next.wallet.debts.length > 0));
+  const ym = yearlyMoney(p, data, econ, next.wallet.debts.length > 0);
+  const flow = toYen(ym.flow);
+  p.tax = taxSnap(ym.tax);
+  // はじめての給与明細・年金の明細: 額面から、税と社会保険料が引かれて、手取りになる。
+  if (p.tax.gross > 0 && p.occ !== "retired" && p.history.payslip === undefined) {
+    p.history.payslip = a;
+    if (p.employment === "self") p.history.selfTax = a;
+    const t = p.tax;
+    push(`はじめての${p.employment === "self" ? "確定申告" : "給与明細"}。年収${t.gross}万円から、所得税と住民税で${t.incomeTax + t.resident}万円、社会保険料で${t.social}万円が引かれ、手取りは${t.net}万円になった`, 47);
+  } else if (p.tax.gross > 0 && p.occ === "retired" && p.history.pensionSlip === undefined) {
+    p.history.pensionSlip = a;
+    const t = p.tax;
+    push(`年金の通知書が届いた。年${t.gross}万円のうち、税と保険料で${t.incomeTax + t.resident + t.social}万円が引かれ、手取りは${t.net}万円になった`, 47);
+  }
+  if (p.tax.gross > 0 && p.employment === "self" && p.occ !== "retired" && p.history.selfTax === undefined && p.history.payslip !== a) {
+    p.history.selfTax = a;
+    push(`独立して、会社が半分払っていた社会保険料を、全額自分で払うようになった。国民年金と国民健康保険で、年に${p.tax.pension + p.tax.health}万円ほど`, 46);
+  }
+  if (p.tax.gross > 0 && p.married && p.occ !== "retired" && p.history.marrySlip === undefined) {
+    p.history.marrySlip = a;
+    push("結婚して、配偶者の収入も世帯に加わった。税や社会保険料は、ひとりずつにかかるので、世帯の手取りは、ふたりの合計になる", 30);
+  }
+  for (const k of p.kidList) {
+    if (a - k.bornAge === 16) push("子どもが16歳になった。扶養控除(所得税38万円・住民税33万円)の対象になり、税が少し軽くなった", 30);
+  }
   next.wallet.cash = Math.max(0, next.wallet.cash + flow);
   // 普通預金の利息(年のはじめにまとめて)。金利は、景気で上下する、架空の水準。
   if (next.wallet.cash > 0 && a >= 15) {
@@ -1573,7 +1601,7 @@ export function tick(state: GameState, data: CountryData = jpData): GameState {
   if (p.kidList.length > 0) {
     const youngest = a - Math.max(...p.kidList.map((k) => k.bornAge));
     if (p.childcare && youngest >= 0 && youngest <= 5) {
-      const cy = careYear(p, p.childcare.kind, youngest, Math.round(incomeOf(p, data, economyAt(seed, a))), streamRng(seed, a, S.ev + 91));
+      const cy = careYear(p, p.childcare.kind, youngest, Math.round(netIncome(p, data, economyAt(seed, a), { married: false })), streamRng(seed, a, S.ev + 91));
       if (cy.costMan > 0) chargeWithDebt(next, Math.round(cy.costMan * 10000));
       bump(p, cy.bump);
       p.extra.stress = Math.min(100, Math.max(0, p.extra.stress + cy.stress));
@@ -1692,7 +1720,10 @@ export function tick(state: GameState, data: CountryData = jpData): GameState {
     } else {
       // 社会人の副業は、収入が少なく、体への負担が大きい。18歳未満は、働ける時間が短い。
       const pay = def.yearlyMan * (full ? 0.6 : a < 18 ? 0.5 : 1) * (1 + p.econ * 0.03) * 10000;
-      next.wallet.cash += Math.round(pay);
+      // 税: 働いていない人は年に約103万円まで引かれない。働いている人の副業は、20万円をこえると税がかかる。
+      const sideMan = pay / 10000;
+      const sideT = sideTax(p, data, econ, sideMan);
+      next.wallet.cash += Math.round(pay - sideT * 10000);
       const load = full ? 1.6 : 1;
       bump(p, fitScaled(Object.fromEntries(Object.entries(def.effect).map(([k, v]) => [k, (v as number) * (v < 0 ? load : 1)])) as Partial<Stats>, p.mbti, def.tags));
       mark();
@@ -1802,7 +1833,7 @@ export function tick(state: GameState, data: CountryData = jpData): GameState {
   if (a === SNAP_AGE) next.snap = clone(p);
   flush(next);
   next.unlocked = [...new Set([...(next.unlocked ?? []), ...evaluate(next)])];
-  (next.series ??= []).push({ age: a, net: Math.round(fxSnap(next).n / 10000), joy: Math.round(p.stats.joy), health: Math.round(p.stats.health), inc: p.occ === null ? 0 : Math.round(incomeOf(p, data, p.econ)), mar: p.married, kids: p.kids, stress: Math.round(p.extra.stress), trust: Math.round(p.extra.trust), career: Math.round(p.extra.career), charm: Math.round(p.extra.charm), money: Math.round(p.stats.money), bonds: Math.round(p.stats.bonds), learn: Math.round(p.stats.learn), cash: Math.round(next.wallet.cash / 10000), inv: Math.round(holdingsValue(next, 0, data) / 10000), debt: Math.round(debtTotal(next.wallet.debts) / 10000), econ: Math.round(p.econ * 100) / 100, flow: Math.round(flow / 10000) });
+  (next.series ??= []).push({ age: a, net: Math.round(fxSnap(next).n / 10000), joy: Math.round(p.stats.joy), health: Math.round(p.stats.health), inc: p.occ === null ? 0 : Math.round(incomeOf(p, data, p.econ)), tax: p.tax ? p.tax.incomeTax + p.tax.resident : 0, soc: p.tax?.social ?? 0, take: p.tax?.net ?? 0, mar: p.married, kids: p.kids, stress: Math.round(p.extra.stress), trust: Math.round(p.extra.trust), career: Math.round(p.extra.career), charm: Math.round(p.extra.charm), money: Math.round(p.stats.money), bonds: Math.round(p.stats.bonds), learn: Math.round(p.stats.learn), cash: Math.round(next.wallet.cash / 10000), inv: Math.round(holdingsValue(next, 0, data) / 10000), debt: Math.round(debtTotal(next.wallet.debts) / 10000), econ: Math.round(p.econ * 100) / 100, flow: Math.round(flow / 10000) });
   return next;
 }
 

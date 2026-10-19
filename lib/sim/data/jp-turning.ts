@@ -1,4 +1,5 @@
 import { incomeOf, round10 } from "@/lib/sim/salary";
+import { householdTax, netIncome, man as manText, pct as pctOf } from "@/lib/sim/tax";
 import { JOBS, OCC_LABEL, OCC_OFFICIAL, jobById } from "@/lib/sim/data/jp-jobs";
 import { assignJob, bump, fullName, moveAbroad, moveTo, randomPartner } from "@/lib/sim/helpers";
 import { compat, typeCall } from "@/lib/sim/mbti";
@@ -48,7 +49,19 @@ const econNote = (env: Env) => (env.econ > 0.6 ? `(いまは${env.econLabel}で�
 function payText(p: Person, env: Env, data: CountryData, pt: Partial<Person>): string {
   const at = (region?: Region) => round10(incomeOf(p, data, env.econ, { ...pt, ...(region ? { region } : {}) }));
   const here = pt.region ?? p.region;
-  return `${pt.age ?? p.age}歳のころの年収の目安は、${data.regionLabel[here]}で約${at()}万円(東京23区なら約${at("tokyo")}万円、地方都市なら約${at("local")}万円)${econNote(env)}。`;
+  const t = householdTax(p, data, env.econ, pt);
+  const tax = t.gross > 0 ? `額面から税と社会保険料が引かれ、手取りは約${manText(t.net)}万円(${pctOf(t.net / t.gross)})。` : "";
+  return `${pt.age ?? p.age}歳のころの年収の目安は、${data.regionLabel[here]}で約${at()}万円(東京23区なら約${at("tokyo")}万円、地方都市なら約${at("local")}万円)${econNote(env)}。${tax}`;
+}
+
+// 手取りの目安を、いまの働き方と、年金の受け取りで並べて示す(税・社会保険料は、簡略版の計算)。
+function takeText(p: Person, data: CountryData, econ: number, pt: Partial<Person> = {}): string {
+  const t = householdTax(p, data, econ, pt);
+  return t.gross > 0 ? `税と社会保険料で約${manText(t.gross - t.net)}万円(${pctOf(1 - t.net / t.gross)})が引かれ、手取りは約${manText(t.net)}万円。` : "";
+}
+function pensionText(p: Person, data: CountryData, mult: number): string {
+  const t = householdTax(p, data, 0, { occ: "retired", pensionFrom: undefined, pensionMult: mult });
+  return `年金は年に約${manText(t.gross)}万円。税と社会保険料で約${manText(t.gross - t.net)}万円が引かれ、手取りは約${manText(t.net)}万円。`;
 }
 
 const fit = (env: Env, bad: string) => (env.econ < -0.6 ? bad : "");
@@ -137,7 +150,7 @@ const workplaceQuestion = (j: JobDef): TurningQuestion => ({
     label: w.label,
     auto: w.auto,
     apply: (p, rng, data) => enterJob(p, rng, data, j, w),
-    detail: (p, env, data) => `${w.note} ${payText(p, env, data, { occ: j.occ, job: j.id, payMult: j.mult * (w.mult ?? 1), employment: w.employment, firm: w.firm, sector: w.sector })}${w.employment === "regular" && w.sector === "private" && env.econ < -0.6 ? " 不況の今は、正社員の採用が絞られている。" : ""}`,
+    detail: (p, env, data) => `${w.note}${w.employment === "self" ? " 会社が半分払ってくれる厚生年金・健康保険には入れず、国民年金と国民健康保険を全額自分で払う。" : w.employment === "nonregular" ? " 年収が約106万円までなら、社会保険に入らず、税もほとんどかからない(それをこえると、保険料が引かれて、手取りが一時的に減ることもある)。" : ""} ${payText(p, env, data, { occ: j.occ, job: j.id, payMult: j.mult * (w.mult ?? 1), employment: w.employment, firm: w.firm, sector: w.sector })}${w.employment === "regular" && w.sector === "private" && env.econ < -0.6 ? " 不況の今は、正社員の採用が絞られている。" : ""}`,
   })),
 });
 
@@ -739,18 +752,19 @@ const homeQuestion = (): TurningQuestion => ({
     label: h.label,
     apply: (p, r, d) => {
       const price = HOME_PRICE[p.region] * h.f;
-      const takeHome = incomeOf(p, d, p.econ) * (p.married ? 1.35 : 1) * d.cashflow.takeHome;
+      const takeHome = netIncome(p, d, p.econ);
       if (monthlyMan(price) * 12 > takeHome * 0.35 || (p.stats.money < 35 && p.background === "tight")) return "住宅の購入を考えたが、ローンの審査が通らなかった";
       p.owned = true;
       p.withParents = false;
+      p.owns.home = p.age;
       bump(p, { money: -3 });
       return `ローンを組んで、${h.label}を買った`;
     },
     detail: (p, env, data) => {
       const price = HOME_PRICE[p.region] * h.f;
       const m = monthlyMan(price);
-      const income = incomeOf(p, data, env.econ) * (p.married ? 1.35 : 1);
-      return `${h.note} ${data.regionLabel[p.region]}での価格の目安は約${Math.round(price / 10) * 10}万円。月々の返済は約${m.toFixed(1)}万円で、世帯の年収の約${Math.round(((m * 12) / Math.max(1, income)) * 100)}%。`;
+      const t = householdTax(p, data, env.econ);
+      return `${h.note} ${data.regionLabel[p.region]}での価格の目安は約${Math.round(price / 10) * 10}万円。月々の返済は約${m.toFixed(1)}万円で、世帯の年収の約${Math.round(((m * 12) / Math.max(1, t.gross)) * 100)}%(手取りの約${Math.round(((m * 12) / Math.max(1, t.net)) * 100)}%)。買った年から13年間は、住宅ローン控除で所得税が最大で年21万円ほど減る(住民税の控除や、細かい条件は入れていない)。`;
     },
   })),
 });
@@ -983,7 +997,7 @@ export const turningPoints: TurningPoint[] = [
         id: "indep",
         label: "独立して挑戦する",
         apply: () => "",
-        detail: (p, env) => `収入は大きく上下する。景気の影響を、もっとも受ける働き方。いまは${env.econLabel}。`,
+        detail: (p, env) => `収入は大きく上下する。景気の影響を、もっとも受ける働き方。いまは${env.econLabel}。副業の収入は、年に20万円をこえると確定申告が要る。独立すると、会社が半分払っていた社会保険料を、全額自分で払うことになり、手取りの割合は下がりやすい。`,
         children: () => ({
           title: "どう独立する?",
           prompt: "始め方で、リスクが変わります。",
@@ -1113,10 +1127,10 @@ export const turningPoints: TurningPoint[] = [
     prompt: "仕事をいつまで続けるか、そろそろ考えるときです。",
     when: (p) => p.occ !== null && p.occ !== "retired",
     options: [
-      opt("r60", "60歳で退職して、早めにゆっくり暮らす", (p) => ((p.retireAt = 60), bump(p, { health: 4, joy: 3 }), "60歳で仕事を退くことに決めた"), { detail: () => "収入は早く止まり、年金も満額ではない。そのぶん、自由な時間と体力が残る。" }),
-      opt("retire", "定年(65歳)まで勤め、その後はゆっくり暮らす", (p) => ((p.retireAt = 65), bump(p, { health: 3 }), "65歳の定年まで働くことに決めた"), { auto: true, detail: () => "65歳以降は年金が中心。年金の目安は、年に約200万円ほど。貯金の取り崩しが必要になることもある。" }),
-      opt("r70", "70歳まで働く", (p) => ((p.retireAt = 70), bump(p, { money: 4, health: -2 }), "70歳まで働き続けることに決めた"), { detail: () => "70歳まで収入が続く。体力との相談になる。" }),
-      opt("r75", "75歳まで、生涯現役をめざす", (p) => ((p.retireAt = 75), bump(p, { money: 6, health: -4, joy: 2 }), "75歳まで、生涯現役でいることに決めた"), { detail: () => "収入は長く続くが、体への負担は大きい。" }),
+      opt("r60", "60歳で退職して、早めにゆっくり暮らす", (p) => ((p.retireAt = 60), bump(p, { health: 4, joy: 3 }), "60歳で仕事を退くことに決めた"), { detail: (p, env, data) => `収入は早く止まり、年金も満額ではない。そのぶん、自由な時間と体力が残る。いまの収入では、${takeText(p, data, env.econ)}退職後も、国民健康保険料や住民税は、かかり続ける。` }),
+      opt("retire", "定年(65歳)まで勤め、その後はゆっくり暮らす", (p) => ((p.retireAt = 65), bump(p, { health: 3 }), "65歳の定年まで働くことに決めた"), { auto: true, detail: (p, env, data) => `65歳以降は年金が中心。${pensionText(p, data, 1)}貯金の取り崩しが必要になることもある。` }),
+      opt("r70", "70歳まで働く", (p) => ((p.retireAt = 70), bump(p, { money: 4, health: -2 }), "70歳まで働き続けることに決めた"), { detail: (p, env, data) => `70歳まで収入が続く。体力との相談になる。いまの収入では、${takeText(p, data, env.econ)}厚生年金の保険料は、70歳まで払い続ける。` }),
+      opt("r75", "75歳まで、生涯現役をめざす", (p) => ((p.retireAt = 75), bump(p, { money: 6, health: -4, joy: 2 }), "75歳まで、生涯現役でいることに決めた"), { detail: (p, env, data) => `収入は長く続くが、体への負担は大きい。いまの収入では、${takeText(p, data, env.econ)}` }),
       opt("shop", "地元で小さな商いや畑を始める", (p) => ((p.occ = "agri"), (p.job = "farmer"), (p.employment = "self"), (p.sector = "private"), (p.payMult = 0.6), (p.region = p.birthRegion), (p.city = p.birthPlace), bump(p, { money: -3, health: 4 }), `地元の${p.city}で、小さな商いや畑を始めた`), { detail: () => "収入は多くないが、暮らしの費用は低く、体を動かす日々になる。" }),
     ],
   },
@@ -1127,9 +1141,9 @@ export const turningPoints: TurningPoint[] = [
     prompt: "年金を、いつから受け取りますか。遅らせるほど、受け取る額は増えます。",
     when: (p) => p.occ !== null,
     options: [
-      opt("p65", "65歳から、受け取る", (p) => ((p.pensionFrom = undefined), (p.pensionMult = 1), "65歳から、年金を受け取ることにした"), { auto: true, detail: () => "ふつうの受け取り方。年に約200万円ほど。" }),
-      opt("p70", "70歳まで遅らせて、増やして受け取る(約+42%)", (p) => ((p.pensionFrom = 70), (p.pensionMult = 1.42), bump(p, { money: 1 }), "年金を70歳まで遅らせ、増やして受け取ることにした"), { detail: () => "70歳まで、年金は受け取れない(働くか、貯金で暮らす)。70歳からは、約1.4倍になる。長生きするほど、得になる。" }),
-      opt("p75", "75歳まで遅らせて、さらに増やす(約+84%)", (p) => ((p.pensionFrom = 75), (p.pensionMult = 1.84), bump(p, { money: 2, health: -1 }), "年金を75歳まで遅らせ、さらに増やして受け取ることにした"), { detail: () => "75歳まで、年金は受け取れない。75歳からは、約1.8倍になる。体力と貯金の見通しが、前提になる。" }),
+      opt("p65", "65歳から、受け取る", (p) => ((p.pensionFrom = undefined), (p.pensionMult = 1), "65歳から、年金を受け取ることにした"), { auto: true, detail: (p, env, data) => `ふつうの受け取り方。${pensionText(p, data, 1)}年金も、税と社会保険料の対象になる。` }),
+      opt("p70", "70歳まで遅らせて、増やして受け取る(約+42%)", (p) => ((p.pensionFrom = 70), (p.pensionMult = 1.42), bump(p, { money: 1 }), "年金を70歳まで遅らせ、増やして受け取ることにした"), { detail: (p, env, data) => `70歳まで、年金は受け取れない(働くか、貯金で暮らす)。70歳からは、約1.4倍になる。長生きするほど、得になる。増えた年金にも税がかかる。${pensionText(p, data, 1.42)}` }),
+      opt("p75", "75歳まで遅らせて、さらに増やす(約+84%)", (p) => ((p.pensionFrom = 75), (p.pensionMult = 1.84), bump(p, { money: 2, health: -1 }), "年金を75歳まで遅らせ、さらに増やして受け取ることにした"), { detail: (p, env, data) => `75歳まで、年金は受け取れない。75歳からは、約1.8倍になる。体力と貯金の見通しが、前提になる。増えた年金にも税がかかる。${pensionText(p, data, 1.84)}` }),
     ],
   },
   {

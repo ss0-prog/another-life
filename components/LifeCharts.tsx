@@ -46,6 +46,14 @@ const METRICS: Metric[] = [
     lines: [{ label: "年収", color: "var(--color-warm)", pick: (p) => p.inc }], fmt: man,
   },
   {
+    id: "take", label: "手取り", note: "世帯の手取りと、引かれた税・社会保険料(結婚すると、配偶者のぶんをふくむ。簡略版の計算)。", unit: "万円",
+    lines: [
+      { label: "手取り", color: "var(--color-up)", pick: (p) => p.take },
+      { label: "所得税・住民税", color: "var(--color-warm)", pick: (p) => p.tax },
+      { label: "社会保険料", color: "var(--color-cool)", pick: (p) => p.soc },
+    ], fmt: man,
+  },
+  {
     id: "flow", label: "収支", note: "1年のお金の増えた分(黒字)・減った分(赤字)。", unit: "万円",
     lines: [{ label: "年間の収支", color: "var(--color-up)", pick: (p) => p.flow }], zero: true, fmt: man,
   },

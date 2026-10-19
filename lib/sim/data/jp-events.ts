@@ -1,6 +1,7 @@
 import { jobById, JOBS as allJobs, OCC_LABEL } from "@/lib/sim/data/jp-jobs";
 import { industryQuestion } from "@/lib/sim/data/jp-industry";
 import { applyChangeIncome, changeIncome, incomeOf, round10 } from "@/lib/sim/salary";
+import { leaveLoss, man as manText, retirementTax } from "@/lib/sim/tax";
 import { STUDY_MAIN, STUDY_OTHERS, countryById } from "@/lib/sim/data/jp-countries";
 import type { TurningQuestion } from "@/lib/sim/types";
 import { addDebt, assignJob, bump, chargeWithDebt, fullName, kidCall, moveAbroad, moveHome, moveTo, bearerOf, noBearer, npcMbti, partnerCall, randomPartner } from "@/lib/sim/helpers";
@@ -496,9 +497,6 @@ const addCash = (p: Person, manYen: number) => {
   p.cashDelta += Math.round(manYen * 10000);
 };
 
-// 育児休業のときの、世帯への影響のもとになる、年収の目安(万円)。働いていなければ、同じくらいの収入と仮定する。
-const leaveIncome = (p: Person, d: CountryData) => (p.occ !== null ? incomeOf(p, d, p.econ) : 400);
-
 // 仕事に戻ったあとの、預け先を選ぶ。
 const careQuestion = (p: Person): TurningQuestion => {
   const anyWork = working(p) || partnerWorks(p);
@@ -533,7 +531,7 @@ const careQuestion = (p: Person): TurningQuestion => {
         bump(q, { bonds: 3, joy: 2 });
         q.extra.career = Math.max(0, q.extra.career - 3);
         return "仕事を減らして、自分が家で子どもを育てることにした";
-      }, { show: (q) => working(q), detail: () => "子どもとの時間は増えるが、収入が大きく減り(年収の4割ほど)、キャリアにも響く。子どもが小学校に入るころまで、続く。" }),
+      }, { show: (q) => working(q), detail: () => "子どもとの時間は増えるが、収入が大きく減り(手取りの4割ほど。税や保険料も減るので、額面では、もう少し小さな割合になる)、キャリアにも響く。子どもが小学校に入るころまで、続く。" }),
       opt("home_partner", "パートナーが、家で育てる", (q) => {
         q.childcare = { kind: "home_partner", since: q.age };
         bump(q, { bonds: 2 });
@@ -783,30 +781,30 @@ export const eventQuestions: EventQuestionDef[] = [
         prompt: hasPartner ? `子どもが生まれて、仕事と育児を、どう分けるかを決めます。まず、育児休業を、だれが取るか。そのあと、仕事に戻ったときの、預け先も選びます。` : "子どもが生まれて、仕事と育児を、どうするかを決めます。まず、育児休業を取るか。そのあと、仕事に戻ったときの、預け先も選びます。",
         options: [
           opt("take", "自分が、育休を長めに取る(約1年)", (p, r, d) => {
-            addCash(p, -Math.round(leaveIncome(p, d) * 0.3));
+            addCash(p, -Math.round(leaveLoss(p, d, p.econ, 12)));
             bump(p, { bonds: 6, joy: 5, health: 1 });
             p.extra.career = Math.max(0, p.extra.career - 2);
             return "育児休業を、1年ほど取り、子どもとの時間を大切にした";
-          }, { show: (q) => working(q), detail: (q) => `休業中は、収入が減る(育児休業給付は、賃金のおよそ5〜7割)。年収の3割ほどが、世帯から減る目安。取得した人の割合は、令和5年度で、女性約84%・男性約30%(厚生労働省「雇用均等基本調査」)。`, children: (q) => careQuestion(q) }),
+          }, { show: (q) => working(q), detail: (q, env, d) => `休業中は、育児休業給付(賃金の67%、6か月をこえると50%)が出る。給付には所得税も住民税もかからず、休業中は社会保険料も免除されるので、手取りで見た減りは、1年で約${manText(leaveLoss(q, d, q.econ, 12))}万円。取得した人の割合は、令和5年度で、女性約84%・男性約30%(厚生労働省「雇用均等基本調査」)。`, children: (q) => careQuestion(q) }),
           opt("short", "自分が、短く取る(数か月)", (p, r, d) => {
-            addCash(p, -Math.round(leaveIncome(p, d) * 0.1));
+            addCash(p, -Math.round(leaveLoss(p, d, p.econ, 4)));
             bump(p, { bonds: 3, joy: 2 });
             return "育児休業を短く取り、早めに仕事に復帰した";
-          }, { show: (q) => working(q), detail: () => "収入とキャリアへの影響は、小さくすむ。そのぶん、子どもとの時間は短くなる。", children: (q) => careQuestion(q) }),
+          }, { show: (q) => working(q), detail: (q, env, d) => `収入とキャリアへの影響は、小さくすむ。給付は税も保険料もかからず、4か月ほどの休業なら、手取りで見た減りは約${manText(leaveLoss(q, d, q.econ, 4))}万円。そのぶん、子どもとの時間は短くなる。`, children: (q) => careQuestion(q) }),
           opt("partner", `${hasPartner ? pn : "パートナー"}が、育休を取る`, (p, r, d) => {
-            addCash(p, -Math.round(leaveIncome(p, d) * 0.27));
+            addCash(p, -Math.round(leaveLoss(p, d, p.econ, 12) * 0.9));
             bump(p, { bonds: 6, joy: 4 });
             p.extra.stress = Math.max(0, p.extra.stress - 3);
             p.extra.career = Math.min(100, p.extra.career + 1);
             return `${pn}が育児休業を取り、子どもを見てくれることになった。自分は、仕事を続けた`;
-          }, { show: (q) => !!q.partner && q.partner.status !== "ex" && partnerWorks(q), detail: () => "世帯の収入は、一時的に減る(相手の年収の3割ほど。自分と同じ程度と仮定)。自分は仕事に集中でき、二人の関係にも、よい影響がある。", children: (q) => careQuestion(q) }),
+          }, { show: (q) => !!q.partner && q.partner.status !== "ex" && partnerWorks(q), detail: (q, env, d) => `世帯の収入は、一時的に減る(相手の収入は、自分と同じ程度と仮定すると、手取りで見て約${manText(leaveLoss(q, d, q.econ, 12) * 0.9)}万円。給付は税も保険料もかからない)。自分は仕事に集中でき、二人の関係にも、よい影響がある。`, children: (q) => careQuestion(q) }),
           opt("both", "ふたりで、分けて取る", (p, r, d) => {
-            addCash(p, -Math.round(leaveIncome(p, d) * 0.2));
+            addCash(p, -Math.round(leaveLoss(p, d, p.econ, 6) * 2));
             bump(p, { bonds: 8, joy: 5 });
             p.extra.stress = Math.max(0, p.extra.stress - 2);
             p.extra.career = Math.max(0, p.extra.career - 1);
             return `${pn}と、育児休業を分け合って取り、ふたりで子どもを見ることにした`;
-          }, { show: (q) => working(q) && !!q.partner && q.partner.status !== "ex" && partnerWorks(q), detail: () => "どちらの仕事への影響も、小さくすむ。収入は少し減るが、二人の関係と、子どもとの時間が、増える。", children: (q) => careQuestion(q) }),
+          }, { show: (q) => working(q) && !!q.partner && q.partner.status !== "ex" && partnerWorks(q), detail: (q, env, d) => `どちらの仕事への影響も、小さくすむ。収入は、手取りで見て世帯で約${manText(leaveLoss(q, d, q.econ, 6) * 2)}万円ほど減るが、二人の関係と、子どもとの時間が、増える。`, children: (q) => careQuestion(q) }),
           opt("none", "育休は取らず、働き続ける", (p) => {
             p.extra.stress = Math.min(100, p.extra.stress + 8);
             bump(p, { bonds: -2, health: -1 });
@@ -1666,13 +1664,14 @@ export const eventQuestions: EventQuestionDef[] = [
       prompt: "割増の退職金と引きかえに、会社を離れる道です。",
       options: [
         opt("take", "応じて、会社を離れる", (p, r, d) => {
-          addCash(p, 700 + r() * 800);
+          const lump = Math.round(700 + r() * 800);
+          addCash(p, lump - retirementTax(lump, p.age - 22));
           p.payMult *= 0.8;
           p.employment = "nonregular";
           bump(p, { money: -3, health: 2 });
           void d;
           return "早期退職に応じ、割増の退職金を受け取って、新しい道を探すことにした";
-        }, { detail: () => "退職金に数百〜千数百万円が上積みされる。収入は下がり、次の仕事を探す必要がある。" }),
+        }, { detail: (p) => `退職金に数百〜千数百万円が上積みされる。退職金には退職所得控除があり、税は軽い(勤続${Math.max(1, p.age - 22)}年なら、${(p.age - 22) <= 20 ? Math.max(80, 40 * (p.age - 22)) : 800 + 70 * (p.age - 22 - 20)}万円までは引かれない目安)。収入は下がり、次の仕事を探す必要がある。` }),
         opt("stay", "会社に残る", (p) => (bump(p, { money: 1 }), "会社に残る道を選んだ"), { auto: true, detail: (_p, env) => (env.econ < -0.6 ? "不況の今、残っても先行きは不透明。" : "") }),
       ],
     }),

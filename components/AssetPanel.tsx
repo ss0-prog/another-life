@@ -45,6 +45,7 @@ const PRESETS: { key: keyof Messages["play"]["assets"]["presets"]; tag: Tag; min
 export function AssetPanel({ t, state, month, onTrade, onStartStocks, onPlan, onSpend, onKidNisa, onBorrow, offers }: Props) {
   const [loan, setLoan] = useState<{ yen: number; text: string; tag: Tag | null } | null>(null);
   const [menu, setMenu] = useState(false);
+  const [taxOpen, setTaxOpen] = useState(false);
   const [writing, setWriting] = useState(false);
   const [text, setText] = useState("");
   const [spendAmount, setSpendAmount] = useState("");
@@ -154,13 +155,61 @@ export function AssetPanel({ t, state, month, onTrade, onStartStocks, onPlan, on
           </p>
         )}
         {!minor && state.person.tax && state.person.tax.gross > 0 && (
-          <div className="mt-3 text-left text-[11px] leading-5 tracking-wider text-dim">
-            <p className="text-haze">今年の手取り(世帯の目安)</p>
-            <p className="tabular-nums">
-              額面 {state.person.tax.gross}万円 − 所得税 {state.person.tax.incomeTax}万円 − 住民税 {state.person.tax.resident}万円 − 社会保険料 {state.person.tax.social}万円 = 手取り {state.person.tax.net}万円({Math.round((state.person.tax.net / state.person.tax.gross) * 100)}%)
-            </p>
-            <p>社会保険料の内訳は、健康・介護保険 {state.person.tax.health}万円・年金 {state.person.tax.pension}万円・雇用保険 {state.person.tax.employment}万円。{state.person.tax.credit > 0 ? `住宅ローン控除で、所得税が${state.person.tax.credit}万円ほど減っています。` : ""}生活費にふくまれる消費税は、年に約{state.person.tax.consumption}万円の目安です。</p>
-            <p>税の計算は、実際の制度をもとにした簡略版です(くわしくは「データについて」)。</p>
+          <div className="mt-3 border border-line/70 text-left">
+            <button type="button" onClick={() => setTaxOpen((o) => !o)} aria-expanded={taxOpen} className="flex w-full items-center justify-between gap-2 px-3 py-2 text-xs tracking-wider text-haze hover:text-mist">
+              <span>今年の手取り(世帯の目安)</span>
+              <span className="flex items-center gap-2 tabular-nums text-mist">
+                約{state.person.tax.net}万円
+                <span aria-hidden className={`text-[9px] text-dim transition-transform ${taxOpen ? "rotate-180" : ""}`}>▼</span>
+              </span>
+            </button>
+            {taxOpen && (
+              <div className="border-t border-line/70 px-3 py-3 text-[11px] leading-5 tracking-wider text-dim">
+                <dl className="space-y-1 tabular-nums">
+                  <div className="flex justify-between gap-3 text-haze">
+                    <dt>額面(税や保険料を引く前の収入)</dt>
+                    <dd>{state.person.tax.gross}万円</dd>
+                  </div>
+                  <div className="flex justify-between gap-3">
+                    <dt>− 所得税</dt>
+                    <dd>{state.person.tax.incomeTax}万円</dd>
+                  </div>
+                  {state.person.tax.credit > 0 && (
+                    <div className="flex justify-between gap-3 pl-3 text-[10px]">
+                      <dt>うち 住宅ローン控除で減った分</dt>
+                      <dd>−{state.person.tax.credit}万円</dd>
+                    </div>
+                  )}
+                  <div className="flex justify-between gap-3">
+                    <dt>− 住民税</dt>
+                    <dd>{state.person.tax.resident}万円</dd>
+                  </div>
+                  <div className="flex justify-between gap-3">
+                    <dt>− 社会保険料</dt>
+                    <dd>{state.person.tax.social}万円</dd>
+                  </div>
+                  <div className="flex justify-between gap-3 pl-3 text-[10px]">
+                    <dt>健康・介護保険</dt>
+                    <dd>{state.person.tax.health}万円</dd>
+                  </div>
+                  <div className="flex justify-between gap-3 pl-3 text-[10px]">
+                    <dt>年金</dt>
+                    <dd>{state.person.tax.pension}万円</dd>
+                  </div>
+                  <div className="flex justify-between gap-3 pl-3 text-[10px]">
+                    <dt>雇用保険</dt>
+                    <dd>{state.person.tax.employment}万円</dd>
+                  </div>
+                  <div className="flex justify-between gap-3 border-t border-line/70 pt-1.5 text-xs font-bold text-mist">
+                    <dt>= 手取り</dt>
+                    <dd>
+                      {state.person.tax.net}万円<span className="ml-1 text-[10px] font-normal text-haze">(額面の{Math.round((state.person.tax.net / state.person.tax.gross) * 100)}%)</span>
+                    </dd>
+                  </div>
+                </dl>
+                <p className="mt-2">税の計算は、実際の制度をもとにした簡略版です(くわしくは「データについて」)。</p>
+              </div>
+            )}
           </div>
         )}
         {!minor && <p className="mt-2 text-[11px] leading-4 tracking-wider text-dim">普通預金の金利: 年{(savingsRate(state.person.econ) * 100).toFixed(3)}%(景気で上下する架空の水準)</p>}

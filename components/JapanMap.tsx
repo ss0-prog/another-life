@@ -1,6 +1,6 @@
 "use client";
 
-import { INSET, OKINAWA, VIEW, project, projectSouth, resolvePlace } from "@/lib/geo/japan";
+import { FAR_ISLANDS, INSET, INSET_FAR, OKINAWA, VIEW, project, projectFar, projectSouth, resolvePlace } from "@/lib/geo/japan";
 import { MAIN_SHAPES, NORTHERN_TERRITORIES, SOUTH_SHAPES } from "@/lib/geo/japanShapes";
 
 type Home = { age: number; place: string };
@@ -63,6 +63,19 @@ export function JapanMap({ homes, city, age, abroad }: { homes: Home[]; city: st
         <rect x={INSET.x} y={INSET.y} width={INSET.w} height={INSET.h} rx={3} fill="var(--color-void)" fillOpacity={0.35} stroke="var(--color-line)" strokeDasharray="3 3" />
         <path d={SOUTH_D} fill="var(--color-line)" fillOpacity={0.45} stroke="var(--color-haze)" strokeOpacity={0.55} strokeWidth={0.5} strokeLinejoin="round" />
         <text x={INSET.x + INSET.w - 4} y={INSET.y + 9} textAnchor="end" fontSize={7.5} fill="var(--color-dim)">沖縄・南西諸島</text>
+
+        {/* 遠方の島(小笠原諸島・南鳥島・沖ノ鳥島)。位置だけを、印で示す */}
+        <rect x={INSET_FAR.x} y={INSET_FAR.y} width={INSET_FAR.w} height={INSET_FAR.h} rx={3} fill="var(--color-void)" fillOpacity={0.35} stroke="var(--color-line)" strokeDasharray="3 3" />
+        {FAR_ISLANDS.map((isl) => {
+          const [fx, fy] = projectFar(isl.ll);
+          return (
+            <g key={isl.name}>
+              <circle cx={fx} cy={fy} r={2} fill="var(--color-haze)" fillOpacity={0.8} />
+              <text x={fx} y={fy - 5} textAnchor="middle" fontSize={6.5} fill="var(--color-dim)">{isl.name}</text>
+            </g>
+          );
+        })}
+        <text x={INSET_FAR.x + INSET_FAR.w - 4} y={INSET_FAR.y + INSET_FAR.h - 3} textAnchor="end" fontSize={5.5} fill="var(--color-dim)">遠方の島(位置の目安)</text>
 
         {/* 引っ越しの矢印 */}
         {stops.slice(1).map((s, i) => {

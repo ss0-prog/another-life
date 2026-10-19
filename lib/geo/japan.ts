@@ -45,4 +45,13 @@ export const VIEW = { w: 312, h: 340 };
 export const project = ([lon, lat]: LL): [number, number] => [(lon - 129.3) * 15.2 + 4, (45.9 - lat) * 19.2 + 4];
 // 南西諸島(沖縄など)は、地図の左下の、小さな枠の中に置く。
 export const INSET = { x: 8, y: VIEW.h - 62, w: 78, h: 54 };
+// 遠方の島(小笠原諸島・南鳥島・沖ノ鳥島)は、地図の右下の、小さな枠の中に、位置だけを示す。
+export const INSET_FAR = { x: VIEW.w - 104, y: VIEW.h - 62, w: 96, h: 54 };
+export const projectFar = ([lon, lat]: LL): [number, number] => [INSET_FAR.x + 6 + (lon - 135) * 4.1, INSET_FAR.y + INSET_FAR.h - 8 - (lat - 20) * 5.2];
+export const FAR_ISLANDS: { name: string; ll: LL }[] = [
+  { name: "沖ノ鳥島", ll: [136.08, 20.42] },
+  { name: "小笠原諸島", ll: [142.19, 27.05] },
+  { name: "南鳥島", ll: [153.98, 24.28] },
+];
+
 export const projectSouth = ([lon, lat]: LL): [number, number] => [INSET.x + 4 + (lon - 123.0) * 7.4, INSET.y + INSET.h - 6 - (lat - 24.0) * 6.6];

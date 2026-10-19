@@ -48,7 +48,7 @@ export function CompareResult({ t, real, alt, onSave, canPublish, onAgain, altLa
         <p className="mx-auto mt-6 max-w-md w-fit text-left text-sm leading-8 tracking-wider text-haze">{t.lead}</p>
       </FadeIn>
 
-      <FadeIn delay={0.6} className="mx-auto mt-12 max-w-5xl">
+      <FadeIn delay={0.6} className="mx-auto mt-12 max-w-7xl">
         <SeriesChart real={real} alt={alt} altLabel={altLabel} others={others} />
       </FadeIn>
 
@@ -62,13 +62,13 @@ export function CompareResult({ t, real, alt, onSave, canPublish, onAgain, altLa
         />
       </FadeIn>
 
-      <div className="mx-auto mt-16 grid max-w-5xl gap-16 md:grid-cols-2 md:gap-x-10 md:gap-y-0">
+      <div className="mx-auto mt-16 grid max-w-7xl gap-16 md:grid-cols-2 md:gap-x-10 md:gap-y-0">
         <LifeCard t={t} heading={t.realHeading} life={real} delay={0.8} accent="cool" />
         <LifeCard t={t} heading={t.altHeading} life={alt} delay={1.2} accent="warm" />
       </div>
 
       {others.length > 0 && (
-        <FadeIn delay={1.6} className="mx-auto mt-14 max-w-5xl">
+        <FadeIn delay={1.6} className="mx-auto mt-14 max-w-7xl">
           <h3 className="text-center text-sm tracking-[0.3em] text-mist">同じ運命のほかの宇宙</h3>
           <p className="mt-1 text-center text-xs tracking-wider text-dim">景気・空模様・めぐり合わせは同じで、選んだ道だけがちがう人生です</p>
           <div className="mt-6 grid gap-4 sm:grid-cols-2">

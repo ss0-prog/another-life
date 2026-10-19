@@ -18,6 +18,7 @@ import { compat, compatMark, IDEAL, idealChance, typeLabel } from "@/lib/sim/mbt
 import { debtTotal, kidCall, kidTitle, lifeLabel } from "@/lib/sim/helpers";
 import { soften } from "@/lib/jp";
 import { EventText } from "@/components/EventText";
+import { pickEpitaph } from "@/lib/sim/data/jp-epitaph";
 import { DevPanel } from "@/components/DevPanel";
 import { DeathOverlay } from "@/components/DeathOverlay";
 import { GhostPanel } from "@/components/GhostPanel";
@@ -478,7 +479,7 @@ export function PlayScreen({ t, initial, birthYear, selfAge, ghost, dev = false,
       </section>
       <AchievementToaster state={state} />
       {dev && <DevPanel state={state} act={act} setSpeed={setSpeed} />}
-      {dead && revealed && <DeathOverlay age={state.deathAge ?? p.age} cause={state.deathCause ?? ""} why={state.deathNote?.reasons.join("。")} label={t.compare} line={t.dead} onCompare={() => onFinish(state)} />}
+      {dead && revealed && <DeathOverlay age={state.deathAge ?? p.age} cause={state.deathCause ?? ""} why={state.deathNote?.reasons.join("。")} quote={soften(pickEpitaph({ seed: state.seed, age: state.deathAge ?? p.age, cause: state.deathCause ?? "", joy: p.stats.joy, bonds: p.stats.bonds, money: p.stats.money }))} label={t.compare} line={t.dead} onCompare={() => onFinish(state)} />}
       {popupWanted && !showPopup && tp && (
         <div className="fixed inset-x-[2.5vw] bottom-4 z-50 flex items-center justify-between gap-3 rounded-sm border border-warm/70 bg-panel px-4 py-3 shadow-xl lg:inset-x-auto lg:left-1/2 lg:-translate-x-1/2 lg:gap-4 lg:px-5">
           <p className="min-w-0 text-xs leading-5 tracking-wider text-mist sm:text-sm">選択の場面で時間を止めています。<span className="block font-bold text-warm sm:ml-2 sm:inline">{soften(question?.title ?? "")}</span></p>

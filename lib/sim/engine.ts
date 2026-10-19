@@ -16,7 +16,7 @@ import { savingsRate } from "@/lib/sim/economy";
 import { LENDERS, LENDER_ORDER, lenderAvailable } from "@/lib/sim/data/jp-debt";
 import { fitMult, fitScore } from "@/lib/sim/mbti";
 import { jobLabel, leaveLocal, moveHome, kidCall, kidTitle, condOf, addDebt, assignJob, bump, chargeWithDebt, clamp, debtTotal, fullName, lifeLabel, moveTo, newCity, noBearer, randomPartner } from "@/lib/sim/helpers";
-import { economyAt } from "@/lib/sim/economy";
+import { birthYearOf, cpiAt, economyAt, unemploymentAt } from "@/lib/sim/economy";
 import { WEATHER_EVENT, weatherAt } from "@/lib/sim/weather";
 import { marketOf, priceAt } from "@/lib/sim/market";
 import { drawChangeFactor, incomeOf } from "@/lib/sim/salary";
@@ -224,7 +224,8 @@ function personAt(self: CurrentSelf, seed: number, age: number, data: CountryDat
     major: self.edu === "univ" || self.edu === "grad" ? (self.major ?? weighted<Major>(rng, { humanities: 45, science: 28, medical: 8, education: 7, art: 4 })) : null,
     field: self.field ?? null,
     payMult: self.occ === "none" ? 1 : (jobById(self.job)?.mult ?? jobById(DEFAULT_JOB[self.occ])?.mult ?? 1),
-    econ: economyAt(seed, age),
+    birthYear: birthYearOf(self.age),
+    econ: economyAt(seed, age, birthYearOf(self.age)),
     marriageBias: real ? (marital === "partnered" ? 1.8 : marital === "divorced" ? 0.7 : marital === "widowed" ? 0.5 : 1) : 1,
     childWish: 1,
     homeBias: 1,
@@ -679,7 +680,7 @@ export function suggestTag(text: string, data: CountryData = jpData): Tag | null
 
 // 選択の場面に添える、いまの景気。
 export function envAt(state: GameState, data: CountryData = jpData): Env {
-  const econ = economyAt(state.seed, state.person.age);
+  const econ = economyAt(state.seed, state.person.age, state.person.birthYear);
   return { econ, econLabel: data.econLabel(econ) };
 }
 
@@ -1111,7 +1112,7 @@ export function tick(state: GameState, data: CountryData = jpData): GameState {
   };
   const c = cond(data, p);
   p.age = a;
-  p.econ = economyAt(seed, a);
+  p.econ = economyAt(seed, a, p.birthYear);
 
   // あとから持病が見つかる(分岐した人生で、現在の年齢になったころ)。
   if (p.ailmentOnset && a >= p.ailmentOnset.age) {
@@ -1357,9 +1358,12 @@ export function tick(state: GameState, data: CountryData = jpData): GameState {
     }
   }
   // 深い不況では、勤め先の規模や雇用形態によっては、職を失うことがある。
-  const econNow = economyAt(seed, a);
+  const econNow = economyAt(seed, a, p.birthYear);
   if (p.occ && p.occ !== "retired" && p.employment !== "self" && p.sector !== "public" && a < 62 && econNow < -1.1) {
-    const risk = p.firm === "small" || p.employment === "nonregular" ? 0.05 : 0.012;
+    // 実際の統計がある年は、完全失業率が高い年ほど、職を失いやすい(2.5%のときを1として、0.5〜2.2倍)。
+    const un = unemploymentAt(p.birthYear, a);
+    const unMult = un === undefined ? 1 : Math.max(0.5, Math.min(2.2, un / 2.5));
+    const risk = (p.firm === "small" || p.employment === "nonregular" ? 0.05 : 0.012) * unMult;
     if (roll(seed, a, S.layoff) < risk) {
       p.employment = "nonregular";
       p.payMult = Math.min(p.payMult, 0.9);
@@ -1402,7 +1406,7 @@ export function tick(state: GameState, data: CountryData = jpData): GameState {
     }
   }
   // 貯金の増減(1年ぶんを、年のはじめにまとめて反映する)。
-  const econ = economyAt(seed, a);
+  const econ = economyAt(seed, a, p.birthYear);
   const ym = yearlyMoney(p, data, econ, next.wallet.debts.length > 0);
   const flow = toYen(ym.flow);
   p.tax = taxSnap(ym.tax);
@@ -1599,11 +1603,23 @@ export function tick(state: GameState, data: CountryData = jpData): GameState {
     push(`お正月に、お年玉を${otoshidama.toLocaleString("ja-JP")}円もらった。お小遣いは、月に${monthly.toLocaleString("ja-JP")}円(いまは${Math.round(next.wallet.cash).toLocaleString("ja-JP")}円)`, 18);
   }
 
+  // 物価: 実際の統計がある年は、その年の物価上昇率を使う。ない年(未来)は、毎回ランダム。物価が大きく上がった年は、暮らしが苦しくなる。
+  if (a >= 18) {
+    const cpi = cpiAt(p.birthYear, a) ?? Math.round((1.2 + 1.8 * (roll(seed, a, S.ev + 97) - 0.5) * 2) * 10) / 10;
+    if (cpi >= 4) {
+      bump(p, { money: -Math.min(4, Math.round(cpi / 3)), joy: -1 });
+      push(`物価が前の年より${cpi}%も上がり、暮らしが苦しくなった`, 54);
+    } else if (cpi <= -0.8 && p.occ !== null && p.occ !== "retired") {
+      bump(p, { money: -1 });
+      push("物価が下がり続けるなか、給料も伸びにくく、暮らしに余裕が出なかった", 36);
+    }
+  }
+
   // 子どもの預け先: いちばん下の子が小学校に入るまで、毎年、費用と影響が出る。3歳になったときは、通い先を選び直す。
   if (p.kidList.length > 0) {
     const youngest = a - Math.max(...p.kidList.map((k) => k.bornAge));
     if (p.childcare && youngest >= 0 && youngest <= 5) {
-      const cy = careYear(p, p.childcare.kind, youngest, Math.round(netIncome(p, data, economyAt(seed, a), { married: false })), streamRng(seed, a, S.ev + 91));
+      const cy = careYear(p, p.childcare.kind, youngest, Math.round(netIncome(p, data, economyAt(seed, a, p.birthYear), { married: false })), streamRng(seed, a, S.ev + 91));
       if (cy.costMan > 0) chargeWithDebt(next, Math.round(cy.costMan * 10000));
       bump(p, cy.bump);
       p.extra.stress = Math.min(100, Math.max(0, p.extra.stress + cy.stress));
@@ -1832,7 +1848,7 @@ export function tick(state: GameState, data: CountryData = jpData): GameState {
     bump(p, { bonds: 2, health: 1 });
   }
   // 転職の話は、年のおわりの状態(昇進などのあと)で、年収の比べ方が正しくなるよう、いちばん最後に決める。
-  if (p.occ && p.occ !== "retired" && a < 60 && roll(seed, a, S.job) < interpolate(data.curves.jobChange, a) * mbtiJob * Math.max(0.3, 1 + 0.3 * economyAt(seed, a))) {
+  if (p.occ && p.occ !== "retired" && a < 60 && roll(seed, a, S.job) < interpolate(data.curves.jobChange, a) * mbtiJob * Math.max(0.3, 1 + 0.3 * economyAt(seed, a, p.birthYear))) {
     // 転職は、勝手には決まらない。話が来たところで、選んでもらう(リストラは、この限りではない)。
     if (!next.queue.includes("job_change")) {
       const r = streamRng(seed, a, S.jobPick);
@@ -1980,7 +1996,7 @@ export function summarize(state: GameState, data: CountryData = jpData): LifeSum
       living: (p.housingKind ? HOUSING_KIND_TEXT[p.housingKind] : LIVING[housing]) + (p.kids > 0 ? `。子どもは${p.kids}人` : ""),
     },
     timeline: pickTimeline(state.events, state.seed),
-    scene: data.compose(p, incomeBand(rng, data, p, economyAt(state.seed, p.age)), rng, data),
+    scene: data.compose(p, incomeBand(rng, data, p, economyAt(state.seed, p.age, p.birthYear)), rng, data),
   };
   // 公開用: 持病・MBTI・性自認・惹かれる相手の情報を消して情景を作り直し、自由記述は「近い方向」に置き換え、地名は地域の区分だけにする。
   const safePerson: Person = { ...p, condition: "none", mbti: null, genderId: undefined, orientation: undefined };
@@ -1996,7 +2012,7 @@ export function summarize(state: GameState, data: CountryData = jpData): LifeSum
       living: echo.status.living,
     },
     timeline: pickTimeline(safeEvents, state.seed).map((t) => ({ ...t, event: scrub(t.event) })),
-    scene: data.compose(safePerson, incomeBand(createRng(state.seed ^ 0x7f4a7c15), data, p, economyAt(state.seed, p.age)), createRng(state.seed ^ 0x7f4a7c15), data),
+    scene: data.compose(safePerson, incomeBand(createRng(state.seed ^ 0x7f4a7c15), data, p, economyAt(state.seed, p.age, p.birthYear)), createRng(state.seed ^ 0x7f4a7c15), data),
   };
   // 資産は、亡くなった時点(生きていれば今)で評価する。
   const endAge = state.deathAge ?? state.person.age;
@@ -2047,7 +2063,7 @@ export function devSetAge(state: GameState, target: number, data: CountryData = 
   const next = clone(state);
   const p = next.person;
   p.age = Math.max(1, target - 1);
-  p.econ = economyAt(next.seed, p.age);
+  p.econ = economyAt(next.seed, p.age, p.birthYear);
   // その年齢より前の節目は、済んだことにする(それより後の節目は、これから出る)。
   next.done = data.turningPoints.filter((tp) => ageOf(tp, p) < target - 3).map((tp) => tp.id);
   next.queue = [];

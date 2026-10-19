@@ -187,6 +187,7 @@ export type Person = {
   bankrupt: number | null;
   abroad: Abroad | null;
   kidList: KidInfo[];
+  birthYear?: number; // 生まれた年(いまの年齢から決まる)。過去の実際の景気・物価を、年ごとに使うのに必要
   concern?: { kind: ConcernKind; since: number }; // いま、向き合っている人間関係の悩み(解決すると、なくなる)
   childcare?: { kind: CareKind; since: number }; // いまの、子どもの預け先(いちばん下の子が小学校に入るまで)
   pets: PetInfo[];

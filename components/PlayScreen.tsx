@@ -379,8 +379,8 @@ export function PlayScreen({ t, initial, birthYear, selfAge, ghost, dev = false,
         </ol>
         {/* 画面の下に、ずっと表示する(スマホなど、ページ全体をスワイプする画面でも、消えない) */}
         <p className="fixed inset-x-0 bottom-0 z-30 border-t border-line/60 bg-void/85 px-4 py-1.5 text-left text-[10px] leading-4 lg:py-2 lg:text-[11px] lg:leading-5 tracking-wider text-dim lg:sticky lg:-bottom-8 lg:inset-x-auto lg:z-auto lg:-mb-8 lg:mt-auto lg:border-0 lg:bg-void/60 lg:px-2">
-          <span className="lg:hidden">※ シミュレーションです。占い・予言ではありません。株価・景気は架空です。</span>
-          <span className="hidden lg:inline">※ これはシミュレーションです。占いや予言ではなく実際の人生や将来を当てるものでは、決してありません。株価・景気の動きも乱数でつくった完全な架空のもので、実際の相場や景気とは関係がありません。</span>
+          <span className="lg:hidden">※ シミュレーションです。占い・予言ではありません。株価は架空です。</span>
+          <span className="hidden lg:inline">※ これはシミュレーションです。占いや予言ではなく実際の人生や将来を当てるものでは、決してありません。株価の動きは、乱数でつくった完全な架空のもので、実際の相場とは関係がありません。景気は、実際の統計がある過去の年はその数字を使い、未来は毎回ランダムです。</span>
         </p>
       </section>
 

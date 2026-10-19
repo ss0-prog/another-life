@@ -58,7 +58,7 @@ const METRICS: Metric[] = [
     lines: [{ label: "年間の収支", color: "var(--color-up)", pick: (p) => p.flow }], zero: true, fmt: man,
   },
   {
-    id: "econ", label: "景気", note: "世の中のお金の巡り(乱数でつくった架空の動き)。0がふつう、上は好況、下は不況。", unit: "指数",
+    id: "econ", label: "景気", note: "世の中のお金の巡り(統計のある過去は実際の成長率から、未来は毎回ランダム)。0がふつう、上は好況、下は不況。", unit: "指数",
     lines: [{ label: "景気", color: "var(--color-cool)", pick: (p) => p.econ }], zero: true, fmt: (v) => v.toFixed(1),
   },
   {

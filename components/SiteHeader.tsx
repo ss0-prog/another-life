@@ -224,7 +224,7 @@ export function SiteHeader() {
             <p className="text-xs tracking-[0.3em] text-warm">このサイトの約束</p>
             <ul className="mt-2 space-y-1.5 text-xs leading-6 tracking-wider text-haze">
               <li>・ログインなしで遊べます</li>
-              <li>・株価・景気は完全な架空です</li>
+              <li>・株価は完全な架空です。景気は、過去は実際の統計、未来はランダムです</li>
               <li>・占いや予言ではありません</li>
               <li>・入力した内容はこの端末の中だけで使います</li>
             </ul>
@@ -236,7 +236,7 @@ export function SiteHeader() {
             <ul className="mt-2 space-y-1.5 text-[11px] leading-5 tracking-wider text-haze">
               <li>・ここに出てくる数字はあくまで統計上の数字と、設計上の仮定にもとづくものです。あなたやほかの誰かの実際の人生を、予測するものではありません。</li>
               <li>・寿命・病気・収入・結婚などは統計的な傾向から、確率で決まります。同じ条件でも結果は人生ごとに変わります。</li>
-              <li>・株価・景気は乱数でつくった完全な架空のものです。投資の助言ではありません。</li>
+              <li>・株価は乱数でつくった完全な架空のものです。景気・物価・失業率は、実際の統計がある過去の年はその数字を使い、それ以外の年(未来)は毎回ランダムです。投資の助言ではありません。</li>
               <li>・占いや人生診断ではありません。</li>
             </ul>
             <Link href="/sources" onClick={() => setMenuOpen(false)} className="mt-2 inline-block text-[11px] tracking-wider text-warm underline underline-offset-4">どの数字が統計でどれが仮定か →</Link>

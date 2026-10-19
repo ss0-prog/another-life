@@ -19,7 +19,7 @@ const ABOUT = [
 
 const PROMISES = [
   { mark: "無", text: "ログインなしで遊べます" },
-  { mark: "虚", text: "株価・景気は完全な架空です" },
+  { mark: "虚", text: "株価は完全な架空です。景気は、過去は実際の統計、未来はランダムです" },
   { mark: "占", text: "占いや予言ではありません" },
 ] as const;
 
@@ -48,7 +48,7 @@ export function SiteFooter() {
         </nav>
         {/* リンクと、注意書きの境目 */}
         <span aria-hidden className="h-4 w-px shrink-0 bg-line" />
-        <p className="line-clamp-2 min-w-0 flex-1 text-left leading-4">※ あくまで統計上の数字と設計上の仮定です。<br />占い・予言ではなく株価・景気は架空です。</p>
+        <p className="line-clamp-2 min-w-0 flex-1 text-left leading-4">※ あくまで統計上の数字と設計上の仮定です。<br />占い・予言ではなく、株価は架空です。景気は、過去は統計、未来はランダムです。</p>
         <p className="shrink-0 whitespace-nowrap tracking-[0.2em]">© {t.footer.copy}</p>
       </div>
       <div className="footer-full mx-auto max-w-6xl px-[2.5vw] pb-6 pt-12 sm:px-8">

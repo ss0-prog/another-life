@@ -120,6 +120,11 @@
   initial-value: #e5534b;
 }
 
+@property --wa {
+  syntax: "<number>";
+  inherits: true;
+  initial-value: 0;
+}
 @property --halo {
   syntax: "<color>";
   inherits: true;
@@ -172,12 +177,13 @@ html {
   --surf-btnh: rgba(240,201,148,0.1);
   --surf-btnsh: rgba(0,0,0,0);
   --halo: rgba(2, 3, 6, 0.92);
+  --wa: 0;
   --surf-hdr: rgba(7,8,10,0.92);
   --surf-ftr: rgba(7,8,10,0.7);
   --surf-p60: rgba(18,21,27,0.6);
   --surf-p80: rgba(18,21,27,0.8);
   --surf-v35: rgba(7,8,10,0.35);
-  transition: --halo 5s ease-in-out, --surf-btn 5s ease-in-out, --surf-btnh 5s ease-in-out, --surf-btnsh 5s ease-in-out, --surf-hdr 5s ease-in-out, --surf-ftr 5s ease-in-out, --surf-p60 5s ease-in-out, --surf-p80 5s ease-in-out, --surf-v35 5s ease-in-out, background-color 5s ease-in-out, --color-void 5s ease-in-out, --color-ink 5s ease-in-out, --color-panel 5s ease-in-out, --color-mist 5s ease-in-out, --color-haze 5s ease-in-out, --color-dim 5s ease-in-out, --color-line 5s ease-in-out, --color-glow 5s ease-in-out, --color-cool 5s ease-in-out, --color-warm 5s ease-in-out, --color-s-health 5s ease-in-out, --color-s-money 5s ease-in-out, --color-s-bonds 5s ease-in-out, --color-s-learn 5s ease-in-out, --color-s-joy 5s ease-in-out, --color-up 5s ease-in-out, --color-down 5s ease-in-out;
+  transition: --halo 5s ease-in-out, --wa 5s ease-in-out, --surf-btn 5s ease-in-out, --surf-btnh 5s ease-in-out, --surf-btnsh 5s ease-in-out, --surf-hdr 5s ease-in-out, --surf-ftr 5s ease-in-out, --surf-p60 5s ease-in-out, --surf-p80 5s ease-in-out, --surf-v35 5s ease-in-out, background-color 5s ease-in-out, --color-void 5s ease-in-out, --color-ink 5s ease-in-out, --color-panel 5s ease-in-out, --color-mist 5s ease-in-out, --color-haze 5s ease-in-out, --color-dim 5s ease-in-out, --color-line 5s ease-in-out, --color-glow 5s ease-in-out, --color-cool 5s ease-in-out, --color-warm 5s ease-in-out, --color-s-health 5s ease-in-out, --color-s-money 5s ease-in-out, --color-s-bonds 5s ease-in-out, --color-s-learn 5s ease-in-out, --color-s-joy 5s ease-in-out, --color-up 5s ease-in-out, --color-down 5s ease-in-out;
 }
 
 /* 昼のあいだは、明るい配色に切り替える(色の変数を入れ替える) */
@@ -187,6 +193,7 @@ html[data-tod="day"] {
   --surf-btnh: #ffe7bd;
   --surf-btnsh: rgba(120,80,20,0.18);
   --halo: rgba(255, 255, 255, 0);
+  --wa: 1;
   --surf-hdr: #ffffff;
   --surf-ftr: #ffffff;
   --surf-p60: rgba(255,255,255,0.88);
@@ -822,7 +829,7 @@ html[data-tod="day"] footer {
 html[data-tod="day"] main .text-warm,
 html[data-tod="day"] main .text-cool,
 html[data-tod="day"] footer .text-warm {
-  text-shadow: 0 0 1px rgba(255, 255, 255, 0.95), 0 0 3px rgba(255, 255, 255, 0.7);
+  text-shadow: 0 0 1px rgba(255, 255, 255, calc(0.95 * var(--wa))), 0 0 3px rgba(255, 255, 255, calc(0.7 * var(--wa))), 0 0 2px var(--halo), 0 0 6px var(--halo), 0 0 14px var(--halo);
 }
 
 /* 本文ページ(コンセプトなど)は、昼だけ、白い背景に乗せる(夜は、背景なし) */

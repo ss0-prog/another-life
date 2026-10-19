@@ -84,7 +84,7 @@ type Step = {
   node: string; // 木に出す、短い見出し
   q: string;
   prompt: string;
-  input: "chips" | "number" | "select" | "optionalNumber" | "optionalText";
+  input: "chips" | "multi" | "number" | "select" | "optionalNumber" | "optionalText";
   withSex?: boolean; // 数字(年齢)と一緒に、子どもの性別も聞く
   options?: Opt[];
   groups?: { label: string; options: Opt[] }[];
@@ -315,15 +315,16 @@ function allStepsFor(v: Values, selfAge: number | undefined): Step[] {
   }
   if (v.kind && v.branchAge !== undefined) {
     const br = jpData.branches[v.kind];
-    steps.push({ id: "motive", node: "そのときの思い", q: "そのときどんな思いがありましたか?", prompt: v.kind === "job" ? "ここで具体的な職種の候補が絞られます。" : "ここで具体的な道の候補が絞られます。", input: "chips", options: br.motives.map((m) => ({ value: m.id, label: branchAsk[`${v.kind}.motive.${m.id}`] ?? m.label, sub: m.note })), label: (r) => br.motives.find((m) => m.id === r)?.label ?? r });
+    steps.push({ id: "motive", node: "そのときの思い", q: "そのときどんな思いがありましたか?", prompt: v.kind === "job" ? "あてはまる思いを、いくつでも選べます。ここで具体的な職種の候補が絞られます。" : "あてはまる思いを、いくつでも選べます。ここで具体的な道の候補が絞られます。", input: "multi", options: br.motives.map((m) => ({ value: m.id, label: branchAsk[`${v.kind}.motive.${m.id}`] ?? m.label, sub: m.note })), label: (r) => r.split(",").map((id) => br.motives.find((m) => m.id === id)?.label ?? id).join("・") });
   }
   if (v.kind && v.branchAge !== undefined && v.motive) {
     const br = jpData.branches[v.kind];
-    const motive = br.motives.find((m) => m.id === v.motive);
+    // 思いは、複数選べる(「,」でつないで持つ)。選んだ思いのどれかに合う道が、候補になる。
+    const picked = br.motives.filter((m) => (v.motive ?? "").split(",").includes(m.id));
     const selfLike = selfFrom(v);
     if (v.kind === "job") {
       // 仕事の分岐は、思いに合う職種から、具体的に選ぶ。
-      const jobs = jpData.jobs.filter((j) => (!motive?.jobFilter || motive.jobFilter(j, selfLike)) && (!selfLike || j.id !== selfLike.job));
+      const jobs = jpData.jobs.filter((j) => (picked.length === 0 || picked.some((m) => !m.jobFilter || m.jobFilter(j, selfLike))) && (!selfLike || j.id !== selfLike.job));
       const occs = (Object.keys(OCC_LABEL) as Occ[]).filter((o) => jobs.some((j) => j.occ === o));
       steps.push({
         id: "option",
@@ -336,7 +337,9 @@ function allStepsFor(v: Values, selfAge: number | undefined): Step[] {
         label: (r) => jpData.jobs.find((j) => j.id === r)?.title ?? r,
       });
     } else {
-      let options = br.options.filter((o) => (!motive?.options || motive.options.includes(o.id)) && (!selfLike || !o.matches(selfLike)));
+      // どの思いも道を絞らない(「その他」など)ときは、すべての道が候補になる。
+      const anyOpen = picked.length === 0 || picked.some((m) => !m.options);
+      let options = br.options.filter((o) => (anyOpen || picked.some((m) => m.options?.includes(o.id))) && (!selfLike || !o.matches(selfLike)));
       // その思いに合う道が、ほかにないとき(すでに、いちばん上の学歴など)は、いまの道以外の、すべての道から選べる。
       if (options.length === 0) options = br.options.filter((o) => !selfLike || !o.matches(selfLike));
       steps.push({ id: "option", node: "選ばなかった道", q: "具体的にはどの道を選びたかったですか?", prompt: "あなたが実際に歩んだ道はここには出ません。", input: "chips", options: options.map((o) => ({ value: o.id, label: branchAsk[`${v.kind}.option.${o.id}`] ?? o.label })), label: (r) => br.options.find((o) => o.id === r)?.label ?? r });
@@ -530,6 +533,7 @@ export function TreeWizard({ t, onSubmit, auth, prefill }: Props) {
   }, []);
   const [text, setText] = useState("");
   const [pick, setPick] = useState("");
+  const [multiPick, setMultiPick] = useState<string[]>([]);
   const [sexPick, setSexPick] = useState<"unknown" | "boy" | "girl">("unknown");
 
   const values = useMemo(() => valuesOf(answers), [answers]);
@@ -581,6 +585,7 @@ export function TreeWizard({ t, onSubmit, auth, prefill }: Props) {
     setAnswers([...answers, { id: step.id, value: raw, label: step.label(raw), node: step.node, geom }]);
     setText("");
     setPick("");
+    setMultiPick([]);
     setSexPick("unknown");
   };
   // 子どもの年齢と性別は、一緒に答える("30|boy" の形)。
@@ -789,6 +794,26 @@ export function TreeWizard({ t, onSubmit, auth, prefill }: Props) {
                       {o.sub && <span className="block text-xs tracking-[0.1em] text-dim">{o.sub}</span>}
                     </button>
                   ))}
+                </div>
+              )}
+
+              {step.input === "multi" && (
+                <div className="mt-6 flex flex-col items-center gap-5">
+                  <div className="flex flex-wrap justify-center gap-3" role="group" aria-label="あてはまるものを、いくつでも選べます">
+                    {step.options!.map((o) => {
+                      const on = multiPick.includes(o.value);
+                      return (
+                        <button key={o.value} type="button" aria-pressed={on} onClick={() => setMultiPick((cur) => (on ? cur.filter((x) => x !== o.value) : [...cur, o.value]))} className={`${chipClass(on)} ${o.sub ? "min-w-28" : ""}`}>
+                          {on ? "✓ " : ""}
+                          {o.label}
+                          {o.sub && <span className="block text-xs tracking-[0.1em] text-dim">{o.sub}</span>}
+                        </button>
+                      );
+                    })}
+                  </div>
+                  <button type="button" disabled={multiPick.length === 0} onClick={() => commit(step.options!.filter((o) => multiPick.includes(o.value)).map((o) => o.value).join(","))} className="border border-warm/70 bg-warm/10 px-8 py-3 text-sm font-bold tracking-[0.2em] text-mist transition-colors hover:border-warm hover:bg-warm/20 disabled:cursor-not-allowed disabled:opacity-40">
+                    {multiPick.length === 0 ? "ひとつ以上、選んでください" : `この${multiPick.length}つの思いで、進む`}
+                  </button>
                 </div>
               )}
 

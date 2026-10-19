@@ -10,6 +10,7 @@ import { buildDeathNote } from "@/lib/sim/data/jp-death";
 import { breakupChance, breakupText, coupleEvent } from "@/lib/sim/data/jp-couple";
 import { CARE_LABEL, careYear } from "@/lib/sim/childcare";
 import { intelChance } from "@/lib/sim/intel";
+import { concernEvent, concernResolved } from "@/lib/sim/data/jp-concern";
 import { SUMMIT_BY_JOB, SUMMIT_BY_OCC, summitChance } from "@/lib/sim/data/jp-summit";
 import { savingsRate } from "@/lib/sim/economy";
 import { LENDERS, LENDER_ORDER, lenderAvailable } from "@/lib/sim/data/jp-debt";
@@ -1328,7 +1329,7 @@ export function tick(state: GameState, data: CountryData = jpData): GameState {
   }
 
   if (!p.married && a >= 20) {
-    const rate = interpolate(data.curves.marriageRate, a) * (p.orientation === "ace" ? 0.4 : 1) * (0.8 + p.extra.charm / 250) * data.regionFactor.marriage[p.region] * (p.stayingSingle ? 0.1 : 1) * p.marriageBias * mbtiSocial * (0.7 + (p.stats.bonds / 100) * 0.6) * (datingYears < 0 ? 1 : datingYears < 1 ? 0.25 : datingYears < 2 ? 0.8 : 1.8);
+    const rate = interpolate(data.curves.marriageRate, a) * (p.orientation === "ace" ? 0.4 : 1) * (p.concern?.kind === "romance" ? 1.8 : 1) * (0.8 + p.extra.charm / 250) * data.regionFactor.marriage[p.region] * (p.stayingSingle ? 0.1 : 1) * p.marriageBias * mbtiSocial * (0.7 + (p.stats.bonds / 100) * 0.6) * (datingYears < 0 ? 1 : datingYears < 1 ? 0.25 : datingYears < 2 ? 0.8 : 1.8);
     const proposing = p.partner?.status === "dating" && p.proposeAt !== null && a > p.proposeAt;
     if (p.partner?.status === "dating") {
       // 結婚の話は、付き合っている人とだけ。付き合って1年以上たってから(自分から切り出す場合を除く)。
@@ -1617,6 +1618,22 @@ export function tick(state: GameState, data: CountryData = jpData): GameState {
     if (born && p.childcare && youngest === 3 && !next.queue.includes("kid_three")) {
       p.history[`care3_${born.bornAge}`] = a;
       next.queue.push("kid_three");
+    }
+  }
+
+  // 人間関係の悩み: 向き合っている間は、毎年、それに関する出来事が起きる。解決すると、区切りがつく。
+  if (p.concern) {
+    const done = concernResolved(p);
+    if (done) {
+      push(done, 62);
+      bump(p, { joy: 6, bonds: 3 });
+      delete p.concern;
+    } else if (roll(seed, a, S.ev + 95) < 0.7) {
+      const ce = concernEvent(p, streamRng(seed, a, S.ev + 96), data);
+      if (ce) {
+        bump(p, ce.delta);
+        push(ce.text, 44);
+      }
     }
   }
 

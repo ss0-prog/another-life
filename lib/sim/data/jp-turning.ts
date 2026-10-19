@@ -318,6 +318,16 @@ export const branchAsk: Record<string, string> = {
   "education.motive.better": "もっといい進路を選んでいたら?",
   "education.motive.otherschool": "ほかの学校に行っていたら?",
   "education.motive.learn": "もっと学びを深めていたら?",
+  "education.motive.city_univ": "都会の大学に行っていたら?",
+  "education.option.city_univ": "都会の大学に進学していたら?",
+  "relations.motive.love": "もっと恋愛を楽しんでいたら?",
+  "relations.motive.friends": "友人ともっと深く関わっていたら?",
+  "relations.motive.family_tie": "家族ともっと向き合っていたら?",
+  "relations.motive.work": "職場の人間関係を、よくしていたら?",
+  "relations.option.romance_active": "恋愛に積極的に動いていたら?",
+  "relations.option.friends_deep": "友人との関係を深めていたら?",
+  "relations.option.family_close": "家族ともっと向き合っていたら?",
+  "relations.option.work_relations": "職場の人間関係を整えていたら?",
   "education.motive.indep": "早く自立して、働いていたら?",
   "education.motive.skill": "手に職をつけていたら?",
   "education.motive.wide": "進路の選択肢を、広げていたら?",
@@ -391,6 +401,15 @@ export const branches: CountryData["branches"] = {
           p.history.eliteUniv = p.age;
           bump(p, { learn: 6, joy: 2 });
           return `${t}。志望を上げて、もっと難関の大学をめざした`;
+        },
+      },
+      {
+        id: "city_univ",
+        label: "都会の大学に進学する",
+        matches: () => false,
+        apply: (p, r, d) => {
+          if (r() > passRate(p, 54)) return "都会の大学をめざしたが、届かなかった。地元に近い進路に進んだ";
+          return `${setEdu(p, r, d, "univ", true)}。にぎやかな街で、新しい暮らしが始まった`;
         },
       },
       {
@@ -473,6 +492,7 @@ export const branches: CountryData["branches"] = {
       { id: "better", label: "もっといい進路にしたかった", note: "より上の学歴・志望校・留学をめざす道", options: ["top_univ", "med_school", "abroad_univ", "grad", "law_school", "abroad_grad"] },
       { id: "otherschool", label: "ほかの学校に行きたかった", note: "学力の高さではなく、校風・場所・友人などで、別の学校を選ぶ道", options: ["other_hs", "other_univ"] },
       { id: "learn", label: "もっと学びを深めたかった", options: ["univ", "grad", "top_univ", "law_school", "abroad_grad"] },
+      { id: "city_univ", label: "都会の大学に行きたかった", note: "地方から、都市部の大学へ", options: ["city_univ"] },
       { id: "indep", label: "早く自立して、働きたかった", options: ["hs_work", "vocational"] },
       { id: "skill", label: "手に職をつけたかった", options: ["vocational", "hs_work"] },
       { id: "wide", label: "進路の選択肢を、広げたかった", options: ["univ", "grad", "vocational", "abroad_univ"] },
@@ -538,6 +558,34 @@ export const branches: CountryData["branches"] = {
       { id: "family", label: "もっと早く、家族をもちたかった", options: ["married", "child"] },
       { id: "free", label: "もっと、自由に生きたかった", options: ["single", "childfree"] },
       { id: "other", label: "その他" },
+    ],
+  },
+  // 人間関係: 恋人・友人・家族・職場。選ぶと、その悩みに向き合う人生になり、解決するまで、それに関する出来事が多く起きる。
+  relations: {
+    label: "人間関係",
+    defaultAge: 20,
+    minAge: 12,
+    options: [
+      {
+        id: "romance_active",
+        label: "恋愛に、積極的に動く",
+        matches: () => false,
+        apply: (p, r, d) => {
+          p.concern = { kind: "romance", since: p.age };
+          bump(p, { bonds: 4, joy: 3 });
+          if (!p.partner || p.partner.status === "ex") p.partner = randomPartner(r, d, p.age, "crush", p.mbti, p);
+          return p.age < 22 ? "学生のうちに、恋愛にもっと向き合うことにした。出会いの場にも、顔を出すようになった" : "仕事に追われるだけでなく、恋愛にも向き合うことにした。出会いの場にも、顔を出すようになった";
+        },
+      },
+      { id: "friends_deep", label: "友人との関係を、深める", matches: () => false, apply: (p) => ((p.concern = { kind: "friends", since: p.age }), bump(p, { bonds: 6, joy: 2 }), "友人との時間を、もっと大切にすることにした") },
+      { id: "family_close", label: "家族と、もっと向き合う", matches: () => false, apply: (p) => ((p.concern = { kind: "family", since: p.age }), bump(p, { bonds: 5, joy: 1 }), "家族と向き合う時間を、もっと持つことにした") },
+      { id: "work_relations", label: "職場の人間関係を、整える", matches: () => false, apply: (p) => ((p.concern = { kind: "work", since: p.age }), bump(p, { bonds: 3, joy: 1 }), "職場の人との関係を、よくしようと、動きはじめた") },
+    ] satisfies BranchOption[],
+    motives: [
+      { id: "love", label: "もっと恋愛をしたかった(学生のころ・社会人になってから)", options: ["romance_active"] },
+      { id: "friends", label: "友人ともっと深く関わりたかった", options: ["friends_deep"] },
+      { id: "family_tie", label: "家族ともっと向き合いたかった", options: ["family_close"] },
+      { id: "work", label: "職場の人間関係を、よくしたかった", options: ["work_relations"] },
     ],
   },
 };

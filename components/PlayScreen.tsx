@@ -4,7 +4,8 @@ import { AchievementToaster } from "@/components/Achievements";
 import { JapanMap } from "@/components/JapanMap";
 import { DeltaItem } from "@/components/Delta";
 import { LifeCharts } from "@/components/LifeCharts";
-import { relationships, type Relation } from "@/lib/sim/relations";
+import { GROUP_ORDER, groupOfRelation, relationships, type Relation } from "@/lib/sim/relations";
+import { CONCERN_LABEL } from "@/lib/sim/data/jp-concern";
 import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { chipClass, primaryButtonClass } from "@/components/controls";
@@ -629,10 +630,13 @@ function RelationPanel({ p }: { p: GameState["person"] }) {
   const color = (r: Relation) => (r.tone === "gone" ? "var(--color-dim)" : r.tone === "good" ? "var(--color-up)" : r.tone === "mid" ? "var(--color-warm)" : "var(--color-down)");
   return (
     <div className="mt-6 rounded-sm border border-line bg-panel/60 px-4 py-3">
-      <p className="text-xs tracking-[0.3em] text-warm">人との関係</p>
-      <p className="mt-1 text-[11px] leading-4 tracking-wider text-dim">いま関係のある人との距離。つながり・相性・同居・最近の出来事で、変わります。</p>
-      <ul className="mt-3 space-y-3">
-        {rels.map((r) => (
+      <p className="text-xs tracking-[0.3em] text-warm">人間関係</p>
+      <p className="mt-1 text-[11px] leading-4 tracking-wider text-dim">いま関係のある人との距離。つながり・相性・同居・最近の出来事で、変わります。{p.concern ? `いまは、「${CONCERN_LABEL[p.concern.kind]}」に向き合っています。解決するまで、それに関する出来事が、多く起きます。` : ""}</p>
+      {GROUP_ORDER.map((g) => ({ g, list: rels.filter((r) => groupOfRelation(r) === g) })).filter((x) => x.list.length > 0).map(({ g, list }) => (
+      <div key={g} className="mt-4">
+      <p className="border-l-2 border-line pl-2 text-[11px] tracking-[0.3em] text-haze">{g}</p>
+      <ul className="mt-2 space-y-3">
+        {list.map((r) => (
           <li key={r.id}>
             <div className="flex items-baseline justify-between gap-3 text-sm tracking-wider">
               <span className="text-mist">
@@ -652,6 +656,8 @@ function RelationPanel({ p }: { p: GameState["person"] }) {
           </li>
         ))}
       </ul>
+      </div>
+      ))}
     </div>
   );
 }

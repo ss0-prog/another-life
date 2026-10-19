@@ -35,7 +35,9 @@ export type Background = "tight" | "modest" | "comfortable";
 export type Employment = "regular" | "nonregular" | "self";
 export type Firm = "large" | "mid" | "small";
 export type Major = "humanities" | "science" | "medical" | "education" | "art";
-export type BranchKind = "childhood" | "education" | "job" | "place" | "family";
+export type BranchKind = "childhood" | "education" | "job" | "place" | "family" | "relations";
+// 人間関係の悩み(恋人・友人・家族・職場)。解決するまで、それに関する出来事が、多く起きる。
+export type ConcernKind = "romance" | "friends" | "family" | "work";
 // 手入力の選択を結果に反映するための「近い方向」。
 export type Tag = "challenge" | "stable" | "learn" | "bond" | "rest";
 
@@ -185,6 +187,7 @@ export type Person = {
   bankrupt: number | null;
   abroad: Abroad | null;
   kidList: KidInfo[];
+  concern?: { kind: ConcernKind; since: number }; // いま、向き合っている人間関係の悩み(解決すると、なくなる)
   childcare?: { kind: CareKind; since: number }; // いまの、子どもの預け先(いちばん下の子が小学校に入るまで)
   pets: PetInfo[];
   // 親が亡くなる、あなたの年齢(母・父)。

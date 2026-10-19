@@ -5,6 +5,17 @@ import type { Person } from "@/lib/sim/types";
 // つながり・相性・同居・出来事(口論・無理な働き方など)から、いまの状態を計算する(設計上の仮定)。
 export type Relation = { id: string; role: string; name: string; score: number; label: string; tone: "good" | "mid" | "bad" | "gone"; facts: string[] };
 
+// 人間関係の大きなまとまり。その中に、家族・恋人・友人・職場の人が、ならぶ。
+export type RelationGroup = "家族" | "恋人" | "友人" | "職場";
+export const GROUP_ORDER: RelationGroup[] = ["家族", "恋人", "友人", "職場"];
+export function groupOfRelation(r: Relation): RelationGroup {
+  if (r.id === "mother" || r.id === "father" || r.id.startsWith("kid")) return "家族";
+  if (r.id === "partner") return r.role === "配偶者" ? "家族" : "恋人";
+  if (r.id === "ex") return "恋人";
+  if (r.id === "boss") return "職場";
+  return "友人";
+}
+
 export const relationLabel = (s: number) => (s >= 85 ? "とても親密" : s >= 70 ? "親密" : s >= 55 ? "良好" : s >= 40 ? "ふつう" : s >= 25 ? "疎遠" : s >= 10 ? "不仲" : "断絶");
 const toneOf = (s: number): Relation["tone"] => (s >= 55 ? "good" : s >= 25 ? "mid" : "bad");
 

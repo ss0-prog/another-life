@@ -1,6 +1,9 @@
 import { jpData } from "@/lib/sim/data/jp";
 import { housingOf } from "@/lib/sim/data/jp-scene";
 import { pickMoment } from "@/lib/sim/data/jp-moments";
+import { HISTORY_EVENTS } from "@/lib/sim/data/jp-history-events";
+import { SIM_NOW_YEAR } from "@/lib/sim/data/jp-history";
+import { prefectureOf } from "@/lib/sim/salary";
 import { vitalsOf } from "@/lib/sim/survey";
 import { DEFAULT_JOB, jobById } from "@/lib/sim/data/jp-jobs";
 import { causeOfDeath } from "@/lib/sim/data/jp-events";
@@ -1114,6 +1117,19 @@ export function tick(state: GameState, data: CountryData = jpData): GameState {
   const c = cond(data, p);
   p.age = a;
   p.econ = economyAt(seed, a, p.birthYear);
+
+  // 実際に日本で起きた、大きな出来事(災害・経済・社会)。生まれた年と年齢から決まる、その年だけ、年表にはさむ。
+  if (p.birthYear !== undefined && a >= 3) {
+    const year = p.birthYear + a;
+    for (const he of HISTORY_EVENTS) {
+      if (he.year !== year || year > SIM_NOW_YEAR) continue;
+      const pref = p.abroad ? null : prefectureOf(p.city);
+      const hit = !!pref && !!he.hit?.includes(pref);
+      mark();
+      bump(p, (hit ? he.hitBump : he.bump) ?? {});
+      push(hit && he.hitText ? he.hitText : he.text, 62);
+    }
+  }
 
   // あとから持病が見つかる(分岐した人生で、現在の年齢になったころ)。
   if (p.ailmentOnset && a >= p.ailmentOnset.age) {

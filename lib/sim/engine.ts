@@ -1595,7 +1595,13 @@ export function tick(state: GameState, data: CountryData = jpData): GameState {
   // 頭の良さ: 幼いころから、塾や、音楽・芸術などにふれるほど、伸びやすい(画面には、数字を出さない)。
   {
     const ic = intelChance(p, a);
-    if (ic > 0 && roll(seed, a, S.ev + 93) < ic) p.intel = Math.min(100, p.intel + (ic >= 0.3 && roll(seed, a, S.ev + 94) < 0.25 ? 2 : 1));
+    if (ic > 0 && roll(seed, a, S.ev + 93) < ic) {
+      p.intel = Math.min(100, p.intel + (ic >= 0.3 && roll(seed, a, S.ev + 94) < 0.25 ? 2 : 1));
+      bump(p, { learn: 1 }); // 頭の良さが上がった年は、「学び」も、少し伸びる
+    }
+    // 「学び」の能力値は、頭の良さに、ゆるくついていく(頭がよいほど、学びが積み上がりやすく、落ちにくい)。学校にいる間は、ついていく速さが、速い。
+    const learnTarget = Math.min(100, 28 + 0.62 * p.intel + { univ: 6, grad: 12, vocational: 2, hs_work: 0 }[p.edu]);
+    bump(p, { learn: (learnTarget - p.stats.learn) * (a < 23 ? 0.07 : a < 60 ? 0.04 : 0.02) });
   }
 
   // 習い事: 続けているあいだ、毎年、効果が積み重なる。節目の出来事も起きる。

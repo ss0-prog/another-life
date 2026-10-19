@@ -9,6 +9,8 @@ import { marketOf, monthIndex } from "@/lib/sim/market";
 import type { LenderOffer } from "@/lib/sim/engine";
 import { debtTotal } from "@/lib/sim/helpers";
 import { savingsRate } from "@/lib/sim/economy";
+import { incomeOf } from "@/lib/sim/salary";
+import { householdTax, taxSnap } from "@/lib/sim/tax";
 import type { AssetId, GameState, LenderId, Tag } from "@/lib/sim/types";
 
 type Props = {
@@ -46,6 +48,9 @@ export function AssetPanel({ t, state, month, onTrade, onStartStocks, onPlan, on
   const [loan, setLoan] = useState<{ yen: number; text: string; tag: Tag | null } | null>(null);
   const [menu, setMenu] = useState(false);
   const [taxOpen, setTaxOpen] = useState(false);
+  // 手取りは、左の「年収の目安」と同じ計算で、いまの状態から出す(年のはじめの値のままだと、年のなかで能力値が変わると、ずれる)。結婚していれば、配偶者のぶんをふくめた世帯の目安。
+  const ownIncome = state.person.occ !== null ? Math.round(incomeOf(state.person, jpData, state.person.econ)) : 0;
+  const tx = state.person.occ !== null ? taxSnap(householdTax(state.person, jpData, state.person.econ)) : null;
   const [writing, setWriting] = useState(false);
   const [text, setText] = useState("");
   const [spendAmount, setSpendAmount] = useState("");
@@ -154,12 +159,12 @@ export function AssetPanel({ t, state, month, onTrade, onStartStocks, onPlan, on
             <span className="block text-[11px] text-dim">積立 {man(state.wallet.kidFund.contributed)}万円。自分の資産には数えません。</span>
           </p>
         )}
-        {!minor && state.person.tax && state.person.tax.gross > 0 && (
+        {!minor && tx && tx.gross > 0 && (
           <div className="mt-3 border border-line/70 text-left">
             <button type="button" onClick={() => setTaxOpen((o) => !o)} aria-expanded={taxOpen} className="flex w-full items-center justify-between gap-2 px-3 py-2 text-xs tracking-wider text-haze hover:text-mist">
               <span>今年の手取り(世帯の目安)</span>
               <span className="flex items-center gap-2 tabular-nums text-mist">
-                約{state.person.tax.net}万円
+                約{tx.net}万円
                 <span aria-hidden className={`text-[9px] text-dim transition-transform ${taxOpen ? "rotate-180" : ""}`}>▼</span>
               </span>
             </button>
@@ -168,42 +173,47 @@ export function AssetPanel({ t, state, month, onTrade, onStartStocks, onPlan, on
                 <dl className="space-y-1 tabular-nums">
                   <div className="flex justify-between gap-3 text-haze">
                     <dt>額面(税や保険料を引く前の収入)</dt>
-                    <dd>{state.person.tax.gross}万円</dd>
+                    <dd>{tx.gross}万円</dd>
                   </div>
+                  {state.person.married && ownIncome > 0 && tx.gross > ownIncome + 1 && (
+                    <div className="flex justify-between gap-3 pl-3 text-[10px]">
+                      <dt>うち 自分 {ownIncome}万円 + 配偶者 {tx.gross - ownIncome}万円</dt>
+                    </div>
+                  )}
                   <div className="flex justify-between gap-3">
                     <dt>− 所得税</dt>
-                    <dd>{state.person.tax.incomeTax}万円</dd>
+                    <dd>{tx.incomeTax}万円</dd>
                   </div>
-                  {state.person.tax.credit > 0 && (
+                  {tx.credit > 0 && (
                     <div className="flex justify-between gap-3 pl-3 text-[10px]">
                       <dt>うち 住宅ローン控除で減った分</dt>
-                      <dd>−{state.person.tax.credit}万円</dd>
+                      <dd>−{tx.credit}万円</dd>
                     </div>
                   )}
                   <div className="flex justify-between gap-3">
                     <dt>− 住民税</dt>
-                    <dd>{state.person.tax.resident}万円</dd>
+                    <dd>{tx.resident}万円</dd>
                   </div>
                   <div className="flex justify-between gap-3">
                     <dt>− 社会保険料</dt>
-                    <dd>{state.person.tax.social}万円</dd>
+                    <dd>{tx.social}万円</dd>
                   </div>
                   <div className="flex justify-between gap-3 pl-3 text-[10px]">
                     <dt>健康・介護保険</dt>
-                    <dd>{state.person.tax.health}万円</dd>
+                    <dd>{tx.health}万円</dd>
                   </div>
                   <div className="flex justify-between gap-3 pl-3 text-[10px]">
                     <dt>年金</dt>
-                    <dd>{state.person.tax.pension}万円</dd>
+                    <dd>{tx.pension}万円</dd>
                   </div>
                   <div className="flex justify-between gap-3 pl-3 text-[10px]">
                     <dt>雇用保険</dt>
-                    <dd>{state.person.tax.employment}万円</dd>
+                    <dd>{tx.employment}万円</dd>
                   </div>
                   <div className="flex justify-between gap-3 border-t border-line/70 pt-1.5 text-xs font-bold text-mist">
                     <dt>= 手取り</dt>
                     <dd>
-                      {state.person.tax.net}万円<span className="ml-1 text-[10px] font-normal text-haze">(額面の{Math.round((state.person.tax.net / state.person.tax.gross) * 100)}%)</span>
+                      {tx.net}万円<span className="ml-1 text-[10px] font-normal text-haze">(額面の{Math.round((tx.net / tx.gross) * 100)}%)</span>
                     </dd>
                   </div>
                 </dl>

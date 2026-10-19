@@ -23,7 +23,7 @@ import { DeathOverlay } from "@/components/DeathOverlay";
 import { GhostPanel } from "@/components/GhostPanel";
 import { weatherAt } from "@/lib/sim/weather";
 import { setWeather } from "@/lib/weatherStore";
-import { incomeOf, round10 } from "@/lib/sim/salary";
+import { incomeOf } from "@/lib/sim/salary";
 import type { AssetId, Choice, GameState, LenderId, SeriesPoint, Tag, TurningOption } from "@/lib/sim/types";
 
 type Props = {
@@ -225,7 +225,7 @@ export function PlayScreen({ t, initial, birthYear, selfAge, ghost, dev = false,
     return null;
   };
   const options = question?.options.filter((o) => (!o.show || o.show(p)) && (lockable || affordable(o))) ?? [];
-  const income = p.occ === null ? null : round10(incomeOf(p, jpData, env.econ));
+  const income = p.occ === null ? null : Math.round(incomeOf(p, jpData, env.econ));
   const econColor = env.econ > 0.6 ? "var(--color-s-health)" : env.econ < -0.4 ? "var(--color-s-bonds)" : "var(--color-haze)";
 
   // 枝分かれの途中なら深く進み、行き止まりなら選択を確定する。

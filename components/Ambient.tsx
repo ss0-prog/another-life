@@ -4,6 +4,7 @@ import { renderToStaticMarkup } from "react-dom/server.browser";
 import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { type Phase, loadTimeOfDay, usePhase, useSkyAnimated, useTimeOfDay } from "@/lib/timeStore";
+import { CROW_EVENT } from "@/lib/bgm";
 import { createRng } from "@/lib/sim/rng";
 import { setWeather, useWeather } from "@/lib/weatherStore";
 import type { Weather } from "@/lib/sim/weather";
@@ -762,6 +763,60 @@ function ShootingStars({ active }: { active: boolean }) {
   );
 }
 
+// カラス: 夕方の晴れた空に、ときどき、三羽が連れだって、画面のはしから、羽ばたきながら、建物の頂上より少し下を、水平に飛んでいく。
+// 飛びはじめたことを、BGM(lib/bgm.ts)に知らせると、数秒あとに、鳴き声が聞こえる(広い画面では二回)。
+const WIDE = 1024; // この幅以上は、PC(飛ぶのに時間がかかるので、ゆっくり飛ばす)
+const FLOCK = [
+  { dx: 0, dy: 0, delay: 0, bob: 0 },
+  { dx: -24, dy: 7, delay: -0.13, bob: -0.5 },
+  { dx: -13, dy: -8, delay: -0.27, bob: -1.1 },
+];
+function Crow({ active }: { active: boolean }) {
+  const [flight, setFlight] = useState<{ id: number; dir: 1 | -1; top: number; sec: number } | null>(null);
+  useEffect(() => {
+    if (!active) {
+      setFlight(null);
+      return;
+    }
+    const still = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    let n = 0;
+    let next: ReturnType<typeof setTimeout>;
+    let hide: ReturnType<typeof setTimeout>;
+    const fly = () => {
+      const sec = window.innerWidth >= WIDE ? 22 : 16;
+      if (!still) {
+        setFlight({ id: ++n, dir: Math.random() < 0.5 ? 1 : -1, top: 81 + Math.random() * 5, sec });
+        hide = setTimeout(() => setFlight(null), (sec + 0.5) * 1000);
+      }
+      window.dispatchEvent(new Event(CROW_EVENT));
+      next = setTimeout(fly, (sec + 10 + Math.random() * 25) * 1000); // 前の飛行が終わってから、10〜35秒あく
+    };
+    next = setTimeout(fly, 5000);
+    return () => {
+      clearTimeout(next);
+      clearTimeout(hide);
+      setFlight(null);
+    };
+  }, [active]);
+  if (!flight) return null;
+  return (
+    <div key={flight.id} className={flight.dir === 1 ? "crow-pass-r" : "crow-pass-l"} style={{ top: `${flight.top}vh`, animationDuration: `${flight.sec}s` }}>
+      {FLOCK.map((c, i) => (
+        <div key={i} className="crow-bob absolute" style={{ left: c.dx * flight.dir, top: c.dy, animationDelay: `${c.bob}s` }}>
+          {/* ごく簡単な形: 小さな胴体と、羽ばたく二枚の羽 */}
+          <svg viewBox="0 0 20 12" width={14} height={8.4} style={{ transform: flight.dir === 1 ? undefined : "scaleX(-1)", display: "block" }} aria-hidden>
+            <g fill="#0b0910" opacity={0.9}>
+              <ellipse cx={10} cy={7} rx={5} ry={2} />
+              <circle cx={15.2} cy={6.3} r={1.5} />
+              <path className="crow-wing" style={{ animationDelay: `${c.delay}s` }} d="M10 6.5 C9 2, 6 0.5, 3 1 C5.5 3, 7.5 5, 10 7.5 Z" />
+            </g>
+          </svg>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 // 背景: 空模様(晴れ・曇り・雨・雪・雷)に応じて、空が移り変わる。足もとには、細かく描いた街。
 export function Ambient() {
   // 前回の昼・夜を読みこむまで、空は、出さない(最初から、暗い夜空が見えてしまわないように)。
@@ -826,6 +881,7 @@ export function Ambient() {
       <div className="absolute inset-0" style={{ background: weather === "clear" ? "rgba(255,255,255,0.06)" : "rgba(255,255,255,0.22)", opacity: day ? 1 : 0, transition: "opacity 4.8s ease-in-out" }} />
 
       <Skyline phase={phase} />
+      <Crow active={phase === "dusk" && weather === "clear"} />
     </div>
   );
 }

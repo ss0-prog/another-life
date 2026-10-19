@@ -1,5 +1,6 @@
 import { jpData } from "@/lib/sim/data/jp";
 import { housingOf } from "@/lib/sim/data/jp-scene";
+import { pickMoment } from "@/lib/sim/data/jp-moments";
 import { vitalsOf } from "@/lib/sim/survey";
 import { DEFAULT_JOB, jobById } from "@/lib/sim/data/jp-jobs";
 import { causeOfDeath } from "@/lib/sim/data/jp-events";
@@ -67,7 +68,7 @@ export const WORK_LIMIT = 90;
 const SNAP_AGE = 70;
 // 運の共有: 病気・死亡・結婚などの乱数は「種+年齢+種類」で決まるので、
 // 二つの人生(分岐した/しなかった)は同じ運のもとで比べられる。
-const S = { workEnd: 95, death: 1, illness: 2, marriage: 3, birth: 4, job: 5, move: 6, buy: 7, parents: 9, layoff: 12, sudden: 60, allow: 70, lesson: 80, ev: 30, evPick: 32, evApply: 36, q: 40, qPick: 41, name: 50, small: 10, smallPick: 11, choice: 20, jobPick: 15, movePick: 16 } as const;
+const S = { workEnd: 95, death: 1, illness: 2, marriage: 3, birth: 4, job: 5, move: 6, buy: 7, parents: 9, layoff: 12, sudden: 60, allow: 70, lesson: 80, ev: 30, evPick: 32, evApply: 36, q: 40, qPick: 41, name: 50, small: 10, smallPick: 11, choice: 20, jobPick: 15, movePick: 16, moment: 97 } as const;
 
 function streamRng(seed: number, age: number, stream: number): Rng {
   return createRng((seed ^ Math.imul(age + 1, 2654435761) ^ Math.imul(stream, 40503)) >>> 0);
@@ -1862,6 +1863,17 @@ export function tick(state: GameState, data: CountryData = jpData): GameState {
         push(`${jobById(p.jobOfferJob)?.title ?? data.occLabel[target]}への、転職の話が出た`, 56);
         next.queue.push("job_change");
       }
+    }
+  }
+  // 心に残る「ひとこま」(恋人・家族・友人・ペットなどとの、短い情景)。ときどき、年表にはさむ。
+  {
+    const m = pickMoment(p, a, streamRng(seed, a, S.moment));
+    if (m) {
+      mark();
+      push(m.text, 52);
+      p.history[`m:${m.id}`] = a;
+      bump(p, { joy: m.joy ?? 0, bonds: m.bonds ?? 0 });
+      mark();
     }
   }
   if (a === SNAP_AGE) next.snap = clone(p);

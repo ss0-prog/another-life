@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { resumeBgmOnFirstTouch, watchLightning, setBgmMood, toggleBgm, useBgmOn } from "@/lib/bgm";
+import { resumeBgmOnFirstTouch, watchLightning, watchCrow, setBgmMood, toggleBgm, useBgmOn } from "@/lib/bgm";
 import { usePhase } from "@/lib/timeStore";
 import { useWeather } from "@/lib/weatherStore";
 
@@ -12,6 +12,7 @@ export function BgmDriver() {
   useEffect(() => setBgmMood({ phase, weather }), [phase, weather]);
   useEffect(() => resumeBgmOnFirstTouch(), []);
   useEffect(() => watchLightning(), []);
+  useEffect(() => watchCrow(), []);
   return null;
 }
 

@@ -129,7 +129,6 @@ function applyMood() {
   padBus.frequency.setTargetAtTime(cutoff, t, 3);
   wet.gain.setTargetAtTime(w === "snow" ? 0.8 : 0.55, t, 3);
   rainGain.gain.setTargetAtTime(w === "rain" ? 0.016 : w === "thunder" ? 0.028 : 0, t, 4);
-  syncCrow();
   rainFilter.frequency.setTargetAtTime(w === "thunder" ? 2600 : 3200, t, 4);
 }
 
@@ -231,113 +230,62 @@ export function watchLightning() {
 // ---- カラス: 夕方の晴れた空のときだけ、遠くで、小さく鳴く ----
 const crowOn = () => on && mood.phase === "dusk" && mood.weather === "clear";
 
-// 「カァー」を一声。カラスの声は、(1)ざらざらした荒い声(声帯の不規則な震え)、(2)口の形による、いくつかの強い共鳴、(3)出だしで鋭く上がって、すぐ下がる音程、でできている。
-// それぞれを、のこぎり波(+半分の高さの音で、ざらつきを足す)・ゆらぎ・ノイズ・複数の帯域フィルターで作り、遠くなので、こもらせる。
-let whiteBuf: AudioBuffer | null = null;
-function caw(delay: number, pan: number, f0: number) {
-  if (!ctx || !master) return;
+// カラスの録音(public/audio/crow.mp3)。最初に一度だけ読みこむ。遠くに聞こえるよう、こもらせ、小さく、反響を足して鳴らす。
+let crowBuf: AudioBuffer | null = null;
+let crowLoading = false;
+function loadCrow() {
+  if (!ctx || crowBuf || crowLoading) return;
+  crowLoading = true;
   const c = ctx;
-  const t = c.currentTime + delay;
-  const dur = 0.55;
-  if (!whiteBuf) whiteBuf = makeRainNoise(c);
-
-  // 声帯: 音程が、さっと上がって、下がる。ゆらぎ(ジッター)を加える。
-  const voice = c.createGain();
-  voice.gain.value = 1;
-  [[1, 1], [0.5, 0.45]].forEach(([mul, amp]) => {
-    const o = c.createOscillator();
-    o.type = "sawtooth";
-    o.frequency.setValueAtTime(f0 * mul * 0.92, t);
-    o.frequency.linearRampToValueAtTime(f0 * mul * 1.14, t + 0.07);
-    o.frequency.exponentialRampToValueAtTime(f0 * mul * 0.76, t + dur);
-    [[37, 70], [91, 45]].forEach(([hz, cents]) => {
-      const l = c.createOscillator();
-      const d = c.createGain();
-      l.frequency.value = hz;
-      d.gain.value = cents;
-      l.connect(d).connect(o.detune);
-      l.start(t);
-      l.stop(t + dur + 0.05);
+  fetch("/audio/crow.mp3")
+    .then((r) => r.arrayBuffer())
+    .then((d) => c.decodeAudioData(d))
+    .then((b) => {
+      crowBuf = b;
+    })
+    .catch(() => {
+      crowLoading = false;
     });
-    const a = c.createGain();
-    a.gain.value = amp;
-    o.connect(a).connect(voice);
-    o.start(t);
-    o.stop(t + dur + 0.05);
-  });
-  // ざらつき(息のノイズ)
-  const n = c.createBufferSource();
-  n.buffer = whiteBuf;
-  n.loop = true;
-  const nf = c.createBiquadFilter();
-  nf.type = "bandpass";
-  nf.frequency.value = 2400;
-  nf.Q.value = 0.7;
-  const ng = c.createGain();
-  ng.gain.value = 0.35;
-  n.connect(nf).connect(ng).connect(voice);
-  n.start(t, Math.random() * 3);
-  n.stop(t + dur + 0.05);
-
-  // 口の共鳴: 三つの帯域を、並べて、足しあわせる
-  const mix = c.createGain();
-  mix.gain.value = 0.22;
-  [[820, 5, 1], [2050, 6, 0.8], [3300, 6, 0.35]].forEach(([hz, q, amp]) => {
-    const f = c.createBiquadFilter();
-    f.type = "bandpass";
-    f.frequency.value = hz;
-    f.Q.value = q;
-    const a = c.createGain();
-    a.gain.value = amp;
-    voice.connect(f).connect(a).connect(mix);
-  });
-
-  // 声の強弱: 出だしは鋭く、あとはざらざらと震えながら、すっと消える
-  const env = c.createGain();
-  env.gain.setValueAtTime(0, t);
-  env.gain.linearRampToValueAtTime(1, t + 0.025);
-  env.gain.setValueAtTime(0.85, t + 0.12);
-  env.gain.exponentialRampToValueAtTime(0.0001, t + dur);
-  const rasp = c.createGain();
-  rasp.gain.value = 0.65;
-  const rl = c.createOscillator();
-  const rd = c.createGain();
-  rl.frequency.value = 85;
-  rd.gain.value = 0.35;
-  rl.connect(rd).connect(rasp.gain);
-  rl.start(t);
-  rl.stop(t + dur + 0.05);
-
-  // 遠く: 高音を少しだけ落とし、小さく、反響を多めに
-  const far = c.createBiquadFilter();
-  far.type = "lowpass";
-  far.frequency.value = 3000;
-  const out = c.createGain();
-  out.gain.value = 0.16;
-  const p = c.createStereoPanner();
-  p.pan.value = pan;
-  mix.connect(rasp).connect(env).connect(far).connect(out).connect(p);
-  p.connect(master);
-  if (reverbBus) p.connect(reverbBus);
 }
 
-function playCrow() {
+// 一回の飛行で鳴く回数: 広い画面(PC)は、飛ぶ距離が長いので二回。
+const CROW_WIDE = 1024;
+const CROW_GAP_MS = 10000;
+function playCrow(remaining = window.innerWidth >= CROW_WIDE ? 2 : 1) {
   crowTimer = null;
-  if (!crowOn()) return;
-  const n = 1 + Math.floor(Math.random() * 3);
-  const f0 = 430 + Math.random() * 110;
-  const pan = Math.random() * 1.2 - 0.6;
-  for (let i = 0; i < n; i++) caw(i * (0.62 + Math.random() * 0.12), pan, f0 * (1 - i * 0.03));
-  crowTimer = setTimeout(playCrow, (14 + Math.random() * 22) * 1000);
+  if (!crowOn() || !ctx || !master) return;
+  if (crowBuf) {
+    const src = ctx.createBufferSource();
+    src.buffer = crowBuf;
+    src.playbackRate.value = 0.95 + Math.random() * 0.1;
+    const far = ctx.createBiquadFilter();
+    far.type = "lowpass";
+    far.frequency.value = 3500;
+    const g = ctx.createGain();
+    // 録音は、もともと音が小さい(最大 0.15 ほど)。ここで、持ち上げて、全体の音量(MASTER)のうえで、小さく聞こえる大きさにする
+    g.gain.value = 0.2;
+    const p = ctx.createStereoPanner();
+    p.pan.value = Math.random() * 1.2 - 0.6;
+    src.connect(far).connect(g).connect(p);
+    p.connect(master);
+    if (reverbBus) p.connect(reverbBus);
+    src.start();
+  } else loadCrow();
+  if (remaining > 1) crowTimer = setTimeout(() => playCrow(remaining - 1), CROW_GAP_MS);
 }
 
-// 夕方の晴れの間だけ、カラスの鳴き声の予約を入れておく。
-function syncCrow() {
-  if (crowOn() && !crowTimer) crowTimer = setTimeout(playCrow, (4 + Math.random() * 6) * 1000);
-  else if (!crowOn() && crowTimer) {
-    clearTimeout(crowTimer);
-    crowTimer = null;
-  }
+// 背景(Ambient)で、カラスが飛びはじめたら、すこしあとに、鳴き声を鳴らす。
+export const CROW_EVENT = "betsu-uchu:crow";
+const CROW_DELAY_MS = 3200;
+export function watchCrow() {
+  const go = () => {
+    crowTimer = setTimeout(() => playCrow(), CROW_DELAY_MS);
+  };
+  window.addEventListener(CROW_EVENT, go);
+  return () => {
+    window.removeEventListener(CROW_EVENT, go);
+    if (crowTimer) clearTimeout(crowTimer);
+  };
 }
 
 // ---- 効果音(木の枝の分岐): BGMがオンのときだけ鳴る ----
@@ -411,7 +359,7 @@ export function startBgm() {
   master.gain.cancelScheduledValues(ctx.currentTime);
   master.gain.setTargetAtTime(MASTER, ctx.currentTime, 1.5);
   playChord();
-  syncCrow();
+  loadCrow();
   bellTimer = setTimeout(playBell, 9000);
   try {
     window.localStorage.setItem(KEY, "on");
@@ -424,7 +372,6 @@ export function stopBgm() {
   on = false;
   if (chordTimer) clearTimeout(chordTimer);
   if (bellTimer) clearTimeout(bellTimer);
-  syncCrow();
   master.gain.cancelScheduledValues(ctx.currentTime);
   master.gain.setTargetAtTime(0, ctx.currentTime, 0.8);
   // 余韻が消えてから、音を止める(鳴らし直すと、また最初の和音から)。

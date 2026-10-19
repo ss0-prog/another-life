@@ -395,6 +395,64 @@ body[data-play="1"] {
   will-change: opacity;
   animation: flash 9s ease-in-out infinite;
 }
+/* カラス: 画面のはしから、反対のはしへ、水平に飛ぶ。羽ばたきは、羽を上下に返す。 */
+@keyframes crow-r {
+  from {
+    transform: translateX(-8vw);
+  }
+  to {
+    transform: translateX(108vw);
+  }
+}
+@keyframes crow-l {
+  from {
+    transform: translateX(108vw);
+  }
+  to {
+    transform: translateX(-8vw);
+  }
+}
+@keyframes crow-bob {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-5px);
+  }
+}
+@keyframes crow-flap {
+  0%,
+  100% {
+    transform: scaleY(1);
+  }
+  50% {
+    transform: scaleY(-0.8);
+  }
+}
+.crow-pass-r,
+.crow-pass-l {
+  position: absolute;
+  left: 0;
+  will-change: transform;
+  animation-duration: 9s;
+  animation-timing-function: linear;
+  animation-fill-mode: forwards;
+}
+.crow-pass-r {
+  animation-name: crow-r;
+}
+.crow-pass-l {
+  animation-name: crow-l;
+}
+.crow-bob {
+  animation: crow-bob 1.7s ease-in-out infinite;
+}
+.crow-wing {
+  transform-box: view-box;
+  transform-origin: 10px 7px;
+  animation: crow-flap 0.42s ease-in-out infinite;
+}
 @media (prefers-reduced-motion: reduce) {
   .cloud,
   .rain-drop,

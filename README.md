@@ -40,7 +40,7 @@ npm run build
 
 ## ページ
 
-- `/` 遊ぶ / `/concept` コンセプト / `/sources` データについて / `/privacy` プライバシー / `/contact` お問い合わせ
+- `/` 遊ぶ / `/concept` コンセプト / `/sources` データについて・ヒント / `/privacy` プライバシー / `/contact` お問い合わせ
 - `/archive` みんなの人生(サンプル+公開された人生) / `/archive/[id]` 個別ページ。公開は、ログインした本人が保存時に選んだときだけ(持病・MBTI・自由記述・細かい地名は除く)。取り下げも本人が可能。
 - お問い合わせは Firebase の `contacts` に保存(読めるのは運営のみ)。Firebase 未設定なら、`NEXT_PUBLIC_CONTACT_EMAIL` のメールを開く。どちらも未設定なら「準備中」と表示。
 - `firestore.rules` に、保存・公開・お問い合わせのルールがあります。

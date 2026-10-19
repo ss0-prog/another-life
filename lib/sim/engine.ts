@@ -8,6 +8,8 @@ import { shopById, yearlyCosts } from "@/lib/sim/shop";
 import { MEET_LIMIT, meetById } from "@/lib/sim/data/jp-meet";
 import { buildDeathNote } from "@/lib/sim/data/jp-death";
 import { breakupChance, breakupText, coupleEvent } from "@/lib/sim/data/jp-couple";
+import { CARE_LABEL, careYear } from "@/lib/sim/childcare";
+import { intelChance } from "@/lib/sim/intel";
 import { SUMMIT_BY_JOB, SUMMIT_BY_OCC, summitChance } from "@/lib/sim/data/jp-summit";
 import { savingsRate } from "@/lib/sim/economy";
 import { LENDERS, LENDER_ORDER, lenderAvailable } from "@/lib/sim/data/jp-debt";
@@ -1286,7 +1288,9 @@ export function tick(state: GameState, data: CountryData = jpData): GameState {
   // 子どもが生まれたあとの年に、育休を取るかを聞く。
   if (p.history.leaveAsk !== undefined && p.history.leaveAsk < a) {
     delete p.history.leaveAsk;
-    if (p.occ !== null && p.occ !== "retired" && !next.queue.includes("parental_leave")) next.queue.push("parental_leave");
+    // 自分が働いているか、働いているパートナーがいるときに、育休と預け先を聞く。
+    const someoneWorks = (p.occ !== null && p.occ !== "retired") || (!!p.partner && p.partner.status !== "ex");
+    if (someoneWorks && !next.queue.includes("parental_leave")) next.queue.push("parental_leave");
   }
   // 交際: 付き合って何年めかを数える。毎年、二人の出来事が起こり、別れることもある。
   let datingYears = -1;
@@ -1563,6 +1567,35 @@ export function tick(state: GameState, data: CountryData = jpData): GameState {
     const everyday = Math.round((gain * (0.82 + 0.14 * roll(seed, a, S.allow))) / 100) * 100;
     next.wallet.cash += gain - everyday;
     push(`お正月に、お年玉を${otoshidama.toLocaleString("ja-JP")}円もらった。お小遣いは、月に${monthly.toLocaleString("ja-JP")}円(いまは${Math.round(next.wallet.cash).toLocaleString("ja-JP")}円)`, 18);
+  }
+
+  // 子どもの預け先: いちばん下の子が小学校に入るまで、毎年、費用と影響が出る。3歳になったときは、通い先を選び直す。
+  if (p.kidList.length > 0) {
+    const youngest = a - Math.max(...p.kidList.map((k) => k.bornAge));
+    if (p.childcare && youngest >= 0 && youngest <= 5) {
+      const cy = careYear(p, p.childcare.kind, youngest, Math.round(incomeOf(p, data, economyAt(seed, a))), streamRng(seed, a, S.ev + 91));
+      if (cy.costMan > 0) chargeWithDebt(next, Math.round(cy.costMan * 10000));
+      bump(p, cy.bump);
+      p.extra.stress = Math.min(100, Math.max(0, p.extra.stress + cy.stress));
+      p.extra.career = Math.min(100, Math.max(0, p.extra.career + cy.career));
+      if (cy.text) push(cy.text, 45);
+    } else if (p.childcare && youngest >= 6) {
+      push(`子どもが小学校に入り、${CARE_LABEL[p.childcare.kind]}の日々が、ひと区切りになった`, 50);
+      p.extra.stress = Math.max(0, p.extra.stress - 3);
+      delete p.childcare;
+    }
+    // 3歳になった年: 幼稚園・保育園・こども園のどれにするか(一度だけ)。
+    const born = p.kidList.find((k) => a - k.bornAge === 3 && p.history[`care3_${k.bornAge}`] === undefined);
+    if (born && p.childcare && youngest === 3 && !next.queue.includes("kid_three")) {
+      p.history[`care3_${born.bornAge}`] = a;
+      next.queue.push("kid_three");
+    }
+  }
+
+  // 頭の良さ: 幼いころから、塾や、音楽・芸術などにふれるほど、伸びやすい(画面には、数字を出さない)。
+  {
+    const ic = intelChance(p, a);
+    if (ic > 0 && roll(seed, a, S.ev + 93) < ic) p.intel = Math.min(100, p.intel + (ic >= 0.3 && roll(seed, a, S.ev + 94) < 0.25 ? 2 : 1));
   }
 
   // 習い事: 続けているあいだ、毎年、効果が積み重なる。節目の出来事も起きる。

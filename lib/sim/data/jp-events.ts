@@ -4,6 +4,7 @@ import { applyChangeIncome, changeIncome, incomeOf, round10 } from "@/lib/sim/sa
 import { STUDY_MAIN, STUDY_OTHERS, countryById } from "@/lib/sim/data/jp-countries";
 import type { TurningQuestion } from "@/lib/sim/types";
 import { addDebt, assignJob, bump, chargeWithDebt, fullName, kidCall, moveAbroad, moveHome, moveTo, bearerOf, noBearer, npcMbti, partnerCall, randomPartner } from "@/lib/sim/helpers";
+import { WAITLIST, parentsAround, partnerWorks } from "@/lib/sim/childcare";
 import { compat, compatMark, idealChance, isE, isJ, isN, isT, IDEAL, typeCall } from "@/lib/sim/mbti";
 import { interpolate, weighted } from "@/lib/sim/rng";
 import type { AutoEvent, CountryData, EventQuestionDef, GameState, Occ, Person, TurningOption } from "@/lib/sim/types";
@@ -495,6 +496,53 @@ const addCash = (p: Person, manYen: number) => {
   p.cashDelta += Math.round(manYen * 10000);
 };
 
+// 育児休業のときの、世帯への影響のもとになる、年収の目安(万円)。働いていなければ、同じくらいの収入と仮定する。
+const leaveIncome = (p: Person, d: CountryData) => (p.occ !== null ? incomeOf(p, d, p.econ) : 400);
+
+// 仕事に戻ったあとの、預け先を選ぶ。
+const careQuestion = (p: Person): TurningQuestion => {
+  const anyWork = working(p) || partnerWorks(p);
+  return {
+    title: "仕事のあいだ、子どもをどうする?",
+    prompt: "仕事に戻ったあとの、預け先を選びます。預け先で、毎年の費用と、仕事・暮らしへの影響が変わります。",
+    options: [
+      opt("daycare", "認可保育園に預ける", (q, r) => {
+        if (r() < (WAITLIST[q.region] ?? 0.1)) {
+          // 入れなかったとき(待機)は、ほかの道に変わる。
+          if (parentsAround(q)) { q.childcare = { kind: "grandparents", since: q.age }; bump(q, { bonds: 1, joy: -2 }); q.extra.stress = Math.min(100, q.extra.stress + 5); return "認可保育園に申し込んだが、入れなかった(待機になった)。親に頼って、預けることにした"; }
+          q.childcare = { kind: "home_self", since: q.age };
+          bump(q, { joy: -3 });
+          q.extra.stress = Math.min(100, q.extra.stress + 8);
+          return "認可保育園に申し込んだが、入れなかった(待機になった)。仕事を減らして、家で見ることになった";
+        }
+        q.childcare = { kind: "daycare", since: q.age };
+        return "認可保育園に入れた。朝から夕方まで、見てもらえることになった";
+      }, { auto: true, show: () => anyWork, detail: (q) => `0〜2歳は月に2〜3万円ほど(世帯の収入で変わる)、3歳からは無償化。ただ、${q.region === "tokyo" ? "東京23区などでは、入れないこと(待機)も、ある(約" + Math.round((WAITLIST.tokyo ?? 0.2) * 100) + "%と仮定)" : q.region === "metro" ? "都市部では、入れないこと(待機)も、ある(約" + Math.round((WAITLIST.metro ?? 0.1) * 100) + "%と仮定)" : "地方では、比較的入りやすい(待機は約" + Math.round((WAITLIST.local ?? 0.05) * 100) + "%と仮定)"}。` }),
+      opt("grandparents", "親(祖父母)に預ける", (q) => {
+        q.childcare = { kind: "grandparents", since: q.age };
+        bump(q, { bonds: 3, joy: 2 });
+        return "仕事のあいだは、親に子どもを預けることにした";
+      }, { show: (q) => anyWork && parentsAround(q), detail: () => "費用はかからない。親との関係が深まるが、頼りすぎると、親の体への負担や、子育てのやり方での衝突が、起こることもある。" }),
+      opt("sitter", "ベビーシッター・認可外保育を使う", (q) => {
+        q.childcare = { kind: "sitter", since: q.age };
+        q.extra.stress = Math.max(0, q.extra.stress - 2);
+        return "ベビーシッターや、認可外の保育を使うことにした";
+      }, { show: () => anyWork, detail: () => "時間の融通がきき、気持ちは楽になる。そのぶん、費用が大きい(年に100万円前後)。" }),
+      opt("home_self", "自分が、仕事を減らして家で育てる", (q) => {
+        q.childcare = { kind: "home_self", since: q.age };
+        bump(q, { bonds: 3, joy: 2 });
+        q.extra.career = Math.max(0, q.extra.career - 3);
+        return "仕事を減らして、自分が家で子どもを育てることにした";
+      }, { show: (q) => working(q), detail: () => "子どもとの時間は増えるが、収入が大きく減り(年収の4割ほど)、キャリアにも響く。子どもが小学校に入るころまで、続く。" }),
+      opt("home_partner", "パートナーが、家で育てる", (q) => {
+        q.childcare = { kind: "home_partner", since: q.age };
+        bump(q, { bonds: 2 });
+        return `${q.partner ? q.partner.given + "さん" : "パートナー"}が家で、子どもを育てることになった`;
+      }, { show: (q) => !!q.partner && q.partner.status !== "ex", detail: () => "自分は仕事に集中できる。世帯の収入は、パートナーの分だけ減る(自分の年収の3.5割ほどと仮定)。" }),
+    ],
+  };
+};
+
 // 留学を終えたあとに行く国の候補(主な国と、人気の留学先から、人ごとに決まる3つ)。
 const nextCountryQuestion = (p: Person): TurningQuestion => {
   const seed = [...p.city].reduce((a, c) => a + c.charCodeAt(0), 0) + p.age * 13;
@@ -722,37 +770,81 @@ export const eventQuestions: EventQuestionDef[] = [
       };
     },
   },
-  // ---- 育休を取るか(子どもが生まれたあと) ----
+  // ---- 育休と、子どもの預け先(子どもが生まれたあと) ----
   {
     id: "parental_leave",
     weight: () => 0,
-    intro: () => "子どもが生まれて、仕事と育児の、両立を考えた",
+    intro: () => "子どもが生まれて、仕事と育児を、どう分けるかを考えた",
     question: (p) => {
-      const female = p.history.bearer === undefined ? p.sex === "female" : p.history.bearer === 1;
+      const pn = p.partner ? `${p.partner.given}さん` : "パートナー";
+      const hasPartner = !!p.partner && p.partner.status !== "ex";
       return {
-        title: "育児休業を取るか",
-        prompt: female ? "仕事を休んで、子育てに専念するか、早めに復帰するかを、決めます。" : "育児休業を取って、子育てに加わるか、仕事を続けるかを、決めます。",
+        title: "育児休業と、預け先",
+        prompt: hasPartner ? `子どもが生まれて、仕事と育児を、どう分けるかを決めます。まず、育児休業を、だれが取るか。そのあと、仕事に戻ったときの、預け先も選びます。` : "子どもが生まれて、仕事と育児を、どうするかを決めます。まず、育児休業を取るか。そのあと、仕事に戻ったときの、預け先も選びます。",
         options: [
-          opt("take", "育休を取る", (p) => {
-            addCash(p, -((p.occ !== null ? 60 : 20)));
+          opt("take", "自分が、育休を長めに取る(約1年)", (p, r, d) => {
+            addCash(p, -Math.round(leaveIncome(p, d) * 0.3));
             bump(p, { bonds: 6, joy: 5, health: 1 });
             p.extra.career = Math.max(0, p.extra.career - 2);
-            return "育児休業を取り、子どもとの時間を大切にした";
-          }, { show: (q) => q.occ !== null && q.occ !== "retired", detail: () => `休業中は、収入が減る(育児休業給付は、賃金のおよそ5〜7割)。取得した人の割合は、令和5年度で、女性約84%・男性約30%(厚生労働省「雇用均等基本調査」)。` }),
-          opt("short", "短く取り、早めに復帰する", (p) => {
-            addCash(p, -20);
+            return "育児休業を、1年ほど取り、子どもとの時間を大切にした";
+          }, { show: (q) => working(q), detail: (q) => `休業中は、収入が減る(育児休業給付は、賃金のおよそ5〜7割)。年収の3割ほどが、世帯から減る目安。取得した人の割合は、令和5年度で、女性約84%・男性約30%(厚生労働省「雇用均等基本調査」)。`, children: (q) => careQuestion(q) }),
+          opt("short", "自分が、短く取る(数か月)", (p, r, d) => {
+            addCash(p, -Math.round(leaveIncome(p, d) * 0.1));
             bump(p, { bonds: 3, joy: 2 });
             return "育児休業を短く取り、早めに仕事に復帰した";
-          }, { show: (q) => q.occ !== null && q.occ !== "retired" }),
-          opt("none", "取らずに、働き続ける", (p) => {
+          }, { show: (q) => working(q), detail: () => "収入とキャリアへの影響は、小さくすむ。そのぶん、子どもとの時間は短くなる。", children: (q) => careQuestion(q) }),
+          opt("partner", `${hasPartner ? pn : "パートナー"}が、育休を取る`, (p, r, d) => {
+            addCash(p, -Math.round(leaveIncome(p, d) * 0.27));
+            bump(p, { bonds: 6, joy: 4 });
+            p.extra.stress = Math.max(0, p.extra.stress - 3);
+            p.extra.career = Math.min(100, p.extra.career + 1);
+            return `${pn}が育児休業を取り、子どもを見てくれることになった。自分は、仕事を続けた`;
+          }, { show: (q) => !!q.partner && q.partner.status !== "ex" && partnerWorks(q), detail: () => "世帯の収入は、一時的に減る(相手の年収の3割ほど。自分と同じ程度と仮定)。自分は仕事に集中でき、二人の関係にも、よい影響がある。", children: (q) => careQuestion(q) }),
+          opt("both", "ふたりで、分けて取る", (p, r, d) => {
+            addCash(p, -Math.round(leaveIncome(p, d) * 0.2));
+            bump(p, { bonds: 8, joy: 5 });
+            p.extra.stress = Math.max(0, p.extra.stress - 2);
+            p.extra.career = Math.max(0, p.extra.career - 1);
+            return `${pn}と、育児休業を分け合って取り、ふたりで子どもを見ることにした`;
+          }, { show: (q) => working(q) && !!q.partner && q.partner.status !== "ex" && partnerWorks(q), detail: () => "どちらの仕事への影響も、小さくすむ。収入は少し減るが、二人の関係と、子どもとの時間が、増える。", children: (q) => careQuestion(q) }),
+          opt("none", "育休は取らず、働き続ける", (p) => {
             p.extra.stress = Math.min(100, p.extra.stress + 8);
             bump(p, { bonds: -2, health: -1 });
             p.extra.career = Math.min(100, p.extra.career + 1);
             return "育休は取らず、仕事を続けた。育児と仕事の両立で、慌ただしい日々が続く";
-          }, { auto: true, detail: () => "収入とキャリアは守れるが、体力とパートナーとの関係に、負担がかかる。" }),
+          }, { auto: true, show: (q) => working(q), detail: () => "収入とキャリアは守れるが、体力とパートナーとの関係に、負担がかかる。", children: (q) => careQuestion(q) }),
+          // 自分が働いていないとき(パートナーが働いている)は、預け先だけを選ぶ。
+          opt("care_only", "預け先を決める", () => "仕事に戻るときの、子どもの預け先を考えた", { auto: true, show: (q) => !working(q), detail: () => "パートナーが働いている間の、子どもの預け先を選びます。", children: (q) => careQuestion(q) }),
         ],
       };
     },
+  },
+  // 3歳になったときの、預け先(幼稚園・保育園・こども園)。
+  {
+    id: "kid_three",
+    weight: () => 0,
+    intro: () => "子どもが3歳になり、通う場所を考えた",
+    question: (p) => ({
+      title: "3歳からの、通い先",
+      prompt: "子どもが3歳になりました。3歳から5歳の幼稚園・保育園・こども園は、利用料が無償になります(給食費や行事の費用などは別にかかります)。どこに通わせますか。",
+      options: [
+        opt("kindergarten", "幼稚園(預かり保育あり)", (p) => {
+          p.childcare = { kind: "kindergarten", since: p.age };
+          bump(p, { joy: 2 });
+          return "幼稚園に通わせることにした。昼すぎに帰ってくるので、預かり保育も使うことになった";
+        }, { detail: (q) => `午前から昼すぎまで。預かり保育で、夕方まで預けられることが多い。ふたりとも働いていると、送り迎えと時間のやりくりが大変になる。費用は、年に15〜18万円ほど。` }),
+        opt("daycare", "認可保育園(そのまま・切りかえ)", (p) => {
+          p.childcare = { kind: "daycare", since: p.age };
+          return "保育園に、通わせ続けることにした。朝から夕方まで見てもらえて、仕事との両立がしやすい";
+        }, { auto: true, detail: () => "朝から夕方まで。仕事との両立がしやすい。費用は、給食費などで、年に8万円ほど。" }),
+        opt("kodomoen", "認定こども園", (p) => {
+          p.childcare = { kind: "kodomoen", since: p.age };
+          bump(p, { joy: 1 });
+          return "認定こども園に通わせることにした。幼稚園と保育園の、よいところを合わせた場所だ";
+        }, { detail: () => "幼稚園と保育園の、両方の役割を持つ。働いていても、いなくても、通える。費用は、年に12万円ほど。" }),
+        opt("keep", "いまの預け先を、続ける", () => "預け先は、いまのまま、続けることにした", { show: (q) => !!q.childcare && q.childcare.kind !== "daycare" && q.childcare.kind !== "kindergarten" && q.childcare.kind !== "kodomoen", detail: () => "親や、シッターなどに、これまでどおり、見てもらう。" }),
+      ],
+    }),
   },
   // ---- 出会いの場(「活動する」から、自分で出かける) ----
   {

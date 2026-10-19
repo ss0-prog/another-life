@@ -26,6 +26,8 @@ export type Sex = "female" | "male" | "none";
 export type GenderId = "cis" | "trans_man" | "trans_woman" | "nonbinary" | "unsure";
 export type Orientation = "hetero" | "homo" | "bi" | "ace";
 export type PartnerGender = "man" | "woman" | "nonbinary";
+// 子どもの預け先(0〜5歳)。仕事のあいだ、誰が見るか。
+export type CareKind = "daycare" | "kodomoen" | "kindergarten" | "grandparents" | "sitter" | "home_self" | "home_partner";
 export type Condition = "none" | "heart" | "diabetes" | "asthma" | "sensory" | "other";
 export type Ailment = "none" | "hypertension" | "diabetes2" | "mental" | "cancer" | "heart_acq" | "intractable" | "chronic_pain" | "other";
 export type School = "none" | "hs" | "vocational" | "univ" | "grad";
@@ -181,6 +183,7 @@ export type Person = {
   bankrupt: number | null;
   abroad: Abroad | null;
   kidList: KidInfo[];
+  childcare?: { kind: CareKind; since: number }; // いまの、子どもの預け先(いちばん下の子が小学校に入るまで)
   pets: PetInfo[];
   // 親が亡くなる、あなたの年齢(母・父)。
   parentDeath: { mother: number; father: number };

@@ -38,7 +38,7 @@ export default function ConceptPage() {
             <strong className="text-warm">景気は同じ、運命は別々。</strong>景気や空模様、株価の動きは、二つの人生で共通です。一方、寿命や事故・急病といった運命のいたずらは、それぞれの人生で別々に決まります。若くして亡くなる人生も、起こりえます。
           </li>
           <li>
-            <strong className="text-warm">仮定を隠さない。</strong>どこまでが実際の統計で、どこからが仮定なのかは、<Link href="/sources" className="underline underline-offset-4 hover:text-warm">データについて</Link>のページに書いています。
+            <strong className="text-warm">仮定を隠さない。</strong>どこまでが実際の統計で、どこからが仮定なのかは、<Link href="/sources" className="underline underline-offset-4 hover:text-warm">データについて・ヒント</Link>のページに書いています。
           </li>
         </ul>
       </Section>

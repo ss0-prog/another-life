@@ -150,7 +150,7 @@ export function SiteHeader() {
             </svg>
           </button>
         </div>
-        <nav aria-label="メイン" className="hidden shrink-0 items-center gap-x-4 whitespace-nowrap text-[13px] tracking-[0.1em] lg:flex lg:max-xl:gap-x-2.5 xl:gap-x-6 xl:text-sm xl:tracking-[0.15em]">
+        <nav aria-label="メイン" className="hidden shrink-0 items-center gap-x-4 whitespace-nowrap text-[13px] tracking-[0.1em] lg:flex lg:max-xl:gap-x-2.5 xl:gap-x-4 xl:text-sm xl:tracking-[0.12em] 2xl:gap-x-6 2xl:tracking-[0.15em]">
           {renderItems(false)}
         </nav>
       </div>

@@ -3,7 +3,7 @@
 import { renderToStaticMarkup } from "react-dom/server.browser";
 import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { type Phase, loadTimeOfDay, usePhase, useSkyAnimated, useTimeOfDay } from "@/lib/timeStore";
+import { type Phase, loadTimeOfDay, usePhase, usePrevPhase, useSkyAnimated, useTimeOfDay } from "@/lib/timeStore";
 import { HORIZON_GLOW, skyPalette } from "@/components/skyPalette";
 import { CROW_EVENT } from "@/lib/bgm";
 import { createRng } from "@/lib/sim/rng";
@@ -514,13 +514,13 @@ function EdgeBuilding({ phase }: { phase: Phase }) {
   );
 }
 
-function Skyline({ phase }: { phase: Phase }) {
-  const layer = (p: Phase, on: boolean) => ({ opacity: on ? 1 : 0, transition: "opacity 5s ease-in-out", willChange: "opacity" as const, ...(p ? {} : {}) });
+function Skyline({ phase, ease }: { phase: Phase; ease: string }) {
+  const layer = (p: Phase, on: boolean) => ({ opacity: on ? 1 : 0, transition: `opacity ${ease}`, willChange: "opacity" as const, ...(p ? {} : {}) });
   return (
     <div className="absolute inset-x-0 bottom-0 h-[30vh] min-h-44 w-full">
       <div className="absolute inset-0" style={layer("night", phase !== "day")}><SkylineImg phase="night" mode="glow" /></div>
       {/* 夜の街は、昼のあいだは、見えなくする(昼の街の屋上から、夜の赤いランプが、はみ出して、見えてしまうため)。ほかの層と同じ時間で、ゆっくり入れ替える(灯りが、急に消えたり、点いたりしないように) */}
-      <div className="absolute inset-0" style={{ opacity: phase === "night" || phase === "dawn" ? 1 : 0, transition: "opacity 5s ease-in-out" }}><SkylineImg phase="night" mode="city" /><EdgeBuilding phase="night" /></div>
+      <div className="absolute inset-0" style={{ opacity: phase === "night" || phase === "dawn" ? 1 : 0, transition: `opacity ${ease}` }}><SkylineImg phase="night" mode="city" /><EdgeBuilding phase="night" /></div>
       <div className="absolute inset-0" style={layer("dusk", phase === "dusk" || phase === "dawn")}><SkylineImg phase="dusk" mode="all" /><EdgeBuilding phase="dusk" /></div>
       <div className="absolute inset-0" style={layer("day", phase === "day")}><SkylineImg phase="day" mode="all" /><EdgeBuilding phase="day" /></div>
     </div>
@@ -815,6 +815,10 @@ export function Ambient() {
   const animateSky = useSkyAnimated();
   const target = useTimeOfDay();
   const day = phase === "day";
+  const from = usePrevPhase();
+  // 色の移り変わる時機: 昼から夕方へは、太陽が低くなってから(10秒の日没の後半に)色を変え、夕方から夜へは、月がのぼるあいだ、ゆっくり暗くする。
+  const tr = phase === "dusk" && (from === "day" || from === "dawn") ? { d: 4.5, l: 5.5 } : phase === "night" && from === "dusk" ? { d: 8, l: 0 } : { d: 5, l: 0 };
+  const ease = `${tr.d}s ease-in-out ${tr.l}s`;
   const sky = skyPalette(weather, phase);
   const nightish = phase === "night" || phase === "dusk";
   const clearish = weather === "clear" || weather === "cloudy";
@@ -839,7 +843,7 @@ export function Ambient() {
             "--sk2": sky[2],
             "--sk3": sky[3],
             background: "linear-gradient(180deg, var(--sk0) 0%, var(--sk1) 34%, var(--sk2) 68%, var(--sk3) 100%)",
-            transition: armed ? "--sk0 5s ease-in-out, --sk1 5s ease-in-out, --sk2 5s ease-in-out, --sk3 5s ease-in-out" : "none",
+            transition: armed ? `--sk0 ${ease}, --sk1 ${ease}, --sk2 ${ease}, --sk3 ${ease}` : "none",
           } as React.CSSProperties
         }
       />
@@ -849,14 +853,14 @@ export function Ambient() {
         style={{
           background: "radial-gradient(ellipse 85% 75% at 50% 100%, rgba(255,176,105,0.9) 0%, rgba(255,150,100,0.35) 38%, rgba(255,150,100,0) 72%)",
           opacity: phase === "dawn" || phase === "dusk" ? HORIZON_GLOW[weather] : 0,
-          transition: armed ? "opacity 5s ease-in-out" : "none",
+          transition: armed ? `opacity ${ease}` : "none",
         }}
       />
 
       <AnimatePresence>
         <motion.div key={weather} className="absolute inset-0" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 3 }}>
           {clearish && (
-            <div className="absolute inset-0" style={{ opacity: nightish ? (phase === "dusk" ? 0.3 : 1) : 0, transition: `opacity 4s ease-in-out ${nightish ? "0s" : "1s"}` }}>
+            <div className="absolute inset-0" style={{ opacity: nightish ? (phase === "dusk" ? 0.3 : 1) : 0, transition: `opacity 4s ease-in-out ${nightish ? (phase === "dusk" ? tr.l : 0) : 1}s` }}>
               <Stars dim={weather === "cloudy"} />
             </div>
           )}
@@ -882,7 +886,7 @@ export function Ambient() {
 
       <div className="absolute inset-0" style={{ background: weather === "clear" ? "rgba(255,255,255,0.06)" : "rgba(255,255,255,0.22)", opacity: day ? 1 : 0, transition: "opacity 4.8s ease-in-out" }} />
 
-      <Skyline phase={phase} />
+      <Skyline phase={phase} ease={ease} />
       <Crow active={phase === "dusk" && weather === "clear"} />
     </div>
   );

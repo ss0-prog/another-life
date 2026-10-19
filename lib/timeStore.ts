@@ -15,6 +15,8 @@ export const PHASE_MS = 5000;
 
 let current: TimeOfDay = "night";
 let phase: Phase = "night";
+// ひとつ前の段階(昼から夕方へ、など、どこから移ってきたかで、色の移り変わる時機を変えるため)。
+let prevPhase: Phase = "night";
 let loaded = false;
 let timer: ReturnType<typeof setTimeout> | null = null;
 // 切り替えの途中(空が移り変わっているあいだ)は、新しい切り替えを、受けつけない。
@@ -46,6 +48,7 @@ export function loadTimeOfDay() {
     if (v === "day" || v === "night" || v === "evening") {
       current = v;
       phase = v === "evening" ? "dusk" : v;
+      prevPhase = phase;
       emit();
     }
     // 最初の表示だけは、色の変化をつけない(layout の最初のスクリプトが、つけた印を、はずす)。
@@ -74,11 +77,13 @@ export function setTimeOfDay(t: TimeOfDay) {
     /* noop */
   }
   if (timer) clearTimeout(timer);
+  prevPhase = phase;
   if (t === "day") {
     // 夜 → 朝焼け → 昼
     phase = "dawn";
     emit();
     timer = setTimeout(() => {
+      prevPhase = phase;
       phase = "day";
       timer = null;
       emit();
@@ -99,4 +104,5 @@ const subscribe = (cb: () => void) => {
 export const useTimeOfDay = (): TimeOfDay => useSyncExternalStore(subscribe, () => current, () => "night");
 export const useSkyAnimated = (): boolean => useSyncExternalStore(subscribe, () => skyAnimated, () => false);
 export const useTimeLocked = (): boolean => useSyncExternalStore(subscribe, () => locked, () => false);
+export const usePrevPhase = (): Phase => useSyncExternalStore(subscribe, () => prevPhase, () => "night");
 export const usePhase = (): Phase => useSyncExternalStore(subscribe, () => phase, () => "night");

@@ -2,6 +2,7 @@ import { condOf } from "@/lib/sim/helpers";
 import { interpolate } from "@/lib/sim/rng";
 import type { CountryData, Person } from "@/lib/sim/types";
 import { WAGE_REGION, WAGE_REGION_BANDS } from "@/lib/sim/data/jp-wage-region";
+import { WAGE_REGION_OCC } from "@/lib/sim/data/jp-wage-region-occ";
 
 // 年収の目安(万円、個人)。大分類の水準に、職種・年齢・地域・性別・学歴・専攻・雇用形態・企業規模・勤め先(民間/公務員)・
 // 景気・持病・職種内の違い(payMult)を掛け合わせる。patch で一部の条件を差し替えれば、「もしこうなら」の目安も出せる。
@@ -21,18 +22,20 @@ export function prefectureOf(city: string): string | null {
 }
 
 // 地域による、年収の倍率。都道府県ごとの、年齢階級別の実際の賃金(jp-wage-region.ts)から、年齢のあいだは直線でつなぐ。
-// 若いうちは地域の差が小さく、年齢とともに開く。都道府県がわからなければ(あるいは海外では)、地域の4区分の倍率を使う。
+// 若いうちは地域の差が小さく、年齢とともに開く。さらに、職種(事務・販売・サービスなど)ごとの、都道府県による差(jp-wage-region-occ.ts)を掛ける。都道府県がわからなければ(あるいは海外では)、地域の4区分の倍率を使う。
 export function regionWage(q: Person, inc: CountryData["income"]): number {
   const pref = q.abroad ? null : prefectureOf(q.city);
   if (!pref) return inc.regionFactor[q.region];
   const r = WAGE_REGION[pref];
   const b = WAGE_REGION_BANDS;
-  if (q.age <= b[0]) return r[0];
-  if (q.age >= b[b.length - 1]) return r[r.length - 1];
+  // 職種による調整(その地域で、この職種が、全国の同じ職種より高いか低いか)。
+  const occ = q.occ && q.occ !== "retired" ? (WAGE_REGION_OCC[pref]?.[q.occ] ?? 1) : 1;
+  if (q.age <= b[0]) return r[0] * occ;
+  if (q.age >= b[b.length - 1]) return r[r.length - 1] * occ;
   let i = 0;
   while (q.age > b[i + 1]) i++;
   const t = (q.age - b[i]) / (b[i + 1] - b[i]);
-  return r[i] + (r[i + 1] - r[i]) * t;
+  return (r[i] + (r[i + 1] - r[i]) * t) * occ;
 }
 
 export function incomeOf(p: Person, data: CountryData, econ: number, patch: Partial<Person> = {}): number {

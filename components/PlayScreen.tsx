@@ -247,7 +247,7 @@ export function PlayScreen({ t, initial, birthYear, selfAge, ghost, dev = false,
         <div className="mt-5">
           <div className="text-4xl font-bold tabular-nums tracking-widest text-mist sm:text-5xl drop-shadow-[0_0_24px_rgba(240,201,148,0.35)]">{p.age}<span className="ml-2 text-lg font-medium text-haze sm:text-xl">歳</span></div>
           <p className="mt-1 text-base tabular-nums tracking-[0.2em] text-warm sm:text-lg">{birthYear + p.age}年</p>
-          <p className="mt-2 text-sm tracking-[0.12em] text-haze sm:mt-3 sm:text-base sm:tracking-[0.15em]">
+          <p className="mt-2 text-[13px] tracking-[0.12em] text-haze sm:mt-3 sm:text-sm sm:tracking-[0.15em]">
             {lifeLabel(p, jpData)} / {p.city}
           </p>
         </div>

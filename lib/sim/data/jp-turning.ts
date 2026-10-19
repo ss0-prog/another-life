@@ -143,7 +143,7 @@ const jobDetail = (j: JobDef): TurningOption["detail"] => (p, env, data) => {
 };
 
 const workplaceQuestion = (j: JobDef): TurningQuestion => ({
-  title: `${j.title}として、どこで働く?`,
+  title: `${j.title}として、どこで働く？`,
   prompt: "勤め先と働き方で、収入と暮らしが変わります。",
   options: workplacesFor(j).map((w) => ({
     id: w.id,
@@ -170,7 +170,7 @@ const occQuestion = (occ: Occ, jobs: JobDef[]): TurningQuestion => {
   const groups = [...new Set(jobs.map((j) => j.group).filter(Boolean))] as string[];
   if (groups.length > 1) {
     return {
-      title: `${OCC_LABEL[occ]}の、どの分野?`,
+      title: `${OCC_LABEL[occ]}の、どの分野？`,
       prompt: "分野を選ぶと、そのなかの職種が出ます。",
       options: groups.map((g) => ({
         id: g,
@@ -217,7 +217,7 @@ const STUDY_KIND = { lang: { label: "語学留学", years: 1, total: 150 }, coll
 
 // 留学先: アメリカ・中国・カナダなどの主な国と、世界中の人気の留学先から、人ごとに決まる3つ。
 const studyCountryQuestion = (kind: keyof typeof STUDY_KIND, p: Person): TurningQuestion => ({
-  title: "どの国に留学する?",
+  title: "どの国に留学する？",
   prompt: `${STUDY_KIND[kind].label}(${STUDY_KIND[kind].years}年)の行き先です。主な国と、人気の留学先から、いくつか出ています。`,
   options: [...STUDY_MAIN.map((id) => studyCountryOption(id, kind)), ...otherStudyOptions(p, kind)],
 });
@@ -268,7 +268,7 @@ const jobsQuestion = (title: string, prompt: string, jobs: JobDef[]): TurningQue
 
 // 職につく: 専攻を活かせる仕事を中心に、ほかの仕事も、ランダムに出る候補から選べる。
 const graduateWorkQuestion = (p: Person): TurningQuestion => ({
-  title: "どんな仕事に就く?",
+  title: "どんな仕事に就く？",
   prompt: "専攻や学びを活かせる仕事のほかに、思いがけない仕事も、候補に出ます。",
   options: [
     {
@@ -285,7 +285,7 @@ const graduateWorkQuestion = (p: Person): TurningQuestion => ({
       apply: () => "",
       detail: () => "専攻とは関係のない、未経験の業界へ。まず業界を選び、そのなかの職種を選びます。",
       children: () => ({
-        title: "どの業界へ?",
+        title: "どの業界へ？",
         prompt: "行きたい業界を選んでください。そのあと、その業界の職種を選びます(資格が必要な職種は、ここには出ません)。",
         options: OCC_ENTRY.map((o) => ({
           id: `occ_${o}`,
@@ -308,60 +308,60 @@ const OWN_JOBS = ["founder", "owner", "ceo", "trader", "cook", "barber", "carpen
 
 // 入力画面の選択肢は、「もし、あのとき〜していたら?」の形で見せる。(結果の表示や保存には、ふつうの言い方のラベルを使う)
 export const branchAsk: Record<string, string> = {
-  "childhood.motive.people": "もっと、人と関わる時間を持っていたら?",
-  "childhood.motive.growth": "もっと、自分の力を伸ばしていたら?",
-  "childhood.motive.body": "もっと、体を動かしていたら?",
-  "childhood.option.out": "外で体を動かして過ごしていたら?",
-  "childhood.option.study": "習い事や勉強に打ち込んでいたら?",
-  "childhood.option.friends": "友だちと過ごす時間を大切にしていたら?",
-  "childhood.option.alone": "ひとりで本やゲームに没頭していたら?",
-  "education.motive.better": "もっといい進路を選んでいたら?",
-  "education.motive.otherschool": "ほかの学校に行っていたら?",
-  "education.motive.learn": "もっと学びを深めていたら?",
-  "education.motive.city_univ": "都会の大学に行っていたら?",
-  "education.option.city_univ": "都会の大学に進学していたら?",
-  "relations.motive.love": "もっと恋愛を楽しんでいたら?",
-  "relations.motive.friends": "友人ともっと深く関わっていたら?",
-  "relations.motive.family_tie": "家族ともっと向き合っていたら?",
-  "relations.motive.work": "職場の人間関係を、よくしていたら?",
-  "relations.option.romance_active": "恋愛に積極的に動いていたら?",
-  "relations.option.friends_deep": "友人との関係を深めていたら?",
-  "relations.option.family_close": "家族ともっと向き合っていたら?",
-  "relations.option.work_relations": "職場の人間関係を整えていたら?",
-  "education.motive.indep": "早く自立して、働いていたら?",
-  "education.motive.skill": "手に職をつけていたら?",
-  "education.motive.wide": "進路の選択肢を、広げていたら?",
-  "education.option.univ": "大学に進学していたら?",
-  "education.option.vocational": "専門学校に進学していたら?",
-  "education.option.hs_work": "高校を出てすぐ働いていたら?",
-  "education.option.grad": "大学院に進学していたら?",
-  "education.option.top_univ": "もっと難関の大学に進学していたら?",
-  "education.option.other_hs": "別の高校に進学していたら?",
-  "education.option.other_univ": "別の大学に進学していたら?",
-  "education.option.med_school": "医学部・薬学部・歯学部など、医療系の大学に進学していたら?",
-  "education.option.abroad_univ": "海外の大学に留学して学んでいたら?",
-  "education.option.law_school": "専門職大学院(法科・会計・経営など)に進学していたら?",
-  "education.option.abroad_grad": "海外の大学院に留学して学んでいたら?",
-  "job.motive.pay": "もっと給料のいい仕事に就いていたら?",
-  "job.motive.newfield": "別の業界に挑戦していたら?",
-  "job.motive.stable": "安定した仕事に就いていたら?",
-  "job.motive.passion": "好きなことを仕事にしていたら?",
-  "job.motive.help": "人の役に立つ仕事をしていたら?",
-  "job.motive.own": "自分で事業を起こしていたら?",
-  "place.motive.city": "にぎやかな都会で暮らしていたら?",
-  "place.motive.calm": "のんびりした土地で暮らしていたら?",
-  "place.motive.world": "海外で、新しい世界を見ていたら?",
-  "place.option.tokyo": "東京23区で暮らしていたら?",
-  "place.option.metro": "大阪・名古屋・福岡などの大都市で暮らしていたら?",
-  "place.option.local": "地方都市で暮らしていたら?",
-  "place.option.rural": "郊外・農村部で暮らしていたら?",
-  "place.option.abroad": "海外で暮らしていたら?",
-  "family.motive.family": "もっと早く、家族をもっていたら?",
-  "family.motive.free": "もっと、自由に生きていたら?",
-  "family.option.married": "結婚していたら?",
-  "family.option.single": "ひとりで生きていたら?",
-  "family.option.child": "子どもを持っていたら?",
-  "family.option.childfree": "子どもを持たなかったら?",
+  "childhood.motive.people": "もっと、人と関わる時間を持っていたら？",
+  "childhood.motive.growth": "もっと、自分の力を伸ばしていたら？",
+  "childhood.motive.body": "もっと、体を動かしていたら？",
+  "childhood.option.out": "外で体を動かして過ごしていたら？",
+  "childhood.option.study": "習い事や勉強に打ち込んでいたら？",
+  "childhood.option.friends": "友だちと過ごす時間を大切にしていたら？",
+  "childhood.option.alone": "ひとりで本やゲームに没頭していたら？",
+  "education.motive.better": "もっといい進路を選んでいたら？",
+  "education.motive.otherschool": "ほかの学校に行っていたら？",
+  "education.motive.learn": "もっと学びを深めていたら？",
+  "education.motive.city_univ": "都会の大学に行っていたら？",
+  "education.option.city_univ": "都会の大学に進学していたら？",
+  "relations.motive.love": "もっと恋愛を楽しんでいたら？",
+  "relations.motive.friends": "友人ともっと深く関わっていたら？",
+  "relations.motive.family_tie": "家族ともっと向き合っていたら？",
+  "relations.motive.work": "職場の人間関係を、よくしていたら？",
+  "relations.option.romance_active": "恋愛に積極的に動いていたら？",
+  "relations.option.friends_deep": "友人との関係を深めていたら？",
+  "relations.option.family_close": "家族ともっと向き合っていたら？",
+  "relations.option.work_relations": "職場の人間関係を整えていたら？",
+  "education.motive.indep": "早く自立して、働いていたら？",
+  "education.motive.skill": "手に職をつけていたら？",
+  "education.motive.wide": "進路の選択肢を、広げていたら？",
+  "education.option.univ": "大学に進学していたら？",
+  "education.option.vocational": "専門学校に進学していたら？",
+  "education.option.hs_work": "高校を出てすぐ働いていたら？",
+  "education.option.grad": "大学院に進学していたら？",
+  "education.option.top_univ": "もっと難関の大学に進学していたら？",
+  "education.option.other_hs": "別の高校に進学していたら？",
+  "education.option.other_univ": "別の大学に進学していたら？",
+  "education.option.med_school": "医学部・薬学部・歯学部など、医療系の大学に進学していたら？",
+  "education.option.abroad_univ": "海外の大学に留学して学んでいたら？",
+  "education.option.law_school": "専門職大学院(法科・会計・経営など)に進学していたら？",
+  "education.option.abroad_grad": "海外の大学院に留学して学んでいたら？",
+  "job.motive.pay": "もっと給料のいい仕事に就いていたら？",
+  "job.motive.newfield": "別の業界に挑戦していたら？",
+  "job.motive.stable": "安定した仕事に就いていたら？",
+  "job.motive.passion": "好きなことを仕事にしていたら？",
+  "job.motive.help": "人の役に立つ仕事をしていたら？",
+  "job.motive.own": "自分で事業を起こしていたら？",
+  "place.motive.city": "にぎやかな都会で暮らしていたら？",
+  "place.motive.calm": "のんびりした土地で暮らしていたら？",
+  "place.motive.world": "海外で、新しい世界を見ていたら？",
+  "place.option.tokyo": "東京23区で暮らしていたら？",
+  "place.option.metro": "大阪・名古屋・福岡などの大都市で暮らしていたら？",
+  "place.option.local": "地方都市で暮らしていたら？",
+  "place.option.rural": "郊外・農村部で暮らしていたら？",
+  "place.option.abroad": "海外で暮らしていたら？",
+  "family.motive.family": "もっと早く、家族をもっていたら？",
+  "family.motive.free": "もっと、自由に生きていたら？",
+  "family.option.married": "結婚していたら？",
+  "family.option.single": "ひとりで生きていたら？",
+  "family.option.child": "子どもを持っていたら？",
+  "family.option.childfree": "子どもを持たなかったら？",
 };
 
 export const branches: CountryData["branches"] = {
@@ -601,7 +601,7 @@ const MAJORS: { id: Major; label: string; note: string; learn: number }[] = [
 ];
 
 const majorQuestion = (): TurningQuestion => ({
-  title: "何を学ぶ?",
+  title: "何を学ぶ？",
   prompt: "学ぶ分野は、卒業後の仕事と給料にも関わってきます。",
   options: MAJORS.map((m) => ({
     id: m.id,
@@ -650,7 +650,7 @@ function enterUniv(p: Person, got: (typeof LEVELS)[number]) {
   }
 }
 const levelQuestion = (u: UnivKind): TurningQuestion => ({
-  title: "どのレベルの大学をめざす?",
+  title: "どのレベルの大学をめざす？",
   prompt: "合格できるかどうかは、あなたの素質と、これまでの学びで決まります。数字(偏差値など)は出しません。",
   options: LEVELS.map((l) => ({
     id: l.id,
@@ -688,7 +688,7 @@ const GRAD_LEVELS = [
 ] as const;
 
 const univQuestion = (): TurningQuestion => ({
-  title: "どんな大学?",
+  title: "どんな大学？",
   prompt: "学費と暮らし方が、ここで大きく変わります。",
   options: UNIVS.map((u) => ({
     id: u.id,
@@ -705,7 +705,7 @@ const univQuestion = (): TurningQuestion => ({
   })),
 });
 const vocationalQuestion = (): TurningQuestion => ({
-  title: "どの分野の専門学校?",
+  title: "どの分野の専門学校？",
   prompt: "2〜3年で資格や技術を身につけ、早く働き始められます。",
   options: [
     { id: "care", label: "医療・福祉", note: "資格を取れば、全国で働ける。", mult: 1.1, learn: 6 },
@@ -726,7 +726,7 @@ const vocationalQuestion = (): TurningQuestion => ({
 });
 
 const workQuestion = (): TurningQuestion => ({
-  title: "どんな仕事で働く?",
+  title: "どんな仕事で働く？",
   prompt: "高校を出て、すぐに働き始めます。",
   options: (
     [
@@ -741,7 +741,7 @@ const workQuestion = (): TurningQuestion => ({
     apply: () => "",
     detail: (p: Person, env: Env, data: CountryData) => `${note} ${payText(p, env, data, { age: 22, edu: "hs_work", occ, firm: "mid" })}`,
     children: (): TurningQuestion => ({
-      title: "働く場所は?",
+      title: "働く場所は？",
       prompt: "地元に残るか、都市へ出るか。",
       options: [
         {
@@ -797,7 +797,7 @@ const flowText = (t: string) => () => t;
 
 // ---- 海外へ移住する: 国を選ぶ ----
 const countryQuestion = (): TurningQuestion => ({
-  title: "どの国へ?",
+  title: "どの国へ？",
   prompt: "移り住む国で、現在地も、収入も、物価も変わります。",
   options: jpDataCountries().map((c) => ({
     id: c.id,
@@ -824,7 +824,7 @@ const HOME_TYPES = [
 export const monthlyMan = (priceMan: number) => priceMan * 0.9 * 0.00306; // 頭金1割、35年、金利1.5%の目安
 
 const homeQuestion = (): TurningQuestion => ({
-  title: "どんな住まい?",
+  title: "どんな住まい？",
   prompt: "価格は、住む地域で大きく変わります。",
   options: HOME_TYPES.map((h) => ({
     id: h.id,
@@ -947,7 +947,7 @@ export const turningPoints: TurningPoint[] = [
         apply: () => "",
         detail: (p) => `大学に在籍している人だけが選べる道。学費は2年で約100〜250万円。専門職・研究職・技術職で有利になる一方、働き始めは2年遅れる。国内の合格率の目安は約${pctText(passRate(p, 58))}(${abilityText(p)})。`,
         children: () => ({
-          title: "どこで学ぶ?",
+          title: "どこで学ぶ？",
           prompt: "国内の大学院に進むか、海外の大学院に留学するか。",
           options: [
             {
@@ -988,7 +988,7 @@ export const turningPoints: TurningPoint[] = [
         apply: () => "",
         detail: () => "高校や専門学校を出たあとに、大学で学ぶ道。学費は4年間で約250〜550万円(国公立・私立で、ちがう)。",
         children: () => ({
-          title: "どこで学ぶ?",
+          title: "どこで学ぶ？",
           prompt: "国内の大学に進むか、海外の大学に留学するか。",
           options: [
             {
@@ -1011,7 +1011,7 @@ export const turningPoints: TurningPoint[] = [
         apply: () => "",
         detail: (p) => `語学留学なら1年、大学や専門学校なら3年${p.edu === "univ" ? "(大学院への留学は、「大学院に進学する」から選べます)" : ""}。費用は、家計と奨学金で、まかなえる範囲の道だけが出ます。留学を終えたら、現地で働くか、国を変えるか、帰国するかを選べます。`,
         children: () => ({
-          title: "どんな留学?",
+          title: "どんな留学？",
           prompt: "留学のかたちを選びます。そのあと、行き先の国を選びます。",
           options: [
             { id: "lang", label: "語学留学(1年)", apply: () => "", cost: (p) => studyHide(p, 150), detail: () => "費用は約150万円。語学と視野が広がる。就職には、直接はつながりにくい。", children: (p) => studyCountryQuestion("lang", p) },
@@ -1049,7 +1049,7 @@ export const turningPoints: TurningPoint[] = [
         apply: () => "",
         detail: (p, env, data) => `${p.age}歳から先も、年とともに給料は上がっていく。いまの年収は約${round10(incomeOf(p, data, env.econ))}万円${econNote(env)}。`,
         children: () => ({
-          title: "どう続ける?",
+          title: "どう続ける？",
           prompt: "同じ仕事でも、向き合い方で道が分かれます。",
           options: [
             opt("rise", "昇進をめざして、成果を出す", (p) => ((p.payMult *= 1.05), bump(p, { money: 4, health: -2, bonds: -1 }), "昇進をめざして、成果を出すことに力を注いだ"), { detail: () => "責任と収入は増えるが、休みと時間は減りやすい。" }),
@@ -1063,7 +1063,7 @@ export const turningPoints: TurningPoint[] = [
         apply: () => "",
         detail: (p, env) => `転職の成否は、景気に左右される。いまは${env.econLabel}。${env.econ < -0.4 ? "求人は少なく、条件のよい転職は難しい時期。" : env.econ > 0.6 ? "求人が多く、条件を上げやすい時期。" : ""}`,
         children: () => ({
-          title: "どんな転職?",
+          title: "どんな転職？",
           prompt: "どこへ移るかで、収入も暮らしも変わります。",
           options: [
             opt("up", "同じ業界で、より条件のよい会社へ", (p, r) => {
@@ -1094,7 +1094,7 @@ export const turningPoints: TurningPoint[] = [
         apply: () => "",
         detail: (p, env) => `収入は大きく上下する。景気の影響を、もっとも受ける働き方。いまは${env.econLabel}。副業の収入は、年に20万円をこえると確定申告が要る。独立すると、会社が半分払っていた社会保険料を、全額自分で払うことになり、手取りの割合は下がりやすい。`,
         children: () => ({
-          title: "どう独立する?",
+          title: "どう独立する？",
           prompt: "始め方で、リスクが変わります。",
           options: [
             opt("side", "会社に勤めながら、副業で始める", (p, r) => (bump(p, { money: Math.round((r() - 0.35) * 12), learn: 3, health: -2 }), "会社に勤めながら、副業を始めた")),
@@ -1108,7 +1108,7 @@ export const turningPoints: TurningPoint[] = [
         apply: () => "",
         detail: () => "収入は一時的に下がるが、長い目では選択肢が広がる。",
         children: () => ({
-          title: "どう学ぶ?",
+          title: "どう学ぶ？",
           prompt: "働きながら学ぶか、離れて学ぶか。",
           options: [
             opt("cert", "働きながら、資格をとる", (p) => ((p.payMult *= 1.04), bump(p, { learn: 8, money: -2, health: -2 }), "働きながら、資格の勉強を続けた"), { detail: () => "費用は数万〜数十万円。時間のやりくりが大変。" }),
@@ -1139,7 +1139,7 @@ export const turningPoints: TurningPoint[] = [
         apply: () => "",
         detail: () => "出会い方によって、費用も、合う確率も変わる。",
         children: () => ({
-          title: "どう出会う?",
+          title: "どう出会う？",
           prompt: "出会いの方法を選びます。",
           options: [
             opt("intro", "職場や友人の紹介", (p) => ((p.marriageBias = 2), bump(p, { bonds: 4 }), "友人や職場のつながりから、出会いを探し始めた"), { detail: () => "費用はほとんどかからない。出会う機会は、人間関係の広さしだい。" }),
@@ -1192,7 +1192,7 @@ export const turningPoints: TurningPoint[] = [
         apply: () => "",
         detail: (p, env, data) => `いまの年収は約${round10(incomeOf(p, data, env.econ))}万円。管理職になると、1〜2割上がることが多い。`,
         children: () => ({
-          title: "どんな立場を目指す?",
+          title: "どんな立場を目指す？",
           prompt: "同じ昇進でも、道が分かれます。",
           options: [
             opt("manager", "管理職として、組織を率いる", (p) => ((p.payMult *= 1.15), bump(p, { money: 4, health: -4, bonds: -2 }), "管理職として、組織を率いるようになった"), { detail: () => "収入と責任が増え、人の問題に時間を取られる。" }),
@@ -1218,7 +1218,7 @@ export const turningPoints: TurningPoint[] = [
   {
     id: "later60",
     age: 55,
-    title: "何歳まで働く?",
+    title: "何歳まで働く？",
     prompt: "仕事をいつまで続けるか、そろそろ考えるときです。",
     when: (p) => p.occ !== null && p.occ !== "retired",
     options: [
@@ -1233,7 +1233,7 @@ export const turningPoints: TurningPoint[] = [
     id: "pension65",
     age: 65,
     title: "年金の受け取り方",
-    prompt: "年金を、いつから受け取りますか。遅らせるほど、受け取る額は増えます。",
+    prompt: "年金を、いつから受け取りますか？遅らせるほど、受け取る額は増えます。",
     when: (p) => p.occ !== null,
     options: [
       opt("p65", "65歳から、受け取る", (p) => ((p.pensionFrom = undefined), (p.pensionMult = 1), "65歳から、年金を受け取ることにした"), { auto: true, detail: (p, env, data) => `ふつうの受け取り方。${pensionText(p, data, 1)}年金も、税と社会保険料の対象になる。` }),

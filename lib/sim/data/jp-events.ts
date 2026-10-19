@@ -505,7 +505,7 @@ const addCash = (p: Person, manYen: number) => {
 const careQuestion = (p: Person): TurningQuestion => {
   const anyWork = working(p) || partnerWorks(p);
   return {
-    title: "仕事のあいだ、子どもをどうする?",
+    title: "仕事のあいだ、子どもをどうする？",
     prompt: "仕事に戻ったあとの、預け先を選びます。預け先で、毎年の費用と、仕事・暮らしへの影響が変わります。",
     options: [
       opt("daycare", "認可保育園に預ける", (q, r) => {
@@ -551,7 +551,7 @@ const nextCountryQuestion = (p: Person): TurningQuestion => {
   const hash = (id: string) => [...id].reduce((h, c) => (h * 33 + c.charCodeAt(0) + seed) % 1000003, seed);
   const others = [...STUDY_OTHERS].sort((x, y) => hash(x) - hash(y)).slice(0, 3);
   return {
-    title: "どの国へ移る?",
+    title: "どの国へ移る？",
     prompt: "主な国と、人気の国から、いくつか出ています。そこで就労ビザを取って働きます。",
     options: [...STUDY_MAIN, ...others].map((id) => {
       const c = countryById(id)!;
@@ -734,8 +734,8 @@ export const eventQuestions: EventQuestionDef[] = [
       return {
         title: female ? "妊娠がわかった" : `${n}の妊娠`,
         prompt: female
-          ? `妊娠していることがわかりました。${n}と、話し合いました。${stanceText}産むかどうかは、あなたの体と人生にかかわる、大きな決断です。どうしますか。`
-          : `${n}から、妊娠したと告げられました。${stanceText}最終的には、${n}の体と気持ちを、いちばんに考えて決めます。どうしますか。`,
+          ? `妊娠していることがわかりました。${n}と、話し合いました。${stanceText}産むかどうかは、あなたの体と人生にかかわる、大きな決断です。どうしますか？`
+          : `${n}から、妊娠したと告げられました。${stanceText}最終的には、${n}の体と気持ちを、いちばんに考えて決めます。どうしますか？`,
         options: [
           opt("birth", female ? "産む" : "産んでほしい。一緒に育てる", (p, r) => {
             const st = p.history.stance ?? 1;
@@ -849,7 +849,7 @@ export const eventQuestions: EventQuestionDef[] = [
     intro: () => "子どもが3歳になり、通う場所を考えた",
     question: (p) => ({
       title: "3歳からの、通い先",
-      prompt: "子どもが3歳になりました。3歳から5歳の幼稚園・保育園・こども園は、利用料が無償になります(給食費や行事の費用などは別にかかります)。どこに通わせますか。",
+      prompt: "子どもが3歳になりました。3歳から5歳の幼稚園・保育園・こども園は、利用料が無償になります(給食費や行事の費用などは別にかかります)。どこに通わせますか？",
       options: [
         opt("kindergarten", "幼稚園(預かり保育あり)", (p) => {
           p.childcare = { kind: "kindergarten", since: p.age };
@@ -876,7 +876,7 @@ export const eventQuestions: EventQuestionDef[] = [
     intro: () => "飲み会・交流会に、顔を出した",
     question: (p) => ({
       title: "飲み会・交流会",
-      prompt: "にぎやかな会場で、知らない人も多い。どう過ごしますか。",
+      prompt: "にぎやかな会場で、知らない人も多い。どう過ごしますか？",
       options: [
         opt("talk", "積極的に、いろいろな人に話しかける", (p, r, d) => meetResult(p, r, d, { friend: 0.4, love: 0.25, chance: 0.2, trouble: 0.1 }, "飲み会"), { detail: () => "出会いも、チャンスも、広がりやすい。飲みすぎて、失敗することも。" }),
         opt("one", "気になった人と、じっくり話す", (p, r, d) => meetResult(p, r, d, { friend: 0.25, love: 0.45, chance: 0.1, trouble: 0.05 }, "飲み会"), { show: (q) => !q.married, detail: () => "恋人候補に出会いやすい。" }),
@@ -964,7 +964,7 @@ export const eventQuestions: EventQuestionDef[] = [
       const young = p.kidList.some((k) => p.age - k.bornAge < 18);
       return {
         title: "遺産の使い方",
-        prompt: `親から、${v}万円ほどを受け継ぎました。どう使いますか。`,
+        prompt: `親から、${v}万円ほどを受け継ぎました。どう使いますか？`,
         options: [
           opt("save", "そのまま、貯金にする", (p) => (addCash(p, p.inheritMan), (p.inheritMan = 0), `受け継いだ${v}万円は、貯金にした`), { auto: true, detail: () => "いつでも使える。増えはしないが、減りもしない。" }),
           opt("stocks", "株・投資信託で運用する(日本株インデックス)", (p) => ((p.nisaYen += p.inheritMan * 10000), (p.inheritMan = 0), bump(p, { money: 3 }), `受け継いだ${v}万円を、株(日本株インデックス)で運用することにした`), { show: (p) => p.age >= 18, detail: () => "長い目では増えやすいが、値下がりすることもある(株価は架空)。運用は「資産」の株の欄から、続けられる。" }),
@@ -983,7 +983,7 @@ export const eventQuestions: EventQuestionDef[] = [
     weight: (p) => (inAge(p, 20, 75) && (p.history.lotCount ?? 0) < 2 ? 0.25 : 0),
     intro: () => "宝くじ売り場の前を通りかかり、足が止まった",
     question: () => ({
-      title: "宝くじを買う?",
+      title: "宝くじを買う？",
       prompt: "年末ジャンボなどの宝くじが売り出されています。当たれば大きいが、戻ってくるお金は、買った額の半分ほどです。",
       options: [
         opt("small", "少しだけ買う(3千円)", (p, r) => lottery(p, r, 3000)),
@@ -1009,7 +1009,7 @@ export const eventQuestions: EventQuestionDef[] = [
       const hint = { gamble: "のめり込むと、お金・信用・人間関係を失い、借金を抱えることもある。", smoke: "体に悪く、毎年の出費もかさむ。やめるのは、むずかしい。", drink: "飲みすぎると、体をこわし、人間関係にも響く。" }[k];
       return {
         title: `${label}との付き合い方`,
-        prompt: `心が晴れない日が続くなか、${label}が、気晴らしになることに気づきました。どうしますか。(${hint})`,
+        prompt: `心が晴れない日が続くなか、${label}が、気晴らしになることに気づきました。どうしますか？(${hint})`,
         options: [
           opt("deep", "気晴らしに、のめり込む", (p) => {
             p.history.addictCount = (p.history.addictCount ?? 0) + 1;
@@ -1073,8 +1073,8 @@ export const eventQuestions: EventQuestionDef[] = [
     weight: () => 0,
     intro: (p) => `${p.partner ? p.partner.given + "さん" : "恋人"}と、一緒に暮らさないかという話になった`,
     question: (p) => ({
-      title: "同棲するか?",
-      prompt: `${p.partner ? fullName(p.partner) + "さん" : "恋人"}と、付き合って${Math.max(1, p.age - (p.history.datingSince ?? p.age))}年。一緒に暮らしますか。`,
+      title: "同棲するか？",
+      prompt: `${p.partner ? fullName(p.partner) + "さん" : "恋人"}と、付き合って${Math.max(1, p.age - (p.history.datingSince ?? p.age))}年。一緒に暮らしますか？`,
       options: [
         opt("yes", "一緒に暮らす", (p) => (mark(p, "cohab"), (p.history.cohab = p.age), (p.withParents = false), bump(p, { bonds: 6, joy: 4, money: 2 }), `${p.partner ? p.partner.given + "さん" : "恋人"}との同棲をはじめた。二人で暮らすぶん、家賃や生活費が、わけあえる`), { auto: true, detail: () => "毎日を一緒に過ごせる。生活費をわけあえるが、相性が悪いと、ぶつかることもふえる。" }),
         opt("later", "もう少し、今の距離のままで", (p) => (bump(p, { bonds: 1 }), "同棲は見送り、今の距離を、大事にすることにした"), { auto: true }),
@@ -1089,7 +1089,7 @@ export const eventQuestions: EventQuestionDef[] = [
     intro: () => "住まいを失い、これからどうするかを、考えた",
     question: () => ({
       title: "住まいを失って",
-      prompt: "夜をしのぐ場所もない状態です。どうしますか。",
+      prompt: "夜をしのぐ場所もない状態です。どうしますか？",
       options: [
         opt("office", "自治体の窓口に相談する(生活困窮者の支援・生活保護)", (p, r) => (r() < 0.85 ? ((p.housingKind = null), bump(p, { joy: 6, health: 3, bonds: 2 }), "自治体の窓口に相談し、住まいと生活の支援が受けられた") : (bump(p, { joy: -2 }), "窓口に相談したが、手続きが進まず、住まいは、まだ見つからなかった")), { auto: true, detail: () => "支援が受けられることが多い。手続きに時間がかかることもある。" }),
         opt("friend", "友人や親戚を頼る", (p, r) => (r() < 0.35 + p.stats.bonds / 150 ? ((p.housingKind = "lodging"), bump(p, { bonds: -2, joy: 4 }), "友人の家に身を寄せることができた") : (bump(p, { bonds: -3 }), "頼れる人は、見つからなかった")), { auto: true, detail: (p) => `つながりが強いほど、受け入れてもらいやすい(約${Math.round(Math.min(0.9, 0.35 + p.stats.bonds / 150) * 100)}%)。` }),
@@ -1105,7 +1105,7 @@ export const eventQuestions: EventQuestionDef[] = [
     intro: (p) => p.treatLabel || "体の不調で、治療が必要になった",
     question: (p) => ({
       title: "治療を受けますか",
-      prompt: `${p.treatLabel || "治療が必要です。"}どうしますか。${p.history.medIns ? "(医療保険に入っているので、自己負担は軽くなります)" : ""}`,
+      prompt: `${p.treatLabel || "治療が必要です。"}どうしますか？${p.history.medIns ? "(医療保険に入っているので、自己負担は軽くなります)" : ""}`,
       options: [
         opt("full", "しっかり治療を受ける", (p) => (addCash(p, -p.treatMan), bump(p, { health: 4, money: -1 }), `しっかり治療を受け、体を立て直した(費用 約${p.treatMan}万円)`), { cost: (p) => p.treatMan, detail: (p) => `費用は約${p.treatMan}万円。体は、きちんと回復する。` }),
         opt("light", "通院や薬など、最低限の治療にとどめる", (p) => (addCash(p, -Math.max(1, Math.round(p.treatMan * 0.4))), bump(p, { health: 0, money: -1 }), "最低限の治療にとどめ、様子を見ることにした"), { cost: (p) => Math.max(1, Math.round(p.treatMan * 0.4)), detail: (p) => `費用は約${Math.max(1, Math.round(p.treatMan * 0.4))}万円。回復は、ゆっくりになる。` }),
@@ -1124,7 +1124,7 @@ export const eventQuestions: EventQuestionDef[] = [
     intro: (p) => (p.partner ? `${fullName(p.partner)}さんから、付き合ってほしいと言われた` : "だれかに、付き合ってほしいと言われた"),
     question: (p) => ({
       title: p.partner ? `${fullName(p.partner)}さんからの告白` : "告白された",
-      prompt: p.partner ? `${fullName(p.partner)}さんは、${typeCall(p.partner.mbti) || "どんな人か、まだよくわからない"}。${p.mbti && p.partner.mbti ? `あなたとの相性は${compatMark(partnerCompat(p))} ${partnerCompat(p)}%。` : ""}付き合いますか。` : "付き合いますか。",
+      prompt: p.partner ? `${fullName(p.partner)}さんは、${typeCall(p.partner.mbti) || "どんな人か、まだよくわからない"}。${p.mbti && p.partner.mbti ? `あなたとの相性は${compatMark(partnerCompat(p))} ${partnerCompat(p)}%。` : ""}付き合いますか？` : "付き合いますか？",
       options: [
         opt("yes", "付き合う", (p) => (mark(p, "askedOut"), p.partner && (p.partner.status = "dating"), (p.marriageBias *= 1.6), bump(p, { bonds: 6, joy: 5 }), `${p.partner ? p.partner.given + "さん" : "その人"}と、付き合いはじめた`), { auto: true, detail: (p) => "毎日が、にぎやかになる。ただ、相性しだいで、別れることもある。" }),
         opt("friend", "友人としてなら", (p) => (mark(p, "askedOut"), p.partner && (p.partner.status = "crush"), bump(p, { bonds: 2 }), "友人として、これからもつきあうことにした"), { auto: true }),
@@ -1139,7 +1139,7 @@ export const eventQuestions: EventQuestionDef[] = [
     intro: () => "毎日に、もう一つ、楽しみがほしいと思った",
     question: () => ({
       title: "趣味を増やしますか",
-      prompt: "新しい趣味をはじめるなら、どれにしますか。(習い事と趣味は、あわせて5つまで。あとで、習い事・趣味の欄からも、増やせます)",
+      prompt: "新しい趣味をはじめるなら、どれにしますか？(習い事と趣味は、あわせて5つまで。あとで、習い事・趣味の欄からも、増やせます)",
       options: [
         ["hiking", "登山・ハイキング"], ["fishing", "釣り"], ["camp", "キャンプ"], ["reading", "読書・映画"], ["gardening", "園芸・家庭菜園"], ["running", "ランニング"], ["games", "ゲーム・ボードゲーム"], ["travel_club", "旅行・街歩き"],
       ].map(([id, label]) =>
@@ -1176,7 +1176,7 @@ export const eventQuestions: EventQuestionDef[] = [
       const frail = p.stats.health < 45 || p.sick;
       return {
         title: frail ? "体調と、仕事" : "定年のとき",
-        prompt: frail ? "体がきつくなってきました。この先も、いまの仕事を、続けますか。" : "定年を迎えました。この先の仕事を、どうしますか。",
+        prompt: frail ? "体がきつくなってきました。この先も、いまの仕事を、続けますか？" : "定年を迎えました。この先の仕事を、どうしますか？",
         options: [
           opt("retire", "定年で、仕事を退く", (q) => ((q.occ = "retired"), (q.parttime = null), bump(q, { joy: -1, health: 2 }), "定年を迎え、長年の仕事を退いた"), { auto: true, show: (q) => !(q.stats.health < 45 || q.sick), detail: () => "給料はなくなり、年金や貯金が中心の暮らしになる。時間はたっぷりできる。" }),
           opt("retire_health", "体調を優先して、退職する", (q) => ((q.occ = "retired"), (q.parttime = null), bump(q, { health: 5, joy: -2 }), "体調のことを考えて、仕事を退いた"), { auto: true, show: (q) => q.stats.health < 45 || !!q.sick, detail: () => "無理をしない暮らしになる。収入は、年金や貯金が中心になる。" }),
@@ -1193,7 +1193,7 @@ export const eventQuestions: EventQuestionDef[] = [
     intro: () => "仕事を退いた毎日を、どう過ごすかを考えた",
     question: () => ({
       title: "退職後の毎日",
-      prompt: "時間がたっぷりできました。これからの毎日を、どう過ごしますか。",
+      prompt: "時間がたっぷりできました。これからの毎日を、どう過ごしますか？",
       options: [
         opt("rest", "のんびり休み、暮らしを整える", (p) => (mark(p, "retireLife"), bump(p, { health: 4, joy: 4 }), "のんびり休みながら、暮らしを整えることにした"), { auto: true, detail: () => "体と心に、ゆとりができる。収入は年金だけになる。" }),
         opt("volunteer", "地域の活動やボランティアに参加する", (p) => (mark(p, "retireLife"), bump(p, { bonds: 8, joy: 4 }), "地域の活動に参加し、新しい仲間ができた"), { detail: () => "人とのつながりが、広がる。費用は、ほとんどかからない。" }),
@@ -1209,7 +1209,7 @@ export const eventQuestions: EventQuestionDef[] = [
     intro: () => "孫との関わり方を、考えた",
     question: () => ({
       title: "孫との関わり",
-      prompt: "孫と、どんなふうに関わっていきますか。",
+      prompt: "孫と、どんなふうに関わっていきますか？",
       options: [
         opt("care", "進んで、孫の世話をする", (p) => (mark(p, "grandRole"), bump(p, { bonds: 8, joy: 6, health: -2 }), "孫の世話を、進んで引き受けることにした"), { detail: () => "にぎやかで、張り合いが出る。体力は使う。" }),
         opt("fit", "ほどよい距離で、見守る", (p) => (mark(p, "grandRole"), bump(p, { bonds: 4, joy: 3 }), "ほどよい距離で、孫を見守ることにした"), { auto: true, detail: () => "自分の時間も、守れる。" }),
@@ -1245,7 +1245,7 @@ export const eventQuestions: EventQuestionDef[] = [
     intro: () => "運転を、これからも続けるかを、考えた",
     question: () => ({
       title: "運転免許",
-      prompt: "年齢とともに、反応が鈍くなってきました。運転を、どうしますか。",
+      prompt: "年齢とともに、反応が鈍くなってきました。運転を、どうしますか？",
       options: [
         opt("return", "免許を、返納する", (p) => (mark(p, "license"), bump(p, { health: 1, bonds: -2, joy: -2 }), "免許を返納し、公共交通や家族の車に頼ることにした"), { auto: true, detail: () => "事故の心配は、なくなる。出かける自由は、少し減る。" }),
         opt("keep", "もうしばらく、運転を続ける", (p, r) => {
@@ -1267,7 +1267,7 @@ export const eventQuestions: EventQuestionDef[] = [
     intro: () => "人生の整理(終活)を、考えはじめた",
     question: () => ({
       title: "人生の整理(終活)",
-      prompt: "これまでのものや、財産を、どう整理しておきますか。",
+      prompt: "これまでのものや、財産を、どう整理しておきますか？",
       options: [
         opt("will", "遺言を書き、身のまわりを整える", (p) => (mark(p, "will"), addCash(p, -10), bump(p, { joy: 3, bonds: 3 }), "遺言を書き、身のまわりを整理した"), { cost: () => 10, auto: true, detail: () => "約10万円。家族の負担が、軽くなる。気持ちも、すっきりする。" }),
         opt("gift", "家族に、生前に財産を分ける", (p) => (mark(p, "will"), addCash(p, -200), bump(p, { bonds: 8, joy: 4, money: -3 }), "家族に、生前に財産を分け、感謝された"), { cost: () => 200, show: (p) => p.kids > 0, detail: () => "約200万円。家族との絆は、深まる。自分の老後の資金は、減る。" }),
@@ -1282,7 +1282,7 @@ export const eventQuestions: EventQuestionDef[] = [
     intro: () => "体の衰えから、これからの医療について、考えた",
     question: () => ({
       title: "これからの医療",
-      prompt: "体の衰えと、どう向き合いますか。",
+      prompt: "体の衰えと、どう向き合いますか？",
       options: [
         opt("active", "積極的に、治療を受ける", (p) => (mark(p, "treatment"), addCash(p, -20), bump(p, { health: 8, joy: -2, money: -2 }), "積極的に治療を受け、体調を立て直そうとした"), { cost: () => 20, detail: () => "約20万円。体の調子は上向くが、通院や入院の負担がある。" }),
         opt("calm", "穏やかに、自分らしく過ごす", (p) => (mark(p, "treatment"), bump(p, { joy: 6, health: -3 }), "無理な治療は選ばず、穏やかに過ごすことにした"), { auto: true, detail: () => "心は、おだやかになる。体の衰えは、早まることもある。" }),
@@ -1296,7 +1296,7 @@ export const eventQuestions: EventQuestionDef[] = [
     intro: () => "これからの暮らしの場所を、考えた",
     question: () => ({
       title: "これからの暮らしの場所",
-      prompt: "体が思うように動かなくなってきました。どこで暮らしますか。",
+      prompt: "体が思うように動かなくなってきました。どこで暮らしますか？",
       options: [
         opt("home", "住み慣れた家で、暮らし続ける", (p) => (mark(p, "facility"), bump(p, { joy: 4, health: -3 }), "住み慣れた家で、暮らし続けることにした"), { auto: true, detail: () => "安心感はある。体の負担や、家族の介護の負担が、増える。" }),
         opt("kids", "子どもの家で、いっしょに暮らす", (p) => (mark(p, "facility"), bump(p, { bonds: 8, joy: 3, health: 2 }), "子どもの家で、いっしょに暮らし始めた"), { show: (p) => p.kids > 0, detail: () => "家族のそばで、安心できる。気をつかうこともある。" }),
@@ -1310,7 +1310,7 @@ export const eventQuestions: EventQuestionDef[] = [
     intro: () => "人生の最期を、どこで迎えたいかを、考えた",
     question: () => ({
       title: "最期の迎え方",
-      prompt: "人生の最期を、どこで迎えたいですか。",
+      prompt: "人生の最期を、どこで迎えたいですか？",
       options: [
         opt("home", "住み慣れた家で、迎えたい", (p) => (mark(p, "lastPlace"), bump(p, { joy: 6, bonds: 4 }), "最期は、住み慣れた家で迎えたいと、家族に伝えた"), { auto: true, detail: () => "家族や在宅の医療に、支えてもらうことになる。" }),
         opt("hospital", "病院や施設で、迎えたい", (p) => (mark(p, "lastPlace"), bump(p, { health: 3, joy: 1 }), "最期は、病院や施設で迎えたいと、家族に伝えた"), { detail: () => "家族の負担は、軽くなる。" }),
@@ -1323,13 +1323,13 @@ export const eventQuestions: EventQuestionDef[] = [
     weight: () => 0,
     intro: () => "留学を終えた",
     question: (p) => ({
-      title: "留学を終えて、どうする?",
+      title: "留学を終えて、どうする？",
       prompt: `${p.abroad?.country ?? "現地"}での留学を終えました。これからの道を、選びます。`,
       options: [
         opt("stay", "現地で就職して、残る", () => "", {
           detail: () => "ビザや国籍の手続きが必要になる。どの在留資格を取るかも、次に選べる。",
           children: (): TurningQuestion => ({
-            title: "在留資格は、どうする?",
+            title: "在留資格は、どうする？",
             prompt: "現地で、働きながら暮らし続けるための、在留資格を選びます。",
             options: [
               {
@@ -1402,7 +1402,7 @@ export const eventQuestions: EventQuestionDef[] = [
       const job = jobById(p.jobOfferJob);
       const label = job?.title ?? (p.jobOffer ? OCC_LABEL[p.jobOffer] : "別の仕事");
       return {
-        title: "転職するか?",
+        title: "転職するか？",
         prompt: `「${label}」への転職の話が出ています。`,
         options: [
           opt("move", `${label}に転職する`, (p, r, d) => {
@@ -1439,7 +1439,7 @@ export const eventQuestions: EventQuestionDef[] = [
             apply: () => "",
             detail: () => "業界を選び、その中の職種を選ぶ。未経験の業界では、年収が下がりやすい(前の職との比べ方は、いまの話と同じ割合で決まる)。",
             children: (p0) => ({
-              title: "どの業界へ?",
+              title: "どの業界へ？",
               prompt: "転職したい業界を選んでください。",
               options: (Object.keys(OCC_LABEL) as Occ[])
                 .filter((o) => o !== "mgmt" && o !== p0.occ)
@@ -1448,7 +1448,7 @@ export const eventQuestions: EventQuestionDef[] = [
                   label: OCC_LABEL[o],
                   apply: () => "",
                   children: () => ({
-                    title: `${OCC_LABEL[o]}の、どの職種へ?`,
+                    title: `${OCC_LABEL[o]}の、どの職種へ？`,
                     prompt: "職種を選んでください(資格が必要な職種は、ここには出ません)。",
                     options: allJobs.filter((j) => j.occ === o && !j.qual).map((j) => ({
                       id: j.id,
@@ -1489,7 +1489,7 @@ export const eventQuestions: EventQuestionDef[] = [
     weight: () => 0,
     intro: () => "結婚の話が出た",
     question: (p) => ({
-      title: "結婚するか?",
+      title: "結婚するか？",
       prompt: `${p.partner ? p.partner.family + p.partner.given + "さん" : "お相手"}${p.partner?.mbti ? `(${typeCall(p.partner.mbti)}${p.mbti ? `・あなたとの相性 ${compatMark(partnerCompat(p))} ${partnerCompat(p)}%` : ""})` : ""}と、結婚の話が出ました。`,
       options: [
         opt("yes", "結婚する", (p) => {
@@ -1518,7 +1518,7 @@ export const eventQuestions: EventQuestionDef[] = [
     weight: () => 0,
     intro: () => "子どものことを考えた",
     question: (p) => ({
-      title: p.kids === 0 ? "子どもを持つか?" : "もうひとり、子どもを持つか?",
+      title: p.kids === 0 ? "子どもを持つか？" : "もうひとり、子どもを持つか？",
       prompt: noBearer(p) ? "ふたりとも、子どもを産める体ではありません。養子縁組や里親など、家族を迎える方法もあります。家族のかたちを、どうするだろう。" : "家族のかたちを、どうするだろう。",
       options: [
         opt("yes", noBearer(p) ? (p.kids === 0 ? "子どもを迎えたい(養子縁組・里親など)" : "もうひとり迎えたい") : p.kids === 0 ? "子どもを授かりたい" : "もうひとり授かりたい", (p, r) => {
@@ -1651,7 +1651,7 @@ export const eventQuestions: EventQuestionDef[] = [
     weight: (p) => (inAge(p, 22, 72) ? (p.pets.length === 0 ? 0.55 : p.pets.length === 1 ? 0.12 : 0) : 0),
     intro: () => "ペットを迎える機会があった",
     question: () => ({
-      title: "ペットを迎える?",
+      title: "ペットを迎える？",
       prompt: "新しい家族が増えると、暮らしが変わります。",
       options: [
         opt("dog", "犬を迎える", (p) => (p.pets.push({ name: "", kind: "犬", adoptedAge: p.age }), bump(p, { health: 3, bonds: 4, money: -2 }), "犬を家族に迎えた"), { detail: () => "毎日の散歩で健康になるが、世話と費用(年に約30万円)がかかる。" }),

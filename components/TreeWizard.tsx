@@ -217,14 +217,14 @@ function allStepsFor(v: Values, selfAge: number | undefined): Step[] {
   // 18歳未満は、学歴・仕事・結婚・貯金などは聞かない(学生で、実家で暮らす前提)。
   const minor = (selfAge ?? 99) < 18;
   const steps: Step[] = [
-    { id: "age", node: "いまの年齢", q: "いま何歳ですか?", prompt: "10歳から90歳まで遊べます。あなたの「いま」からはじめます。", input: "number", min: 10, max: 90, unit: "歳", label: (r) => `${r}歳` },
-    { id: "prefecture", node: "生まれた場所", q: "どこで生まれましたか?", prompt: "生まれた都道府県を選んでください。", input: "select", options: jpData.prefectures.map((p) => ({ value: p.name, label: p.name })), label: (r) => `${r}生まれ` },
+    { id: "age", node: "いまの年齢", q: "いま何歳ですか？", prompt: "10歳から90歳まで遊べます。あなたの「いま」からはじめます。", input: "number", min: 10, max: 90, unit: "歳", label: (r) => `${r}歳` },
+    { id: "prefecture", node: "生まれた場所", q: "どこで生まれましたか？", prompt: "生まれた都道府県を選んでください。", input: "select", options: jpData.prefectures.map((p) => ({ value: p.name, label: p.name })), label: (r) => `${r}生まれ` },
     { id: "sex", node: "性別", q: "あなたの性別を教えてください。", prompt: "生まれたときの性別は、平均寿命や賃金の統計の計算に使い、性自認は、恋人や家族の描き方に使います。答えなくても進めます。", input: "chips", options: SEX, label: (r) => SEX_SHORT[r] ?? r },
-    { id: "orientation", node: "惹かれる相手", q: "どんな人に惹かれますか?", prompt: "出会う恋人の性や、家族のかたちに使います。この答えは、公開される結果には、含まれません。答えなくても進めます(そのときは、異性として進みます)。", input: "chips", options: ORIENTATION, label: (r) => (r ? optLabel(ORIENTATION, r) : "答えない") },
+    { id: "orientation", node: "惹かれる相手", q: "どんな人に惹かれますか？", prompt: "出会う恋人の性や、家族のかたちに使います。この答えは、公開される結果には、含まれません。答えなくても進めます(そのときは、異性として進みます)。", input: "chips", options: ORIENTATION, label: (r) => (r ? optLabel(ORIENTATION, r) : "答えない") },
     {
       id: "condition",
       node: "先天性の持病",
-      q: "先天性の持病はありますか?",
+      q: "先天性の持病はありますか？",
       prompt: "生まれつきの持病は健康や寿命にわずかに影響します。答えたくなければ「とくになし」を選んでください。",
       input: "chips",
       options: jpData.conditions.map((c) => ({ value: c.id, label: c.label })),
@@ -233,19 +233,19 @@ function allStepsFor(v: Values, selfAge: number | undefined): Step[] {
     {
       id: "ailment",
       node: "いまの持病",
-      q: "現在持病はありますか?",
+      q: "現在持病はありますか？",
       prompt: "いま通院や治療をしている病気です(先天性とは別。生活習慣や年齢でかかったものを含みます)。健康や寿命、収入にあたえる影響はゲーム内の目安です。",
       input: "chips",
       options: jpData.ailments.map((a) => ({ value: a.id, label: a.label })),
       label: (r) => (r === "none" ? "持病なし" : (jpData.ailments.find((a) => a.id === r)?.label ?? r)),
     },
-    { id: "mbti", node: "MBTI", q: "MBTIはわかりますか?", prompt: "性格タイプの診断です。人づきあいや選択の傾向に少しだけ影響します。わからなければ飛ばせます。", input: "chips", options: [{ value: "", label: "わからない・答えない" }, ...MBTI.map((m) => ({ value: m, label: m, sub: MBTI_NAME[m] }))], label: (r) => (r ? typeLabel(r) : "MBTIなし") },
+    { id: "mbti", node: "MBTI", q: "MBTIはわかりますか？", prompt: "性格タイプの診断です。人づきあいや選択の傾向に少しだけ影響します。わからなければ飛ばせます。", input: "chips", options: [{ value: "", label: "わからない・答えない" }, ...MBTI.map((m) => ({ value: m, label: m, sub: MBTI_NAME[m] }))], label: (r) => (r ? typeLabel(r) : "MBTIなし") },
   ];
   if (!minor) {
-    steps.push({ id: "school", node: "学校", q: "いま学校に通っていますか?", prompt: "在学中ならその学校を選んでください。卒業後の進路や就職は人生の中で選べます。", input: "chips", options: SCHOOL, label: (r) => (r === "none" ? "在学していない" : `${optLabel(SCHOOL, r)}に在学中`) });
+    steps.push({ id: "school", node: "学校", q: "いま学校に通っていますか？", prompt: "在学中ならその学校を選んでください。卒業後の進路や就職は人生の中で選べます。", input: "chips", options: SCHOOL, label: (r) => (r === "none" ? "在学していない" : `${optLabel(SCHOOL, r)}に在学中`) });
   }
   if (!minor && v.school && v.school !== "none") {
-    steps.push({ id: "yearsLeft", node: "卒業まで", q: "卒業まであと何年ですか?", prompt: "卒業した年から働き始めます。", input: "chips", options: YEARS_LEFT, label: (r) => (Number(r) <= 1 ? "1年以内に卒業" : `卒業まであと${Number(r) >= 6 ? "5年以上" : r + "年"}`) });
+    steps.push({ id: "yearsLeft", node: "卒業まで", q: "卒業まであと何年ですか？", prompt: "卒業した年から働き始めます。", input: "chips", options: YEARS_LEFT, label: (r) => (Number(r) <= 1 ? "1年以内に卒業" : `卒業まであと${Number(r) >= 6 ? "5年以上" : r + "年"}`) });
   }
   if (!minor && v.school === "none") {
     steps.push(
@@ -253,7 +253,7 @@ function allStepsFor(v: Values, selfAge: number | undefined): Step[] {
     {
       id: "occ",
       node: "いまの仕事",
-      q: "いまの仕事は?",
+      q: "いまの仕事は？",
       prompt: "書いて探す・声で探す・五十音から探す・分類から選ぶ、のどれでも選べます。「動物が好き」のような好きなことからも探せます。",
       input: "select",
       options: [{ value: "none", label: "働いていない(求職中など)" }, { value: "homemaker", label: "専業主婦・主夫" }, { value: "retired", label: "仕事を退いて年金などで暮らしている" }, ...jpData.jobs.map((j) => ({ value: j.id, label: j.title }))],
@@ -266,7 +266,7 @@ function allStepsFor(v: Values, selfAge: number | undefined): Step[] {
     );
   }
   if (!minor && v.school === "none" && v.occ && v.occ !== "none" && v.occ !== "homemaker" && v.occ !== "retired") {
-    steps.push({ id: "workStyle", node: "働き方", q: "勤め先は?", prompt: "民間・公務員・自営で収入の安定や昇進のしかたが変わります。", input: "chips", options: WORK, label: (r) => optLabel(WORK, r) });
+    steps.push({ id: "workStyle", node: "働き方", q: "勤め先は？", prompt: "民間・公務員・自営で収入の安定や昇進のしかたが変わります。", input: "chips", options: WORK, label: (r) => optLabel(WORK, r) });
   }
   // 専攻・学科: 大学・大学院は、分野 → 専攻。専門学校・高校は、分野・学科。卒業後の進路の候補に使う。
   if (!minor) {
@@ -289,31 +289,31 @@ function allStepsFor(v: Values, selfAge: number | undefined): Step[] {
     const now = student ? "いま、" : "これまで、";
     const skip = { value: "", label: "わからない・その他" };
     if (lvl === "univ") {
-      steps.push({ id: "majorCat", node: "専攻の分野", q: `${now}どの分野を学んでいますか?`.replace("学んでいますか", student ? "学んでいますか" : "学びましたか"), prompt: "大学・大学院の専攻の大まかな分野です。このあと詳しい専攻を聞きます。卒業後の進路(就ける職種)の候補に使います。", input: "chips", options: [...UNIV_FIELDS.map((c) => ({ value: c.id, label: c.label })), skip], label: (r) => UNIV_FIELDS.find((c) => c.id === r)?.label ?? "分野は未回答" });
+      steps.push({ id: "majorCat", node: "専攻の分野", q: `${now}どの分野を学んでいますか？`.replace("学んでいますか", student ? "学んでいますか" : "学びましたか"), prompt: "大学・大学院の専攻の大まかな分野です。このあと詳しい専攻を聞きます。卒業後の進路(就ける職種)の候補に使います。", input: "chips", options: [...UNIV_FIELDS.map((c) => ({ value: c.id, label: c.label })), skip], label: (r) => UNIV_FIELDS.find((c) => c.id === r)?.label ?? "分野は未回答" });
       const cat = UNIV_FIELDS.find((c) => c.id === v.majorCat);
-      if (v.majorCat !== undefined && cat) steps.push({ id: "field", node: "専攻", q: "詳しい専攻はどれにいちばん近いですか?", prompt: `${cat.label}のなかから選びます。`, input: "chips", options: [...cat.details.map((d) => ({ value: d.id, label: d.label })), skip], label: (r) => cat.details.find((d) => d.id === r)?.label ?? "専攻は未回答" });
+      if (v.majorCat !== undefined && cat) steps.push({ id: "field", node: "専攻", q: "詳しい専攻はどれにいちばん近いですか？", prompt: `${cat.label}のなかから選びます。`, input: "chips", options: [...cat.details.map((d) => ({ value: d.id, label: d.label })), skip], label: (r) => cat.details.find((d) => d.id === r)?.label ?? "専攻は未回答" });
     } else if (lvl === "voc") {
-      steps.push({ id: "field", node: "専攻", q: student ? "専門学校・短大・高専で何を学んでいますか?" : "専門学校・短大・高専で何を学びましたか?", prompt: "学んだ分野です。卒業後の進路(就ける職種)の候補に使います。", input: "chips", options: [...VOC_FIELDS.map((d) => ({ value: d.id, label: d.label })), skip], label: (r) => VOC_FIELDS.find((d) => d.id === r)?.label ?? "分野は未回答" });
+      steps.push({ id: "field", node: "専攻", q: student ? "専門学校・短大・高専で何を学んでいますか？" : "専門学校・短大・高専で何を学びましたか？", prompt: "学んだ分野です。卒業後の進路(就ける職種)の候補に使います。", input: "chips", options: [...VOC_FIELDS.map((d) => ({ value: d.id, label: d.label })), skip], label: (r) => VOC_FIELDS.find((d) => d.id === r)?.label ?? "分野は未回答" });
     } else if (lvl === "hs") {
-      steps.push({ id: "field", node: "学科", q: student ? "高校ではどの学科で学んでいますか?" : "高校ではどの学科で学びましたか?", prompt: "学科です。卒業後の進路(就ける職種)の候補に使います。", input: "chips", options: [...HS_FIELDS.map((d) => ({ value: d.id, label: d.label })), skip], label: (r) => HS_FIELDS.find((d) => d.id === r)?.label ?? "学科は未回答" });
+      steps.push({ id: "field", node: "学科", q: student ? "高校ではどの学科で学んでいますか？" : "高校ではどの学科で学びましたか？", prompt: "学科です。卒業後の進路(就ける職種)の候補に使います。", input: "chips", options: [...HS_FIELDS.map((d) => ({ value: d.id, label: d.label })), skip], label: (r) => HS_FIELDS.find((d) => d.id === r)?.label ?? "学科は未回答" });
     }
   }
-  steps.push({ id: "region", node: "住んでいる場所", q: "いまどんな地域に住んでいますか?", prompt: "大都市・地方などおおまかな分類です。給料や物価、仕事の探しやすさが変わります。", input: "chips", options: REGION, label: (r) => optLabel(REGION, r) });
+  steps.push({ id: "region", node: "住んでいる場所", q: "いまどんな地域に住んでいますか？", prompt: "大都市・地方などおおまかな分類です。給料や物価、仕事の探しやすさが変わります。", input: "chips", options: REGION, label: (r) => optLabel(REGION, r) });
   if (!minor)
     steps.push(
-    { id: "housing", node: "住まい", q: "住まいは?", prompt: "持ち家・賃貸・実家のどれか。毎年の出費や貯金のたまり方が変わります。", input: "chips", options: HOUSING, label: (r) => optLabel(HOUSING, r) },
-    { id: "married", node: "結婚", q: "結婚していますか?", prompt: "家族の状況は収入や支出、つながりに影響します。", input: "chips", options: MARITAL, label: (r) => optLabel(MARITAL, r) },
+    { id: "housing", node: "住まい", q: "住まいは？", prompt: "持ち家・賃貸・実家のどれか。毎年の出費や貯金のたまり方が変わります。", input: "chips", options: HOUSING, label: (r) => optLabel(HOUSING, r) },
+    { id: "married", node: "結婚", q: "結婚していますか？", prompt: "家族の状況は収入や支出、つながりに影響します。", input: "chips", options: MARITAL, label: (r) => optLabel(MARITAL, r) },
   );
-  if (!minor && (v.marital === "yes" || v.marital === "partnered")) steps.push({ id: "partnerName", node: "配偶者", q: v.marital === "partnered" ? "パートナーの名前を書きますか?" : "配偶者の名前を書きますか?", prompt: "書かなくても大丈夫です(空欄なら、名前はランダムに決まります)。もうひとりのあなたも分岐の時点で結婚していれば、この人と暮らしています。", input: "optionalText", label: (r) => (r ? `配偶者は${r}さん` : "配偶者の名前は未記入") });
-  if (!minor && v.marital && v.marital !== "no") steps.push({ id: "kids", node: "子ども", q: "お子さんは?", prompt: "", input: "chips", options: [0, 1, 2, 3].map((n) => ({ value: String(n), label: `${n}${n === 3 ? "人以上" : "人"}` })), label: (r) => `子ども${r}人` });
+  if (!minor && (v.marital === "yes" || v.marital === "partnered")) steps.push({ id: "partnerName", node: "配偶者", q: v.marital === "partnered" ? "パートナーの名前を書きますか？" : "配偶者の名前を書きますか？", prompt: "書かなくても大丈夫です(空欄なら、名前はランダムに決まります)。もうひとりのあなたも分岐の時点で結婚していれば、この人と暮らしています。", input: "optionalText", label: (r) => (r ? `配偶者は${r}さん` : "配偶者の名前は未記入") });
+  if (!minor && v.marital && v.marital !== "no") steps.push({ id: "kids", node: "子ども", q: "お子さんは？", prompt: "", input: "chips", options: [0, 1, 2, 3].map((n) => ({ value: String(n), label: `${n}${n === 3 ? "人以上" : "人"}` })), label: (r) => `子ども${r}人` });
   if (!minor && v.marital && v.marital !== "no" && (v.kids ?? 0) > 0) {
     for (let i = 1; i <= (v.kids ?? 0); i++) {
       const key = `kidAge${i}` as "kidAge1" | "kidAge2" | "kidAge3";
-      steps.push({ id: key, node: `第${i}子`, q: `第${i}子はあなたが何歳のときに生まれましたか?`, prompt: i === 1 ? "年齢と性別を答えます。ターニングポイントよりも前に生まれていた子どもは、もうひとりのあなたにもいます(名前は、まだありません)。" : "年齢と性別を答えます。", input: "number", withSex: true, min: 15, max: selfAge ?? 90, unit: "歳", default: Math.max(18, (selfAge ?? 30) - 4 * i), label: (r) => { const [age, sx] = r.split("|"); return `第${i}子は${age}歳のとき${sx === "boy" ? "(男子)" : sx === "girl" ? "(女子)" : ""}`; } });
+      steps.push({ id: key, node: `第${i}子`, q: `第${i}子はあなたが何歳のときに生まれましたか？`, prompt: i === 1 ? "年齢と性別を答えます。ターニングポイントよりも前に生まれていた子どもは、もうひとりのあなたにもいます(名前は、まだありません)。" : "年齢と性別を答えます。", input: "number", withSex: true, min: 15, max: selfAge ?? 90, unit: "歳", default: Math.max(18, (selfAge ?? 30) - 4 * i), label: (r) => { const [age, sx] = r.split("|"); return `第${i}子は${age}歳のとき${sx === "boy" ? "(男子)" : sx === "girl" ? "(女子)" : ""}`; } });
     }
   }
-  if (!minor) steps.push({ id: "savings", node: "資産", q: "いまの資産は?", prompt: "預貯金や投資などいま持っているお金の合計です。わかる範囲で。空欄なら年齢から見積もります。", input: "optionalNumber", min: 0, unit: "万円", label: (r) => (r === "" ? "資産は見積もり" : `資産${Number(r).toLocaleString("ja-JP")}万円`) });
-  if (!minor) steps.push({ id: "debt", node: "借金", q: "借金(奨学金・ローンなど)はありますか?", prompt: "住宅ローンを除くいまの借金です。答えたくなければ「ない」で進めます。", input: "chips", options: DEBT, label: (r) => optLabel(DEBT, r) });
+  if (!minor) steps.push({ id: "savings", node: "資産", q: "いまの資産は？", prompt: "預貯金や投資などいま持っているお金の合計です。わかる範囲で。空欄なら年齢から見積もります。", input: "optionalNumber", min: 0, unit: "万円", label: (r) => (r === "" ? "資産は見積もり" : `資産${Number(r).toLocaleString("ja-JP")}万円`) });
+  if (!minor) steps.push({ id: "debt", node: "借金", q: "借金(奨学金・ローンなど)はありますか？", prompt: "住宅ローンを除くいまの借金です。答えたくなければ「ない」で進めます。", input: "chips", options: DEBT, label: (r) => optLabel(DEBT, r) });
   // 事前の調査: いまの暮らしの感覚を聞く(はじまりの能力値になる)。答えたくなければ、飛ばせる。
   for (const sq of SURVEY) {
     steps.push({
@@ -326,14 +326,14 @@ function allStepsFor(v: Values, selfAge: number | undefined): Step[] {
       label: (r) => `${sq.node}: ${sq.options.find((o) => o.value === r)?.label ?? "未回答"}`,
     });
   }
-  steps.push({ id: "kind", node: "ターニングポイント", q: "あなたの人生のターニングポイントは?", prompt: "「あのとき別の道を選んでいたら」と思う場面を、大まかに選びます。このあとそのときの思いと具体的な道を、順に聞きます。ここからもうひとりのあなたの人生が始まります。", input: "chips", options: KINDS.filter((k) => (selfAge ?? 99) > jpData.branches[k].minAge).map((k) => ({ value: k, label: jpData.branches[k].label })), label: (r) => `ターニングポイント: ${jpData.branches[r as BranchKind].label}` });
+  steps.push({ id: "kind", node: "ターニングポイント", q: "あなたの人生のターニングポイントは？", prompt: "「あのとき別の道を選んでいたら」と思う場面を、大まかに選びます。このあとそのときの思いと具体的な道を、順に聞きます。ここからもうひとりのあなたの人生が始まります。", input: "chips", options: KINDS.filter((k) => (selfAge ?? 99) > jpData.branches[k].minAge).map((k) => ({ value: k, label: jpData.branches[k].label })), label: (r) => `ターニングポイント: ${jpData.branches[r as BranchKind].label}` });
   if (v.kind) {
     const age = selfAge ?? 30;
-    steps.push({ id: "branchAge", node: "分岐した年齢", q: "それは何歳のときでしたか?", prompt: "あなたの今より前の年齢を入れてください。", input: "number", min: jpData.branches[v.kind].minAge, max: age - 1, unit: "歳", default: Math.max(jpData.branches[v.kind].minAge, Math.min(jpData.branches[v.kind].defaultAge, age - 1)), label: (r) => `${r}歳のとき` });
+    steps.push({ id: "branchAge", node: "分岐した年齢", q: "それは何歳のときでしたか？", prompt: "あなたの今より前の年齢を入れてください。", input: "number", min: jpData.branches[v.kind].minAge, max: age - 1, unit: "歳", default: Math.max(jpData.branches[v.kind].minAge, Math.min(jpData.branches[v.kind].defaultAge, age - 1)), label: (r) => `${r}歳のとき` });
   }
   if (v.kind && v.branchAge !== undefined) {
     const br = jpData.branches[v.kind];
-    steps.push({ id: "motive", node: "そのときの思い", q: "そのときどんな思いがありましたか?", prompt: v.kind === "job" ? "あてはまる思いを、いくつでも選べます。ここで具体的な職種の候補が絞られます。" : "あてはまる思いを、いくつでも選べます。ここで具体的な道の候補が絞られます。", input: "multi", options: br.motives.map((m) => ({ value: m.id, label: branchAsk[`${v.kind}.motive.${m.id}`] ?? m.label, sub: m.note })), label: (r) => r.split(",").map((id) => br.motives.find((m) => m.id === id)?.label ?? id).join("・") });
+    steps.push({ id: "motive", node: "そのときの思い", q: "そのときどんな思いがありましたか？", prompt: v.kind === "job" ? "あてはまる思いを、いくつでも選べます。ここで具体的な職種の候補が絞られます。" : "あてはまる思いを、いくつでも選べます。ここで具体的な道の候補が絞られます。", input: "multi", options: br.motives.map((m) => ({ value: m.id, label: branchAsk[`${v.kind}.motive.${m.id}`] ?? m.label, sub: m.note })), label: (r) => r.split(",").map((id) => br.motives.find((m) => m.id === id)?.label ?? id).join("・") });
   }
   if (v.kind && v.branchAge !== undefined && v.motive) {
     const br = jpData.branches[v.kind];
@@ -347,7 +347,7 @@ function allStepsFor(v: Values, selfAge: number | undefined): Step[] {
       steps.push({
         id: "option",
         node: "選ばなかった職種",
-        q: "具体的にはどの職種に進みたかったですか?",
+        q: "具体的にはどの職種に進みたかったですか？",
         prompt: `${jobs.length}の職種から選べます。書く・声・五十音・分類のどれでも探せます。あなたが実際に就いた仕事はここには出ません。`,
         input: "select",
         options: jobs.map((j) => ({ value: j.id, label: j.title })),
@@ -360,7 +360,7 @@ function allStepsFor(v: Values, selfAge: number | undefined): Step[] {
       let options = br.options.filter((o) => (anyOpen || picked.some((m) => m.options?.includes(o.id))) && (!selfLike || !o.matches(selfLike)));
       // その思いに合う道が、ほかにないとき(すでに、いちばん上の学歴など)は、いまの道以外の、すべての道から選べる。
       if (options.length === 0) options = br.options.filter((o) => !selfLike || !o.matches(selfLike));
-      steps.push({ id: "option", node: "選ばなかった道", q: "具体的にはどの道を選びたかったですか?", prompt: "あなたが実際に歩んだ道はここには出ません。", input: "chips", options: options.map((o) => ({ value: o.id, label: branchAsk[`${v.kind}.option.${o.id}`] ?? o.label })), label: (r) => br.options.find((o) => o.id === r)?.label ?? r });
+      steps.push({ id: "option", node: "選ばなかった道", q: "具体的にはどの道を選びたかったですか？", prompt: "あなたが実際に歩んだ道はここには出ません。", input: "chips", options: options.map((o) => ({ value: o.id, label: branchAsk[`${v.kind}.option.${o.id}`] ?? o.label })), label: (r) => br.options.find((o) => o.id === r)?.label ?? r });
     }
   }
   return steps;
@@ -690,7 +690,7 @@ export function TreeWizard({ t, onSubmit, auth, prefill }: Props) {
       <button
         type="button"
         onClick={() => {
-          if (answers.length > 2 && !window.confirm("入力した内容は消えます。トップページへもどりますか?")) return;
+          if (answers.length > 2 && !window.confirm("入力した内容は消えます。トップページへもどりますか？")) return;
           window.dispatchEvent(new Event("betsu-uchu:home"));
         }}
         aria-label="トップページへもどる"
@@ -802,7 +802,7 @@ export function TreeWizard({ t, onSubmit, auth, prefill }: Props) {
         {choosing ? (
           <motion.div initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} className="w-full text-center">
             <p className="text-xs tracking-[0.4em] text-warm">はじめに</p>
-            <h2 className="mt-3 text-xl font-bold leading-9 tracking-[0.12em] text-mist sm:text-2xl">どのくらいくわしく答えますか?</h2>
+            <h2 className="mt-3 text-xl font-bold leading-9 tracking-[0.12em] text-mist sm:text-2xl">どのくらいくわしく答えますか？</h2>
             <p className="mt-2 text-sm leading-7 tracking-wider text-haze">答えなかった項目はふつうの値でおぎないます。あとからいつでも変えられます。</p>
             <div className="mt-6 grid gap-3 sm:grid-cols-3">
               {LEVELS.map((l) => (

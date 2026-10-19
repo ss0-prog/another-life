@@ -38,7 +38,7 @@ const jobOptions = (jobs: JobDef[], factor: number, finish: (p: Person, title: s
 // 業界 → (分野) → 職種。選んだ職種に、そのまま移る。
 export function industryQuestion(opts: { factor: number; finish: (p: Person, title: string, job: JobDef) => string; exclude?: (p: Person) => Occ | null }): TurningQuestion {
   return {
-    title: "どの業界へ?",
+    title: "どの業界へ？",
     prompt: "行きたい業界を選んでください。そのあと、職種を選びます(資格が必要な職種は、ここには出ません)。",
     options: INDUSTRIES.map((o) => ({
       id: `occ_${o}`,
@@ -51,7 +51,7 @@ export function industryQuestion(opts: { factor: number; finish: (p: Person, tit
         const groups = [...new Set(jobs.map((j) => j.group).filter(Boolean))] as string[];
         if (groups.length > 1) {
           return {
-            title: `${OCC_LABEL[o]}の、どの分野?`,
+            title: `${OCC_LABEL[o]}の、どの分野？`,
             prompt: "分野を選ぶと、そのなかの職種が出ます。",
             options: groups.map((g) => ({
               id: g,

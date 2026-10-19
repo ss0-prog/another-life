@@ -931,7 +931,9 @@ html[data-tod="day"] .page-card {
 .fancy-underline {
   position: relative;
   display: inline-block;
-  padding-bottom: 0.55em;
+  /* 行の高さを文字にぴったりにして、線を、文字のすぐ下に置く */
+  line-height: 1.3;
+  padding-bottom: 0.2em;
 }
 .fancy-underline::after {
   content: "";

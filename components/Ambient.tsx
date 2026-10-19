@@ -534,8 +534,8 @@ function Skyline({ phase }: { phase: Phase }) {
   return (
     <div className="absolute inset-x-0 bottom-0 h-[30vh] min-h-44 w-full">
       <div className="absolute inset-0" style={layer("night", phase !== "day")}><SkylineImg phase="night" mode="glow" /></div>
-      {/* 夜の街は、昼のあいだは、見えなくする(昼の街の屋上から、夜の赤いランプが、はみ出して、見えてしまうため)。切り替えの、最後に、消す */}
-      <div className="absolute inset-0" style={{ opacity: phase === "day" ? 0 : 1, transition: phase === "day" ? "opacity 0.8s ease 3.7s" : "opacity 0.2s ease" }}><SkylineImg phase="night" mode="city" /><EdgeBuilding phase="night" /></div>
+      {/* 夜の街は、昼のあいだは、見えなくする(昼の街の屋上から、夜の赤いランプが、はみ出して、見えてしまうため)。ほかの層と同じ時間で、ゆっくり入れ替える(灯りが、急に消えたり、点いたりしないように) */}
+      <div className="absolute inset-0" style={{ opacity: phase === "day" ? 0 : 1, transition: "opacity 4.5s ease-in-out" }}><SkylineImg phase="night" mode="city" /><EdgeBuilding phase="night" /></div>
       <div className="absolute inset-0" style={layer("dusk", phase === "dusk" || phase === "dawn")}><SkylineImg phase="dusk" mode="all" /><EdgeBuilding phase="dusk" /></div>
       <div className="absolute inset-0" style={layer("day", phase === "day")}><SkylineImg phase="day" mode="all" /><EdgeBuilding phase="day" /></div>
     </div>

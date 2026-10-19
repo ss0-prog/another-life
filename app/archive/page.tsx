@@ -39,7 +39,7 @@ function EntryCard({ e }: { e: ArchiveEntry }) {
           <span className="keep">{e.branchAge}歳のとき</span>
         </span>
         <span className="mt-3 block text-[11px] tracking-[0.2em] text-warm">あなたの人生のターニングポイント{tp.kind ? `(${tp.kind})` : ""}</span>
-        <span className="mt-1 block text-base leading-8 tracking-wider text-mist">{tp.option}</span>
+        <span className="mt-1 block text-sm leading-7 tracking-wider text-mist">{tp.option}</span>
         <span className="mt-3 flex flex-wrap items-center justify-between gap-x-5 gap-y-1 text-xs tracking-wider">
           <span className="flex flex-wrap gap-x-5 gap-y-1">
             <span className="keep" style={{ color: diffColor(ageDiff) }}>寿命 {signed(ageDiff, "歳")}</span>
@@ -113,7 +113,7 @@ function PagedGrid({ entries }: { entries: ArchiveEntry[] }) {
   const shown = entries.slice((cur - 1) * PAGE_SIZE, cur * PAGE_SIZE);
   return (
     <>
-      <div className="mt-6 grid items-start gap-5 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="mt-6 grid items-start gap-5 sm:grid-cols-2 sm:items-stretch lg:grid-cols-3">
         {shown.map((e) => (
           <EntryCard key={e.id} e={e} />
         ))}
@@ -191,7 +191,7 @@ export default function ArchivePage() {
 
   return (
     <div className="mx-auto w-full max-w-[120rem] px-[2.5vw] pb-24 pt-12 sm:px-12">
-      <h1 className="text-center text-2xl tracking-[0.3em] text-mist">みんなの人生</h1>
+      <h1 className="text-center text-2xl tracking-[0.3em] text-mist">他の人生</h1>
       <p className="mx-auto mt-6 max-w-xl w-fit text-left text-base leading-9 tracking-wider text-haze lg:max-w-none lg:whitespace-nowrap">
         ターニングポイントのもう一方を歩いた人たちの、一生です。<span className="inline-block">名前も連絡先もなく人生だけが残ります。</span>
       </p>

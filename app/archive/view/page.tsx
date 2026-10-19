@@ -32,7 +32,7 @@ function ArchiveEntry() {
       <div className="py-24 text-center">
         <p className="text-base tracking-wider text-haze">この人生は見つかりませんでした。</p>
         <Link href="/archive" className="mt-6 inline-block text-sm tracking-[0.2em] text-warm underline underline-offset-8">
-          みんなの人生へ戻る
+          他の人生へ戻る
         </Link>
       </div>
     );
@@ -68,7 +68,7 @@ function ArchiveEntry() {
         )}
         {failed && <p role="alert" className="text-sm text-haze">取り下げできませんでした。</p>}
         <Link href="/archive" className="text-sm tracking-[0.2em] text-haze underline-offset-8 hover:text-mist hover:underline">
-          みんなの人生へ戻る
+          他の人生へ戻る
         </Link>
       </div>
     </div>

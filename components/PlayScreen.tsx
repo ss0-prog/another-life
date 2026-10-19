@@ -514,6 +514,11 @@ export function PlayScreen({ t, initial, birthYear, selfAge, ghost, dev = false,
                 {t.econ}: {env.econLabel}
               </p>
             )}
+            {env.econ !== 0 && (env.econ < -0.6 || env.econ > 0.6) && (
+              <p className="mx-auto mt-1 max-w-md text-center text-[10px] leading-5 tracking-wider text-dim">
+                {env.econ > 0 ? "好景気のあいだは、給料が上がりやすく、仕事も見つかりやすくなります。株価にも、ゆるく追い風です。" : "不況のあいだは、給料が伸びにくく、就職や転職がむずかしくなります。職を失う確率も上がり、株価には、ゆるく向かい風です。"}
+              </p>
+            )}
             <div className="mt-4 flex flex-col gap-2.5 sm:mt-6 sm:gap-3">
               {options.map((o) => (
                 <button key={o.id} type="button" disabled={Boolean(lockReason(o))} onClick={() => pick(o)} className={`${chipClass(false)} text-center sm:text-left ${lockReason(o) ? "!cursor-not-allowed opacity-45" : ""}`}>

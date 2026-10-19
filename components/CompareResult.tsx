@@ -188,7 +188,7 @@ export function LifeCard({ t, heading, life, delay, accent }: { t: Messages["res
             <li key={i} className="relative pb-5 last:pb-0">
               <span className="absolute -left-[31px] top-2.5 h-1.5 w-1.5 rounded-full bg-haze" />
               <span className="text-sm tracking-[0.2em] text-warm">{item.age}歳</span>
-              <p className="mt-1 text-base leading-7 tracking-wider text-mist">{soften(item.event)}</p>
+              <p className="mt-1 text-sm leading-7 tracking-wider text-mist">{soften(item.event)}</p>
             </li>
           ))}
         </ol>

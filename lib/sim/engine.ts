@@ -190,7 +190,8 @@ function personAt(self: CurrentSelf, seed: number, age: number, data: CountryDat
     intel: clamp(Math.round(50 + Math.sqrt(-2 * Math.log(Math.max(rng(), 1e-9))) * Math.cos(2 * Math.PI * rng()) * 15 + { tight: -3, modest: 0, comfortable: 3 }[background]), 5, 98),
     prev: null,
     cashDelta: 0,
-    history: {},
+    // 高校生の年(18歳以下)から始めた人生だけ、大学や大学院の「レベル」を選べる・表示される。
+    history: self.age <= 18 ? { hsStart: 1 } : {},
     lessons: [],
     bankrupt: null,
     abroad: null,

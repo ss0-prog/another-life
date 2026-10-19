@@ -620,20 +620,38 @@ const UNIVS: UnivKind[] = [
 ];
 
 // 志望校のレベル: 頭の良さ(と学び)で、合格する確率が決まる。届かなければ、一段やさしい大学に進む。
+// 高校生の年(18歳以下)から始めた人生だけ、レベルを選べる。そのほかの人生では、標準的な大学に進んだことになる。
+// 偏差値などの具体的な数字は、出さない(難しさは、ことばで示す)。最高は医学部(6年間)。
 const LEVELS = [
-  { id: "hard", label: "難関校をめざす", diff: 70, mult: 1.06, cheaper: "standard" },
-  { id: "standard", label: "標準的な大学", diff: 55, mult: 1.0, cheaper: "easy" },
-  { id: "easy", label: "入りやすい大学", diff: 42, mult: 0.96, cheaper: "easy" },
+  { id: "med", label: "医学部をめざす", diff: 82, mult: 1.3, cheaper: "top", hard: "きわめて難しい" },
+  { id: "top", label: "最難関校をめざす", diff: 76, mult: 1.1, cheaper: "hard", hard: "とても難しい" },
+  { id: "hard", label: "難関校をめざす", diff: 66, mult: 1.06, cheaper: "standard", hard: "難しい" },
+  { id: "standard", label: "標準的な大学", diff: 52, mult: 1.0, cheaper: "easy", hard: "ふつう" },
+  { id: "easy", label: "入りやすい大学", diff: 40, mult: 0.96, cheaper: "easy", hard: "比較的やさしい" },
 ] as const;
+type LevelId = (typeof LEVELS)[number]["id"];
 
-const tuitionText = (u: UnivKind, level: (typeof LEVELS)[number]["id"]) => {
+const tuitionText = (u: UnivKind, level: LevelId) => {
+  if (level === "med") return u.priv ? "学費は6年間で約2,000〜4,000万円(私立の医学部)" : "学費は6年間で約350万円(国公立の医学部)";
   if (!u.priv) return "学費は4年間で約250万円(国公立)";
-  return level === "hard" ? "学費は4年間で約450〜600万円(私立の難関校)" : "学費は4年間で約400〜550万円(私立)";
+  return level === "hard" || level === "top" ? "学費は4年間で約450〜600万円(私立の難関校)" : "学費は4年間で約400〜550万円(私立)";
 };
 
+// 合格した結果を、人生に反映する。
+function enterUniv(p: Person, got: (typeof LEVELS)[number]) {
+  p.payMult *= got.mult;
+  p.history.univLevel = LEVELS.findIndex((x) => x.id === got.id) + 1; // 1: 医学部 〜 5: 入りやすい大学
+  bump(p, { learn: got.id === "med" ? 8 : got.id === "top" ? 6 : got.id === "hard" ? 4 : 0 });
+  if (got.id === "med") {
+    // 医学部は6年間。専攻は、医療系になる。
+    p.major = "medical";
+    p.field = "m_med";
+    p.gradAge = p.age + 6;
+  }
+}
 const levelQuestion = (u: UnivKind): TurningQuestion => ({
   title: "どのレベルの大学をめざす?",
-  prompt: "合格できるかどうかは、あなたの素質と、これまでの学びで決まります。",
+  prompt: "合格できるかどうかは、あなたの素質と、これまでの学びで決まります。数字(偏差値など)は出しません。",
   options: LEVELS.map((l) => ({
     id: l.id,
     label: l.label,
@@ -643,18 +661,31 @@ const levelQuestion = (u: UnivKind): TurningQuestion => ({
       let got: (typeof LEVELS)[number] = l;
       let text = `${l.label.replace("をめざす", "")}に合格した`;
       // 届かなければ、一段やさしい大学に進む(最後は入りやすい大学)。
-      if (rng() > r) {
-        got = LEVELS.find((x) => x.id === l.cheaper)!;
+      let guard = 0;
+      while (rng() > passRate(p, got.diff + (u.priv ? -6 : 0)) && got.cheaper !== got.id && guard++ < 6) {
+        const next = LEVELS.find((x) => x.id === got.cheaper)!;
+        got = next;
         text = got.id === l.id ? "志望校には届かなかったが、なんとか進学先を見つけた" : `第一志望には届かず、${got.label.replace("をめざす", "")}に進んだ`;
+        // 一段ずつ下げて、もう一度、挑戦する(確率は、下がるほど高くなる)。
+        if (rng() < passRate(p, got.diff + (u.priv ? -6 : 0))) break;
       }
-      p.payMult *= got.mult;
-      bump(p, { learn: got.id === "hard" ? 4 : 0 });
+      void r;
+      enterUniv(p, got);
       return text;
     },
-    detail: (p) => `合格率の目安は約${pctText(passRate(p, l.diff + (u.priv ? -6 : 0)))}(${abilityText(p)})。${tuitionText(u, l.id)}。`,
-    children: majorQuestion,
+    detail: (p) => `合格のしやすさ: ${l.hard}(あなたの素質と学び: ${abilityText(p)})。${tuitionText(u, l.id)}。${l.id === "med" ? "6年間で、卒業後は医師をめざす道になる。" : ""}`,
+    children: (p) => (l.id === "med" ? { title: "医学部で学ぶ", prompt: "医学部では、医療を学びます(専攻は医療系になります)。", options: [{ id: "go", label: "医学の道に進む", auto: true, apply: () => "", detail: () => "6年間の学び。国家試験に合格すると、医師になれる。" }] } : majorQuestion()),
   })),
 });
+// 高校生の年から始めなかった人生では、レベルは出さない(標準的な大学に進む)。
+const univChildren = (u: UnivKind) => (p: Person): TurningQuestion =>
+  p.history.hsStart ? levelQuestion(u) : { ...majorQuestion(), options: majorQuestion().options.map((o) => ({ ...o, apply: (q: Person, r: Rng, d: CountryData) => { const got = LEVELS.find((x) => x.id === "standard")!; q.payMult *= got.mult; return o.apply(q, r, d); } })) };
+// 大学院のレベル(高校生の年から始めた人生だけ、選べる)。数字は出さず、ことばで示す。
+const GRAD_LEVELS = [
+  { id: "top", label: "最難関", diff: 72, mult: 1.1, rank: 1, hard: "とても難しい" },
+  { id: "hard", label: "難関", diff: 64, mult: 1.05, rank: 2, hard: "難しい" },
+  { id: "standard", label: "標準", diff: 55, mult: 1.0, rank: 3, hard: "ふつう" },
+] as const;
 
 const univQuestion = (): TurningQuestion => ({
   title: "どんな大学?",
@@ -670,7 +701,7 @@ const univQuestion = (): TurningQuestion => ({
       return `${u.priv ? "私立" : "国公立"}の${text}`;
     },
     detail: (p) => `${u.cost}${p.background === "tight" ? " あなたの家計では、奨学金が必要になりそう。" : p.background === "comfortable" ? " あなたの家計なら、無理なく通えそう。" : ""}`,
-    children: () => levelQuestion(u),
+    children: univChildren(u),
   })),
 });
 const vocationalQuestion = (): TurningQuestion => ({
@@ -923,6 +954,8 @@ export const turningPoints: TurningPoint[] = [
               id: "grad_jp",
               label: "国内の大学院",
               auto: true,
+              // 高校生の年から始めた人生だけ、大学院のレベルを選べる(下の3つ)。それ以外は、ここで決まる。
+              show: (p) => !p.history.hsStart,
               apply: (p, r, d) => {
                 if (r() > passRate(p, 58)) return "大学院の入試に届かず、就職の道を考え直すことになった";
                 p.gradAge = null;
@@ -930,6 +963,20 @@ export const turningPoints: TurningPoint[] = [
               },
               detail: (p) => `合格率の目安は約${pctText(passRate(p, 58))}(${abilityText(p)})。届かなければ、就職の道を考え直す。`,
             },
+            ...GRAD_LEVELS.map((g) => ({
+              id: `grad_jp_${g.id}`,
+              label: `国内の大学院(${g.label})`,
+              auto: g.id === "standard",
+              show: (p: Person) => !!p.history.hsStart,
+              apply: (p: Person, r: Rng, d: CountryData) => {
+                if (r() > passRate(p, g.diff)) return "大学院の入試に届かず、就職の道を考え直すことになった";
+                p.gradAge = null;
+                p.payMult *= g.mult;
+                p.history.gradLevel = g.rank;
+                return `${g.label}の${setEdu(p, r, d, "grad")}`;
+              },
+              detail: (p: Person) => `合格のしやすさ: ${g.hard}(あなたの素質と学び: ${abilityText(p)})。届かなければ、就職の道を考え直す。数字(偏差値など)は出しません。`,
+            })),
             { id: "grad_abroad", label: "海外の大学院に留学する", apply: () => "", detail: () => "2年間。費用は大きい(奨学金や、家族の支えを使えることもある)。", children: (p) => studyCountryQuestion("grad", p) },
           ],
         }),

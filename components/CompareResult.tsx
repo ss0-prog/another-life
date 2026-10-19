@@ -44,10 +44,10 @@ export function CompareResult({ t, real, alt, onSave, canPublish, onAgain, altLa
     <motion.article className="mx-auto w-full max-w-[120rem]" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 1.2 }}>
       <FadeIn delay={0.2}>
         <h2 className="text-center text-xl tracking-[0.35em] text-mist sm:text-2xl">{t.title}</h2>
-        {/* 二つの文章は、文字の大きさはちがっても、左の端を、そろえる */}
-        <div className="mx-auto mt-3 w-fit max-w-lg text-left">
-          <p className="text-xs leading-6 tracking-wider text-dim">※ これはあくまでシミュレーションです。占いや予言ではなくあなたの実際の人生や将来を、当てたり保証したりするものでは決してありません。</p>
-          <p className="mt-6 max-w-md text-sm leading-8 tracking-wider text-haze">{t.lead}</p>
+        {/* 二つの文章は、文字の大きさはちがっても、左の端と右の端を、そろえる(同じ幅で、両端をそろえる) */}
+        <div className="mx-auto mt-3 w-full max-w-lg text-left">
+          <p data-no-og className="text-justify text-xs leading-6 tracking-wider text-dim [text-justify:inter-character]">※ これはあくまでシミュレーションです。占いや予言ではなくあなたの実際の人生や将来を、当てたり保証したりするものでは決してありません。</p>
+          <p data-no-og className="mt-6 text-justify text-sm leading-8 tracking-wider text-haze [text-justify:inter-character]">{t.lead}</p>
         </div>
       </FadeIn>
 

@@ -54,7 +54,7 @@ function resetOne(el: HTMLElement) {
 // 1つの要素を、測って、必要なら、余白をつける。余白が、すでに付いていて、文字も幅も変わっていなければ、さわらない(揺れないように)。
 const seen = new WeakMap<HTMLElement, string>();
 function fixOne(el: HTMLElement) {
-  if (!el.isConnected) return;
+  if (!el.isConnected || el.hasAttribute("data-no-og")) return;
   const key = `${el.textContent?.length ?? 0}|${el.clientWidth}`;
   if (seen.get(el) === key) return;
   seen.set(el, key);

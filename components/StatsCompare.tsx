@@ -14,7 +14,7 @@ export function StatsCompare({ lines }: { lines: Line[] }) {
   return (
     <section className="mx-auto mt-16 max-w-7xl">
       <h3 className="text-center text-sm tracking-[0.3em] text-mist">世の中の統計と見比べる</h3>
-      <p className="mx-auto mt-2 max-w-xl w-fit text-left text-xs leading-6 tracking-wider text-dim">灰色の部分が公表されている統計です。あなたの人生がどこにあたるかを見てみましょう。(出典と読むときの注意は「出典」のページに書いています)</p>
+      <p className="mx-auto mt-2 max-w-xl w-fit text-left text-xs leading-6 tracking-wider text-dim">灰色の部分が公表されている統計です。あなたの人生がどこにあたるかを見てみましょう。<br />(出典と読むときの注意は「データについて」のページに書いています)</p>
       <div className="mt-8 grid grid-cols-1 gap-6 md:grid-cols-2 md:gap-x-10 [&>*]:min-w-0">
         <IncomeChart lines={lines} />
         <SavingsChart lines={lines} />

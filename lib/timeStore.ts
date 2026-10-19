@@ -5,7 +5,7 @@ import { useSyncExternalStore } from "react";
 // 昼・夕方・夜。ボタンで、昼 → 夕方 → 夜 → 昼 の順に切り替え、選んだ状態は、このブラウザに覚えておく。
 // 切り替えるときは、いきなり変えず、夜→(朝焼け)→昼、昼→夕方→夜 と、ゆっくり移り変わる。夕方は、太陽も月も出ていない、夕焼けの空。
 export type TimeOfDay = "night" | "day" | "evening";
-export const TOD_LABEL: Record<TimeOfDay, string> = { day: "昼", evening: "夕方", night: "夜" };
+export const TOD_LABEL: Record<TimeOfDay, string> = { day: "昼", evening: "夕", night: "夜" };
 export const nextTod = (t: TimeOfDay): TimeOfDay => (t === "day" ? "evening" : t === "evening" ? "night" : "day");
 export type Phase = "night" | "dawn" | "day" | "dusk";
 

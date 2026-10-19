@@ -6,6 +6,7 @@ import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import { recordUnlocked } from "@/lib/achievementStore";
 import { soften } from "@/lib/jp";
+import { EventText } from "@/components/EventText";
 import type { Messages } from "@/lib/i18n";
 import { downloadBlob, renderCard } from "@/lib/card";
 import { DeltaItem } from "@/components/Delta";
@@ -188,7 +189,7 @@ export function LifeCard({ t, heading, life, delay, accent }: { t: Messages["res
             <li key={i} className="relative pb-5 last:pb-0">
               <span className="absolute -left-[31px] top-2.5 h-1.5 w-1.5 rounded-full bg-haze" />
               <span className="text-sm tracking-[0.2em] text-warm">{item.age}歳</span>
-              <p className="mt-1 text-sm leading-7 tracking-wider text-mist">{soften(item.event)}</p>
+              <EventText text={item.event} className="mt-1 text-sm leading-7 tracking-wider text-mist" />
             </li>
           ))}
         </ol>
@@ -202,7 +203,7 @@ export function LifeCard({ t, heading, life, delay, accent }: { t: Messages["res
             {life.turning.map((m, i) => (
               <li key={i} className="border-l-2 pl-4" style={{ borderColor: `var(--color-${accent})` }}>
                 <span className="text-sm font-bold tracking-[0.2em] text-warm">{m.age}歳</span>
-                <p className="mt-1 text-base font-bold leading-7 tracking-wider text-mist">{soften(m.event)}</p>
+                <EventText text={m.event} className="mt-1 text-base font-bold leading-7 tracking-wider text-mist" />
                 {m.fx && (
                   <p className="mt-1 flex flex-wrap gap-x-3 text-xs font-bold tabular-nums">
                     {m.fx.money !== undefined && (

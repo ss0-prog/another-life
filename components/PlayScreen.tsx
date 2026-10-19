@@ -17,6 +17,7 @@ import { answer, borrowAndSpend, contributeKidFund, canInterpret, describeText, 
 import { compat, compatMark, IDEAL, idealChance, typeLabel } from "@/lib/sim/mbti";
 import { debtTotal, kidCall, kidTitle, lifeLabel } from "@/lib/sim/helpers";
 import { soften } from "@/lib/jp";
+import { EventText } from "@/components/EventText";
 import { DevPanel } from "@/components/DevPanel";
 import { DeathOverlay } from "@/components/DeathOverlay";
 import { GhostPanel } from "@/components/GhostPanel";
@@ -372,7 +373,7 @@ export function PlayScreen({ t, initial, birthYear, selfAge, ghost, dev = false,
             {state.events.slice(0, seen).reverse().map((e, i) => (
               <motion.li key={`${e.age}-${soften(e.event)}-${seen - i}`} initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }} className="border-l-2 border-warm/50 pl-5">
                 <span className="keep text-xs tracking-[0.15em] text-warm sm:text-[15px] sm:tracking-[0.2em]">{e.age}歳<span className="ml-2 text-[10px] text-dim sm:text-xs">{birthYear + e.age}年</span></span>
-                <p className={`text-xs leading-6 tracking-wide text-mist sm:text-[15px] sm:leading-8 ${i === 0 ? "font-bold" : ""}`}>{soften(e.event)}</p>
+                <EventText text={e.event} className={`text-xs leading-6 tracking-wide text-mist sm:text-[15px] sm:leading-8 ${i === 0 ? "font-bold" : ""}`} />
                 {e.fx && (
                   <p className="mt-1 flex flex-wrap gap-x-4 gap-y-0.5 text-[10px] font-bold tabular-nums tracking-wider sm:text-xs">
                     {e.fx.money !== undefined && (

@@ -1,5 +1,6 @@
 "use client";
 
+import { splitEvent } from "@/components/EventText";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { archiveEnabled, listShared, sampleList, type ArchiveEntry } from "@/lib/archive";
@@ -90,7 +91,7 @@ function EntryCard({ e }: { e: ArchiveEntry }) {
 
         {highlight && (
           <p className="mt-4 border-l-2 border-warm/60 pl-3 text-xs leading-6 tracking-wider text-haze">
-            <span className="text-warm">{highlight.age}歳</span>　{highlight.event}
+            <span className="text-warm">{highlight.age}歳</span>　{splitEvent(highlight.event).main}
           </p>
         )}
         <div className="mt-auto flex items-center justify-between gap-3 pt-5">

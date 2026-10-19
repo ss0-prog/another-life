@@ -812,9 +812,10 @@ html:not([data-tod-lock])[data-phase="night"] main :is(button, input, select, te
   mix-blend-mode: normal;
 }
 
-/* 昼は、明るい青空の上で、文字が読みにくいので、少し太くする(夜は、これまでどおり) */
-html[data-tod="day"] body {
-  font-weight: 600;
+/* 昼は、明るい青空の上で、文字が読みにくいので、文字の縁を、ごく細く、足して太く見せる(文字の太さは変えない。変えると、切り替えのときに、文字の折り返しが変わって、画面が揺れる) */
+html[data-tod="day"] main,
+html[data-tod="day"] footer {
+  -webkit-text-stroke: 0.3px currentColor;
 }
 
 /* 昼の、オレンジ・青の文字は、ごくうすい白い縁で、青空から浮かせる */

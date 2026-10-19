@@ -98,16 +98,34 @@ type Step = {
 const MBTI = ["INTJ", "INTP", "ENTJ", "ENTP", "INFJ", "INFP", "ENFJ", "ENFP", "ISTJ", "ISFJ", "ESTJ", "ESFJ", "ISTP", "ISFP", "ESTP", "ESFP"];
 const optLabel = (opts: Opt[], v: string) => opts.find((o) => o.value === v)?.label ?? v;
 
-const SEX: Opt[] = [{ value: "female", label: "女性" }, { value: "male", label: "男性" }, { value: "none", label: "答えない" }];
-// 性自認と、恋愛・性的指向。どちらも、答えなくても進められる。
-const GENDER_ID: Opt[] = [
-  { value: "", label: "答えない" },
-  { value: "cis", label: "生まれたときの性別と同じ" },
-  { value: "trans_man", label: "トランスジェンダー男性", sub: "生まれたときは女性" },
-  { value: "trans_woman", label: "トランスジェンダー女性", sub: "生まれたときは男性" },
-  { value: "nonbinary", label: "ノンバイナリー・Xジェンダー", sub: "男女のどちらでもない" },
-  { value: "unsure", label: "まだ決めていない・わからない" },
+// 性別と性自認は、ひとつの質問で、まとめて選ぶ。値は、「生まれたときの性別」と「性自認」を「:」でつないだ形(性自認が、同じなら、性別だけ)。
+// 生まれたときの性別は、平均寿命や賃金の統計の計算に使い、性自認は、恋人や家族の描き方に使う。
+const SEX: Opt[] = [
+  { value: "female", label: "女性" },
+  { value: "male", label: "男性" },
+  { value: "male:trans_woman", label: "トランスジェンダー女性", sub: "生まれたときは男性" },
+  { value: "female:trans_man", label: "トランスジェンダー男性", sub: "生まれたときは女性" },
+  { value: "female:nonbinary", label: "ノンバイナリー・Xジェンダー", sub: "生まれたときは女性" },
+  { value: "male:nonbinary", label: "ノンバイナリー・Xジェンダー", sub: "生まれたときは男性" },
+  { value: "none:unsure", label: "まだ決めていない・わからない" },
+  { value: "none", label: "答えない" },
 ];
+// 木と、答えの一覧に出す、短い言い方。
+const SEX_SHORT: Record<string, string> = {
+  female: "女性",
+  male: "男性",
+  "male:trans_woman": "トランス女性",
+  "female:trans_man": "トランス男性",
+  "female:nonbinary": "Xジェンダー(女性生まれ)",
+  "male:nonbinary": "Xジェンダー(男性生まれ)",
+  "none:unsure": "性別は決めていない",
+  none: "性別は答えない",
+};
+const splitSex = (raw: string): { sex: Sex; genderId?: string } => {
+  const [sex, g] = raw.split(":");
+  return { sex: (sex === "female" || sex === "male" ? sex : "none") as Sex, genderId: g || undefined };
+};
+// 性自認と、恋愛・性的指向。どちらも、答えなくても進められる。
 const ORIENTATION: Opt[] = [
   { value: "", label: "わからない・答えない" },
   { value: "hetero", label: "異性に惹かれる" },
@@ -172,11 +190,11 @@ const jobKw: Record<string, RegExp | undefined> = Object.fromEntries(jpData.jobs
 export type Level = 1 | 2 | 3;
 export const LEVELS: { level: Level; name: string; sub: string; note: string }[] = [
   { level: 1, name: "簡単に", sub: "約11問・1分", note: "年齢・仕事・結婚など最低限だけ。まず試してみたい人に。" },
-  { level: 2, name: "普通", sub: "約20問・3分", note: "住まい・貯金・持病なども答える。結果があなたに近づく。" },
-  { level: 3, name: "詳しく", sub: "約29問・4分", note: "専攻・性格・いまの暮らしの感覚まで。いちばんあなたに近い。" },
+  { level: 2, name: "普通", sub: "約19問・3分", note: "住まい・貯金・持病なども答える。結果があなたに近づく。" },
+  { level: 3, name: "詳しく", sub: "約28問・4分", note: "専攻・性格・いまの暮らしの感覚まで。いちばんあなたに近い。" },
 ];
 const STEP_LEVEL: Partial<Record<keyof Values, Level>> = {
-  genderId: 2, orientation: 2, condition: 2, ailment: 2, workStyle: 2, region: 2, housing: 2, kids: 2, savings: 2, debt: 2,
+  orientation: 2, condition: 2, ailment: 2, workStyle: 2, region: 2, housing: 2, kids: 2, savings: 2, debt: 2,
   mbti: 3, majorCat: 3, field: 3, partnerName: 3, kidAge1: 3, kidAge2: 3, kidAge3: 3, feel: 3, tie: 3, body: 3, wealth: 3, habit: 3,
 };
 const levelOf = (id: keyof Values): Level => STEP_LEVEL[id] ?? 1;
@@ -200,8 +218,7 @@ function allStepsFor(v: Values, selfAge: number | undefined): Step[] {
   const steps: Step[] = [
     { id: "age", node: "いまの年齢", q: "いま何歳ですか?", prompt: "10歳から90歳まで遊べます。あなたの「いま」からはじめます。", input: "number", min: 10, max: 90, unit: "歳", label: (r) => `${r}歳` },
     { id: "prefecture", node: "生まれた場所", q: "どこで生まれましたか?", prompt: "生まれた都道府県を選んでください。", input: "select", options: jpData.prefectures.map((p) => ({ value: p.name, label: p.name })), label: (r) => `${r}生まれ` },
-    { id: "sex", node: "性別", q: "生まれたときの性別を教えてください。", prompt: "平均寿命や賃金の統計の計算に使います。性自認と、惹かれる相手は、このあと聞きます。答えなくても進めます。", input: "chips", options: SEX, label: (r) => optLabel(SEX, r) },
-    { id: "genderId", node: "性自認", q: "自分の性を、どう感じていますか?", prompt: "恋人や家族の描き方に使います。答えなくても進めます。", input: "chips", options: GENDER_ID, label: (r) => (r ? optLabel(GENDER_ID, r) : "性自認は答えない") },
+    { id: "sex", node: "性別", q: "あなたの性別を教えてください。", prompt: "生まれたときの性別は、平均寿命や賃金の統計の計算に使い、性自認は、恋人や家族の描き方に使います。答えなくても進めます。", input: "chips", options: SEX, label: (r) => SEX_SHORT[r] ?? r },
     { id: "orientation", node: "惹かれる相手", q: "どんな人に惹かれますか?", prompt: "出会う恋人の性や、家族のかたちに使います。この答えは、公開される結果には、含まれません。答えなくても進めます(そのときは、異性として進みます)。", input: "chips", options: ORIENTATION, label: (r) => (r ? optLabel(ORIENTATION, r) : "答えない") },
     {
       id: "condition",
@@ -459,6 +476,13 @@ function valuesOf(answers: { id: keyof Values; value: string }[]): Values {
       case "yearsLeft":
         v[a.id] = Number(raw);
         break;
+      // 性別と性自認は、ひとつの答え("male:trans_woman" の形)から、分ける。
+      case "sex": {
+        const sp = splitSex(raw);
+        v.sex = sp.sex;
+        v.genderId = sp.genderId;
+        break;
+      }
       // 子どもは、年齢と性別を一緒に答える("30|boy" の形)。
       case "kidAge1":
       case "kidAge2":
@@ -492,7 +516,7 @@ function valuesOf(answers: { id: keyof Values; value: string }[]): Values {
 // 記憶した「いまのあなた」から、ターニングポイントの手前までの答えを組み立てる(ターニングポイントだけ選び直せる)。
 function answersFromSelf(self: CurrentSelf): Answer[] {
   const raw: Record<string, string> = {
-    age: String(self.age), ailment: self.ailment ?? "none", school: self.school ?? "none", yearsLeft: String(self.yearsLeft ?? 1), prefecture: self.prefecture, sex: self.sex, genderId: self.genderId ?? "", orientation: self.orientation ?? "", condition: self.condition, mbti: self.mbti ?? "", edu: self.eduDetail ?? self.edu, occ: self.retired ? "retired" : self.homemaker ? "homemaker" : self.occ === "none" ? "none" : (self.job ?? DEFAULT_JOB[self.occ]),
+    age: String(self.age), ailment: self.ailment ?? "none", school: self.school ?? "none", yearsLeft: String(self.yearsLeft ?? 1), prefecture: self.prefecture, sex: self.genderId && self.genderId !== "cis" ? `${self.sex}:${self.genderId}` : self.sex, orientation: self.orientation ?? "", condition: self.condition, mbti: self.mbti ?? "", edu: self.eduDetail ?? self.edu, occ: self.retired ? "retired" : self.homemaker ? "homemaker" : self.occ === "none" ? "none" : (self.job ?? DEFAULT_JOB[self.occ]),
     job: self.job ?? "", workStyle: self.workStyle, region: self.region, housing: self.housing, married: (self.marital ?? (self.married ? "married" : "single")) === "single" ? "no" : (self.marital ?? "married") === "married" ? "yes" : (self.marital as string), debt: self.debt ?? "none", kids: String(self.kids), savings: self.savings === null ? "" : String(self.savings),
   };
   (["kidAge1", "kidAge2", "kidAge3"] as const).forEach((k, i) => {

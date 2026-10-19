@@ -158,7 +158,7 @@ export function LifeCard({ t, heading, life, delay, accent }: { t: Messages["res
       {/* 以下の行は、左右の人生で、同じ高さにそろえる(内容が少ないほうは、空の行になる) */}
       <FadeIn delay={delay}>{life.death ? <DeathExplain death={life.death} /> : null}</FadeIn>
       <FadeIn delay={delay}>
-        <p className="mx-auto mt-6 w-fit text-left text-base leading-8 tracking-wider text-mist">{soften(echo.status.summary)}</p>
+        <p data-no-og className="mx-auto mt-6 w-full max-w-md text-left text-base leading-8 tracking-wider text-mist text-justify [text-justify:inter-character]">{soften(echo.status.summary)}</p>
         <dl className="mt-4 space-y-1 text-center text-base leading-7 tracking-wider text-haze">
           <dd>{echo.status.occupation}</dd>
           <dd>{echo.status.city}</dd>
@@ -166,7 +166,7 @@ export function LifeCard({ t, heading, life, delay, accent }: { t: Messages["res
         </dl>
       </FadeIn>
       <FadeIn delay={delay}>
-        <div className="mx-auto mt-8 grid max-w-md grid-cols-5 gap-2 min-[480px]:gap-3">
+        <div className="mx-auto mt-8 grid w-full max-w-md grid-cols-5 gap-2 min-[480px]:gap-3">
           {STAT_KEYS.map((k) => (
             <div key={k} className="text-center">
               <p className="text-lg tabular-nums" style={{ color: `var(--color-s-${k})` }}>{Math.round(life.stats[k])}</p>
@@ -187,12 +187,16 @@ export function LifeCard({ t, heading, life, delay, accent }: { t: Messages["res
           {life.assets.pnl.toLocaleString("ja-JP")}
           {t.unit}
         </p>
-        {life.achievements && <AchievementList ids={life.achievements} />}
+        {life.achievements && (
+          <div className="mx-auto w-full max-w-md">
+            <AchievementList ids={life.achievements} />
+          </div>
+        )}
       </FadeIn>
 
       <FadeIn delay={delay + 0.8} className="mt-12">
         <p className="text-center text-sm tracking-[0.3em] text-haze">{t.timelineHeading}</p>
-        <ol className="relative mx-auto mt-6 max-w-sm border-l border-line pl-7">
+        <ol className="relative mx-auto mt-6 w-full max-w-md border-l border-line pl-7">
           {echo.timeline.map((item, i) => (
             <li key={i} className="relative pb-5 last:pb-0">
               <span className="absolute -left-[31px] top-2.5 h-1.5 w-1.5 rounded-full bg-haze" />
@@ -207,7 +211,7 @@ export function LifeCard({ t, heading, life, delay, accent }: { t: Messages["res
         <FadeIn delay={delay + 1.2} className="mt-12">
           <p className="text-center text-sm tracking-[0.3em] text-haze">人生の大きな分かれ目</p>
           <p className="mt-1 text-center text-xs tracking-wider text-dim">能力値や資産が大きく動いた出来事です</p>
-          <ol className="mx-auto mt-5 max-w-sm space-y-4">
+          <ol className="mx-auto mt-5 w-full max-w-md space-y-4">
             {life.turning.map((m, i) => (
               <li key={i} className="border-l-2 pl-4" style={{ borderColor: `var(--color-${accent})` }}>
                 <span className="text-sm font-bold tracking-[0.2em] text-warm">{m.age}歳</span>
@@ -241,7 +245,7 @@ export function LifeCard({ t, heading, life, delay, accent }: { t: Messages["res
 function DeathExplain({ death }: { death: NonNullable<LifeSummary["death"]> }) {
   const d = DISEASES[death.disease];
   return (
-    <div className="mx-auto mt-6 max-w-md rounded-sm border border-line bg-void/40 px-4 py-4 text-left">
+    <div className="mx-auto mt-6 w-full max-w-md rounded-sm border border-line bg-void/40 px-4 py-4 text-left">
       <p className="text-xs tracking-[0.3em] text-haze">なぜ亡くなったのか</p>
       <p className="mt-2 text-sm font-bold tracking-wider text-mist">原因: {death.cause}</p>
       <ul className="mt-2 list-disc space-y-1 pl-5 text-sm leading-7 tracking-wider text-haze">

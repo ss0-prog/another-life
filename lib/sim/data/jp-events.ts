@@ -1,4 +1,5 @@
 import { jobById, JOBS as allJobs, OCC_LABEL } from "@/lib/sim/data/jp-jobs";
+import { LOTTERY_PRIZES, drawLottery } from "@/lib/sim/data/jp-lottery";
 import { industryQuestion } from "@/lib/sim/data/jp-industry";
 import { applyChangeIncome, changeIncome, incomeOf, round10 } from "@/lib/sim/salary";
 import { leaveLoss, man as manText, retirementTax } from "@/lib/sim/tax";
@@ -574,41 +575,11 @@ const selfChange = (p: Person, d: CountryData, econ: number, occ: Occ, id: strin
   return { now: base.now, next: base.now * p.jobOfferFactor * level * (p.occ === occ ? 1 : 0.95) };
 };
 
-// 宝くじ: 1枚300円。当せん金と本数は、年末ジャンボ宝くじ(第984回・23ユニット・発売総額1,380億円)の、公式サイトの一覧にもとづく。
-// 1ユニットは2,000万枚で、総枚数は4億6千万枚。当せん金の総額は、法律で、発売総額の50%以内と決まっている(この一覧も、ほぼ50%)。
-const LOTTERY_TICKETS = 460_000_000;
-const LOTTERY_PRIZES: { name: string; yen: number; count: number }[] = [
-  { name: "1等", yen: 700_000_000, count: 23 },
-  { name: "1等の前後賞", yen: 150_000_000, count: 46 },
-  { name: "2等", yen: 10_000_000, count: 184 },
-  { name: "3等", yen: 1_000_000, count: 9_200 },
-  { name: "1等の組違い賞", yen: 100_000, count: 4_577 },
-  { name: "4等", yen: 50_000, count: 46_000 },
-  { name: "5等", yen: 10_000, count: 460_000 },
-  { name: "6等", yen: 3_000, count: 4_600_000 },
-  { name: "7等", yen: 300, count: 46_000_000 },
-];
-// 1枚買ったとき、当たる等級(はずれなら null)。
-const drawTicket = (r: () => number) => {
-  let x = r() * LOTTERY_TICKETS;
-  for (const pz of LOTTERY_PRIZES) {
-    if (x < pz.count) return pz;
-    x -= pz.count;
-  }
-  return null;
-};
+// 宝くじの当せん金と本数は、jp-lottery.ts にある。
 const lottery = (p: Person, r: () => number, yen: number) => {
   p.history.lotCount = (p.history.lotCount ?? 0) + 1;
   const n = Math.floor(yen / 300);
-  let win = 0;
-  let top = "";
-  for (let i = 0; i < n; i++) {
-    const pz = drawTicket(r);
-    if (!pz) continue;
-    win += pz.yen;
-    if (pz.name === "1等") top = "1等";
-    else if (pz.yen >= 100_000 && top !== "1等") top = pz.name;
-  }
+  const { win, top } = drawLottery(r, n);
   addCash(p, (win - n * 300) / 10000);
   if (top === "1等") return (bump(p, { joy: 30, money: 40, bonds: -5 }), "宝くじで、1等が当たった。受け取ったのは、数億円。人生が、大きく動きはじめた");
   if (win >= 100000) return (bump(p, { joy: 12, money: 6 }), `宝くじで、${Math.round(win / 10000)}万円が当たった`);

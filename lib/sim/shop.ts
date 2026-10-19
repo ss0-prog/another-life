@@ -1,4 +1,6 @@
 import { lessonById } from "@/lib/sim/data/jp-lessons";
+import { drawLottery } from "@/lib/sim/data/jp-lottery";
+import { createRng } from "@/lib/sim/rng";
 import type { Person, Stats } from "@/lib/sim/types";
 
 // 売買(買い物)。金額は、設計上の仮定(だいたいの目安)。
@@ -73,6 +75,24 @@ const gearItems = (): ShopItem[] =>
     };
   });
 
+
+// 宝くじ: 1枚300円。1年に買えるのは、100枚まで(買った枚数は、年ごとに数える)。当せん金と確率は、jp-lottery.ts(年末ジャンボの公式の一覧)。
+const LOT_MAX = 100;
+const lotLeft = (p: Person) => LOT_MAX - ((p.history.lotYear ?? -1) === p.age ? (p.history.lotYearN ?? 0) : 0);
+const buyLottery = (p: Person, n: number): string => {
+  p.history.lotBought = (p.history.lotBought ?? 0) + n;
+  p.history.lotYearN = ((p.history.lotYear ?? -1) === p.age ? (p.history.lotYearN ?? 0) : 0) + n;
+  p.history.lotYear = p.age;
+  // 乱数は、年齢と、これまでに買った枚数から決める(同じ人生では、同じ結果)。
+  const r = createRng(((p.age + 1) * 2654435761) ^ (p.history.lotBought * 40503) ^ (p.birthYear ?? 0));
+  const { win, top } = drawLottery(r, n);
+  p.cashDelta += win;
+  const cost = n * 300;
+  if (top === "1等") return (inc(p, { joy: 30, money: 40, bonds: -5 }), "宝くじで1等が当たった。受け取ったのは数億円。人生が大きく動きはじめた");
+  if (win >= 100000) return (inc(p, { joy: 12, money: 6 }), `宝くじで${Math.round(win / 10000)}万円が当たった`);
+  return (inc(p, { joy: win > cost * 0.5 ? 2 : -1 }), `宝くじを${n}枚買って${win.toLocaleString("ja-JP")}円が戻ってきた(買った額は${cost.toLocaleString("ja-JP")}円)`);
+};
+
 export const SHOP: ShopItem[] = [
   // ---- 住まい ----
   {
@@ -145,6 +165,19 @@ export const SHOP: ShopItem[] = [
     costMan: () => 40, yearlyMan: () => 8, visible: (p) => p.age >= 18 && !has(p, "motorbike"),
     apply: (p) => ((p.owns.motorbike = p.age), inc(p, { joy: 6 }), "バイクを買い、風を切って走る楽しさを知った"), keep: true,
     sellMan: (p) => Math.max(5, Math.round(40 * Math.pow(0.85, held(p, "motorbike")))), sellApply: (p) => (delete p.owns.motorbike, "バイクを手放した"),
+  },
+  // ---- 宝くじ ----
+  {
+    id: "lottery10", group: "宝くじ", label: "宝くじを買う(10枚・3,000円)",
+    note: "1枚300円。1等7億円が当たるのは、2,000万枚に1枚。当せん金の総額は、買った額の約半分で、買うほど、平均では減っていく。1年に買えるのは100枚まで。",
+    costMan: () => 0.3, visible: (p) => adult(p) && lotLeft(p) >= 10,
+    apply: (p) => buyLottery(p, 10), keep: false,
+  },
+  {
+    id: "lottery100", group: "宝くじ", label: "宝くじをまとめて買う(100枚・3万円)",
+    note: "1枚300円。3等以上(100万円以上)は、5万枚に1枚ほどの確率。1年に買えるのは100枚まで。",
+    costMan: () => 3, visible: (p) => adult(p) && lotLeft(p) >= 100,
+    apply: (p) => buyLottery(p, 100), keep: false,
   },
   // ---- 暮らしの買い物 ----
   {

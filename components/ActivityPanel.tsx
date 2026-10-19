@@ -148,7 +148,7 @@ export function ActivityPanel({ t, state, onStartLesson, onStopLesson, onStartPa
                         <button type="button" title={x.note} onClick={() => onBuy(x.id)} className={`${chipClass(false)} w-full !px-3 !py-2 !text-left !text-xs leading-5`}>
                           <span className="flex items-baseline justify-between gap-3">
                             <span className="block">{x.label}</span>
-                            <span className="block shrink-0 text-dim">{x.costMan(p) > 0 ? `${x.costMan(p).toLocaleString("ja-JP")}万円` : "無料"}{x.yearlyMan ? `・年${x.yearlyMan(p)}万円` : ""}</span>
+                            <span className="block shrink-0 text-dim">{x.costMan(p) >= 1 ? `${x.costMan(p).toLocaleString("ja-JP")}万円` : x.costMan(p) > 0 ? `${Math.round(x.costMan(p) * 10000).toLocaleString("ja-JP")}円` : "無料"}{x.yearlyMan ? `・年${x.yearlyMan(p)}万円` : ""}</span>
                           </span>
                           <span className="mt-0.5 block text-[11px] leading-4 text-dim">{x.note}</span>
                         </button>

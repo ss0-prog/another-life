@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 import { useMemo } from "react";
 import { primaryButtonClass } from "@/components/controls";
 
-type Props = { age: number; cause: string; why?: string; quote?: string; label: string; line: string; onCompare: () => void };
+type Props = { age: number; cause: string; why?: string; quote?: { text: string; by: string }; label: string; line: string; onCompare: () => void };
 
 // 人生が終わったとき: 画面がゆっくり暗くなり、光の粒が、空へのぼっていく。
 export function DeathOverlay({ age, cause, why, quote, label, line, onCompare }: Props) {
@@ -49,7 +49,8 @@ export function DeathOverlay({ age, cause, why, quote, label, line, onCompare }:
       </motion.p>
       {quote && (
         <motion.p className="relative mx-auto mt-8 max-w-md text-center text-sm leading-8 tracking-[0.12em] text-[#d9d2bf]" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1.9, duration: 1.6 }}>
-          {quote}
+          {quote.text}
+          <span className="mt-2 block text-xs tracking-[0.15em] text-[#a9a391]">— {quote.by}</span>
         </motion.p>
       )}
       <motion.div className="relative mt-10" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: quote ? 3.2 : 1.9, duration: 0.8 }}>

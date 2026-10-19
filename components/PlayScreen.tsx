@@ -488,8 +488,8 @@ export function PlayScreen({ t, initial, birthYear, selfAge, ghost, dev = false,
         </div>
       )}
       {showPopup && tp && (
-        <div className="fixed inset-0 z-[65] flex items-center justify-center bg-black/55 px-[2.5vw] py-3 backdrop-blur-sm sm:py-6">
-          <div className="max-h-[calc(100dvh-1.5rem)] w-full max-w-2xl overflow-y-auto sm:max-h-[90dvh]">
+        <div onClick={(e) => e.target === e.currentTarget && setClosedKey(popupKey)} className="fixed inset-0 z-[65] flex items-center justify-center bg-black/55 px-[2.5vw] py-3 backdrop-blur-sm sm:py-6">
+          <div onClick={(e) => e.target === e.currentTarget && setClosedKey(popupKey)} className="max-h-[calc(100dvh-1.5rem)] w-full max-w-2xl overflow-y-auto sm:max-h-[90dvh]">
           <motion.div key={`${tp.id}-${p.age}`} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.9 }} className="relative rounded-sm border border-warm/50 bg-panel px-4 py-4 sm:px-6 sm:py-7 shadow-[0_0_50px_rgba(240,201,148,0.12)]">
             <div className="mb-4 flex items-center justify-between gap-2">
               {trail.length > 0 ? (
@@ -557,6 +557,13 @@ export function PlayScreen({ t, initial, birthYear, selfAge, ghost, dev = false,
 // 人生の道のり: 0〜100歳のものさしの上に、いまの年齢と、ターニングポイントと、これまでの大きな節目を、並べる(PC の、出来事の欄の上)。
 function LifeRibbon({ age, dead, startAge, events }: { age: number; dead: boolean; startAge: number; events: GameState["events"] }) {
   const [open, setOpen] = useState(false); // スマホでは、閉じておき、タップで、ひらく(PC では、いつも表示)
+  const [list, setList] = useState(false); // 節目の一覧
+  useEffect(() => {
+    if (!list) return;
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && setList(false);
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [list]);
   // 横軸は、100歳で終わらせず、その先も、うすく続けておく(どこが上限かは、示さない)。目盛りの数字は、100までしか書かない。
   // 100歳をこえて、右はしに近づいたら、軸を、のばす。
   const MAX = Math.max(116, age + 8);
@@ -565,14 +572,14 @@ function LifeRibbon({ age, dead, startAge, events }: { age: number; dead: boolea
   const seenAge = new Set<number>();
   const dots = marks.filter((e) => (seenAge.has(e.age) ? false : (seenAge.add(e.age), true)));
   return (
-    <div className="mb-3 rounded-sm border border-line bg-panel/60 px-4 py-2.5">
+    <div className="relative mb-3 rounded-sm border border-line bg-panel/60 px-4 py-2.5">
       <button type="button" onClick={() => setOpen((o) => !o)} aria-expanded={open} className="flex w-full items-baseline justify-between gap-3 text-left text-xs tracking-[0.2em] text-haze lg:cursor-default">
         <span className="flex items-center gap-1.5 text-warm">
           人生の道のり
           <span aria-hidden className={`text-[9px] text-dim transition-transform lg:hidden ${open ? "rotate-180" : ""}`}>▼</span>
         </span>
         <span className="tabular-nums">
-          {dead ? `${age}歳で最期` : `いま ${age}歳`}・節目 {dots.length}つ
+          {dead ? `${age}歳で最期` : `いま ${age}歳`}・節目 {dots.length}個
         </span>
       </button>
       <div className={`${open ? "block" : "hidden"} lg:block`}>
@@ -612,6 +619,36 @@ function LifeRibbon({ age, dead, startAge, events }: { age: number; dead: boolea
         <span><span className="text-warm">●</span> いま　<span>×</span> 最期</span>
       </p>
       </div>
+      {/* 右下: これまでの節目の一覧(シミュレーション中も、見返せる)。外側を押しても、閉じる */}
+      <div className="mt-1.5 flex justify-end">
+        <button type="button" onClick={() => setList((o) => !o)} aria-expanded={list} className="keep flex items-center gap-1.5 border border-line px-2.5 py-1 text-[11px] tracking-wider text-haze hover:border-haze hover:text-mist">
+          節目の一覧
+          <span aria-hidden className={`text-[9px] text-dim transition-transform ${list ? "rotate-180" : ""}`}>▼</span>
+        </button>
+      </div>
+      {list && (
+        <>
+          <button type="button" aria-label="節目の一覧を閉じる" onClick={() => setList(false)} className="fixed inset-0 z-[55] cursor-default bg-black/20" />
+          <div role="dialog" aria-label="これまでの節目" className="absolute inset-x-2 top-full z-[56] mt-1 max-h-[55dvh] overflow-y-auto rounded-sm border border-warm/50 bg-panel px-4 py-3 shadow-xl lg:left-auto lg:w-[26rem]">
+            <p className="flex items-center justify-between text-xs tracking-[0.2em] text-warm">
+              <span>これまでの節目({dots.length}個)</span>
+              <button type="button" onClick={() => setList(false)} className="border border-line px-2 py-0.5 text-[11px] tracking-wider text-haze hover:border-haze hover:text-mist">閉じる ✕</button>
+            </p>
+            {dots.length === 0 ? (
+              <p className="mt-3 text-xs leading-6 tracking-wider text-dim">まだ、節目はありません。</p>
+            ) : (
+              <ol className="mt-3 space-y-2.5">
+                {dots.map((e, i) => (
+                  <li key={i} className="border-l-2 border-warm/60 pl-3">
+                    <span className="text-xs tracking-[0.15em] text-warm">{e.age}歳</span>
+                    <EventText text={e.event} className="text-xs leading-6 tracking-wide text-mist" noteClassName="text-[11px] leading-5" />
+                  </li>
+                ))}
+              </ol>
+            )}
+          </div>
+        </>
+      )}
     </div>
   );
 }
@@ -636,9 +673,9 @@ function StatBar({ label, value, color, note, right = false }: { label: string; 
       {/* スマホ: タップでひらく */}
       {open && <p className="mt-1.5 text-[11px] leading-4 tracking-wider text-dim lg:hidden">{note}</p>}
       {/* PC: カーソルを合わせると、説明が出る */}
-      <p role="tooltip" className={`pointer-events-none absolute top-full z-40 mt-1 hidden w-[13.5rem] rounded-sm border border-line bg-panel px-3 py-2 text-[11px] leading-5 tracking-wider text-haze shadow-xl lg:group-hover:block ${right ? "right-0" : "left-0"}`}>
+      <span role="tooltip" className={`pointer-events-none absolute top-full z-40 mt-1 hidden w-[13.5rem] rounded-sm border border-line bg-panel px-3 py-2 text-[11px] leading-5 tracking-wider text-haze shadow-xl lg:group-hover:block ${right ? "right-0" : "left-0"}`}>
         {note}
-      </p>
+      </span>
     </div>
   );
 }
@@ -654,9 +691,9 @@ function NoteBlock({ label, note, children, right = false }: { label: string; no
       </button>
       {children}
       {open && <p className="mt-1 text-[11px] leading-4 tracking-wider text-dim lg:hidden">{note}</p>}
-      <p role="tooltip" className={`pointer-events-none absolute top-full z-40 mt-1 hidden w-[13.5rem] rounded-sm border border-line bg-panel px-3 py-2 text-[11px] leading-5 tracking-wider text-haze shadow-xl lg:group-hover:block ${right ? "right-0" : "left-0"}`}>
+      <span role="tooltip" className={`pointer-events-none absolute top-full z-40 mt-1 hidden w-[13.5rem] rounded-sm border border-line bg-panel px-3 py-2 text-[11px] leading-5 tracking-wider text-haze shadow-xl lg:group-hover:block ${right ? "right-0" : "left-0"}`}>
         {note}
-      </p>
+      </span>
     </div>
   );
 }

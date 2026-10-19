@@ -1,6 +1,7 @@
 import { condOf } from "@/lib/sim/helpers";
 import { interpolate } from "@/lib/sim/rng";
 import type { CountryData, Person } from "@/lib/sim/types";
+import { WAGE_REGION, WAGE_REGION_BANDS } from "@/lib/sim/data/jp-wage-region";
 
 // 年収の目安(万円、個人)。大分類の水準に、職種・年齢・地域・性別・学歴・専攻・雇用形態・企業規模・勤め先(民間/公務員)・
 // 景気・持病・職種内の違い(payMult)を掛け合わせる。patch で一部の条件を差し替えれば、「もしこうなら」の目安も出せる。
@@ -9,6 +10,29 @@ function sexMult(q: Person, inc: CountryData["income"]): number {
   if (q.sex === "male") return 1;
   const f = interpolate(inc.femaleAgeFactor, q.age);
   return q.sex === "female" ? f : (1 + f) / 2;
+}
+
+// 住んでいる都道府県(「東京・世田谷区」「愛知県・名古屋市」などの先頭)を、表の名前にそろえる。
+export function prefectureOf(city: string): string | null {
+  const head = city.split("・")[0].trim();
+  if (!head) return null;
+  const name = head === "北海道" ? head : head.replace(/[都府県]$/, "");
+  return name in WAGE_REGION ? name : null;
+}
+
+// 地域による、年収の倍率。都道府県ごとの、年齢階級別の実際の賃金(jp-wage-region.ts)から、年齢のあいだは直線でつなぐ。
+// 若いうちは地域の差が小さく、年齢とともに開く。都道府県がわからなければ(あるいは海外では)、地域の4区分の倍率を使う。
+export function regionWage(q: Person, inc: CountryData["income"]): number {
+  const pref = q.abroad ? null : prefectureOf(q.city);
+  if (!pref) return inc.regionFactor[q.region];
+  const r = WAGE_REGION[pref];
+  const b = WAGE_REGION_BANDS;
+  if (q.age <= b[0]) return r[0];
+  if (q.age >= b[b.length - 1]) return r[r.length - 1];
+  let i = 0;
+  while (q.age > b[i + 1]) i++;
+  const t = (q.age - b[i]) / (b[i + 1] - b[i]);
+  return r[i] + (r[i + 1] - r[i]) * t;
 }
 
 export function incomeOf(p: Person, data: CountryData, econ: number, patch: Partial<Person> = {}): number {
@@ -22,7 +46,7 @@ export function incomeOf(p: Person, data: CountryData, econ: number, patch: Part
   const sens = inc.econSensitivity[q.occ] * (publicSector ? 0.2 : 1);
   let v = inc.base[q.occ];
   v *= q.employment === "self" ? 1 : interpolate(inc.ageFactor, q.age);
-  v *= inc.regionFactor[q.region] * sexMult(q, inc) * inc.eduFactor[q.edu] * cond.income;
+  v *= regionWage(q, inc) * sexMult(q, inc) * inc.eduFactor[q.edu] * cond.income;
   v *= inc.employmentFactor[q.employment] * (q.employment === "self" || q.occ === "agri" || publicSector ? 1 : inc.firmFactor[q.firm]);
   if (publicSector) v *= 1.04;
   if (q.major && (q.edu === "univ" || q.edu === "grad")) v *= inc.majorFactor[q.major];

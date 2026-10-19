@@ -509,7 +509,7 @@ export function PlayScreen({ t, initial, birthYear, selfAge, ghost, dev = false,
                 {t.picked}: {trail.map((x) => x.label).join(" › ")}
               </p>
             )}
-            <p className="mx-auto mt-3 text-center text-base font-bold leading-7 tracking-wider text-mist sm:w-fit sm:text-left sm:text-lg sm:leading-8">{soften(question?.prompt ?? "")}</p>
+            <p className="mx-auto mt-3 text-center text-sm font-bold leading-7 tracking-wider text-mist sm:w-fit sm:text-left sm:text-base sm:leading-8">{soften(question?.prompt ?? "")}</p>
             {env.econ !== 0 && (env.econ < -0.6 || env.econ > 0.6) && (
               <p className="mt-2 text-center text-xs tracking-wider" style={{ color: econColor }}>
                 {t.econ}: {env.econLabel}

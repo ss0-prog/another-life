@@ -4,6 +4,7 @@ import { renderToStaticMarkup } from "react-dom/server.browser";
 import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { type Phase, loadTimeOfDay, usePhase, useSkyAnimated, useTimeOfDay } from "@/lib/timeStore";
+import { HORIZON_GLOW, skyPalette } from "@/components/skyPalette";
 import { CROW_EVENT } from "@/lib/bgm";
 import { createRng } from "@/lib/sim/rng";
 import { setWeather, useWeather } from "@/lib/weatherStore";
@@ -19,23 +20,6 @@ const spread = (count: number, seedMul: number) =>
     duration: 0.7 + (i % 5) * 0.18,
     sway: 10 + (i % 4) * 8,
   }));
-
-// 昼の空。文字が読めるよう、あとで暗いベールをかぶせる。
-const DAY_SKY: Record<Weather, string> = {
-  clear: "linear-gradient(180deg, #1478e6 0%, #3d9bf2 38%, #86cdff 72%, #d4efff 100%)",
-  cloudy: "linear-gradient(180deg, #4a5666 0%, #7b8795 50%, #aab4be 100%)",
-  rain: "linear-gradient(180deg, #2c3a4d 0%, #4a596b 55%, #6d7c8c 100%)",
-  snow: "linear-gradient(180deg, #6c7a8c 0%, #a4b0bd 55%, #d3dbe3 100%)",
-  thunder: "linear-gradient(180deg, #262a3a 0%, #3e4458 55%, #5c6377 100%)",
-};
-
-const SKY: Record<Weather, string> = {
-  clear: "linear-gradient(180deg, #0a0d16 0%, #090a10 55%, #07080a 100%)",
-  cloudy: "linear-gradient(180deg, #14171e 0%, #0e1015 55%, #08090c 100%)",
-  rain: "linear-gradient(180deg, #0b1220 0%, #0a0e17 55%, #06080b 100%)",
-  snow: "linear-gradient(180deg, #1a202b 0%, #12161e 55%, #0a0c10 100%)",
-  thunder: "linear-gradient(180deg, #0c0b1a 0%, #09090f 55%, #050508 100%)",
-};
 
 function Clouds({ dark, day }: { dark: boolean; day: boolean }) {
   const clouds = useMemo(() => Array.from({ length: 6 }, (_, i) => ({ top: 4 + i * 11, w: 38 + (i % 3) * 14, dur: 70 + i * 17, delay: -i * 19 })), []);
@@ -702,9 +686,6 @@ function Celestial({ phase, tod, animate, dimMoon }: { phase: Phase; tod: "day" 
 }
 
 // 背景: 空模様(晴れ・曇り・雨・雪・雷)に応じて、夜空が移り変わる。足もとには、細かく描いた街。
-// 朝焼けと夕焼けの空。夜と昼のあいだに、ゆっくり挟まる。
-const DAWN_SKY = "linear-gradient(180deg, #2a2d5c 0%, #7b5a92 28%, #e58f70 62%, #ffd29a 100%)";
-const DUSK_SKY = "linear-gradient(180deg, #1f274f 0%, #62406f 32%, #d9654b 68%, #ffb069 100%)";
 const FADE = { transition: "opacity 4.8s ease-in-out" } as const;
 
 // 太陽: 朝焼けでは地平線から昇り、昼は空高く、夕焼けでは地平線へ沈んでいく。
@@ -821,15 +802,20 @@ function Crow({ active }: { active: boolean }) {
 export function Ambient() {
   // 前回の昼・夜を読みこむまで、空は、出さない(最初から、暗い夜空が見えてしまわないように)。
   const [ready, setReady] = useState(false);
+  // 空の色の移り変わりは、最初の表示が落ち着いてから、はじめる(読みこみ直後に、夜から昼へ、勝手に動いて見えないように)。
+  const [armed, setArmed] = useState(false);
   useEffect(() => {
     loadTimeOfDay();
     setReady(true);
+    const t = window.setTimeout(() => setArmed(true), 900);
+    return () => window.clearTimeout(t);
   }, []);
   const weather = useWeather();
   const phase = usePhase();
   const animateSky = useSkyAnimated();
   const target = useTimeOfDay();
   const day = phase === "day";
+  const sky = skyPalette(weather, phase);
   const nightish = phase === "night" || phase === "dusk";
   const clearish = weather === "clear" || weather === "cloudy";
   // 見た目の確認用: ?weather=rain のように、空模様を指定できる(clear / cloudy / rain / snow / thunder)。
@@ -843,18 +829,34 @@ export function Ambient() {
   }, [weather]);
   return (
     <div aria-hidden className="ambient-root pointer-events-none fixed inset-0 -z-10 overflow-hidden" style={{ opacity: ready ? 1 : 0 }}>
-      {/* 空の色: 4つの空を重ね、段階ごとに、ゆっくり入れ替える(夜 → 朝焼け → 昼 → 夕焼け → 夜) */}
-      <div className="absolute inset-0" style={{ background: SKY[weather] }} />
-      <div className="absolute inset-0" style={{ background: DUSK_SKY, opacity: phase === "dusk" ? 1 : 0, transition: `opacity 3s ease-in-out ${phase === "dusk" ? "1s" : "0s"}` }} />
-      <div className="absolute inset-0" style={{ background: DAWN_SKY, opacity: phase === "dawn" ? 1 : 0, transition: `opacity 4.5s ease-in-out ${phase === "day" ? "2.4s" : "0s"}` }} />
-      <div className="absolute inset-0" style={{ background: DAY_SKY[weather], opacity: day ? 1 : 0, transition: `opacity 4.5s ease-in-out ${day ? "2.4s" : "0s"}` }} />
-      {/* 空が夜のときだけ、夜の空の色を見せる(夕焼け・朝焼けの上に、重ならないように) */}
-      <div className="absolute inset-0" style={{ background: SKY[weather], opacity: phase === "night" ? 1 : 0, ...FADE }} />
+      {/* 空の色: 4つの色(上から下へ)を、色の変数として、ゆっくり動かし、色そのものを、移り変わらせる(夜 → 朝焼け → 昼、昼 → 夕焼け、夕焼け → 夜) */}
+      <div
+        className="absolute inset-0"
+        style={
+          {
+            "--sk0": sky[0],
+            "--sk1": sky[1],
+            "--sk2": sky[2],
+            "--sk3": sky[3],
+            background: "linear-gradient(180deg, var(--sk0) 0%, var(--sk1) 34%, var(--sk2) 68%, var(--sk3) 100%)",
+            transition: armed ? "--sk0 5s ease-in-out, --sk1 5s ease-in-out, --sk2 5s ease-in-out, --sk3 5s ease-in-out" : "none",
+          } as React.CSSProperties
+        }
+      />
+      {/* 地平線の、あたたかい光: 朝焼けと夕焼けのときだけ、うかび、昼や夜では、ゆっくり消える */}
+      <div
+        className="absolute inset-x-0 bottom-0 h-[70%]"
+        style={{
+          background: "radial-gradient(ellipse 85% 75% at 50% 100%, rgba(255,176,105,0.9) 0%, rgba(255,150,100,0.35) 38%, rgba(255,150,100,0) 72%)",
+          opacity: phase === "dawn" || phase === "dusk" ? HORIZON_GLOW[weather] : 0,
+          transition: armed ? "opacity 5s ease-in-out" : "none",
+        }}
+      />
 
       <AnimatePresence>
         <motion.div key={weather} className="absolute inset-0" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 3 }}>
           {clearish && (
-            <div className="absolute inset-0" style={{ opacity: nightish ? (phase === "dusk" ? 0.3 : 1) : 0, ...FADE }}>
+            <div className="absolute inset-0" style={{ opacity: nightish ? (phase === "dusk" ? 0.3 : 1) : 0, transition: `opacity 4s ease-in-out ${nightish ? "0s" : "1s"}` }}>
               <Stars dim={weather === "cloudy"} />
             </div>
           )}

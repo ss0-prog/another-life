@@ -44,6 +44,26 @@
   inherits: true;
   initial-value: #0d0f12;
 }
+@property --sk0 {
+  syntax: "<color>";
+  inherits: false;
+  initial-value: #0a0d16;
+}
+@property --sk1 {
+  syntax: "<color>";
+  inherits: false;
+  initial-value: #090a10;
+}
+@property --sk2 {
+  syntax: "<color>";
+  inherits: false;
+  initial-value: #07080a;
+}
+@property --sk3 {
+  syntax: "<color>";
+  inherits: false;
+  initial-value: #07080a;
+}
 @property --color-panel {
   syntax: "<color>";
   inherits: true;

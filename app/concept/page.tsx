@@ -12,7 +12,7 @@ export default function ConceptPage() {
   return (
     <PageShell title="コンセプト" lead="人生のどこかで、あなたは一つの道を選び、もう一つの道を手放しました。">
       <Section title="無数の「if」の先へ">
-        <p><span className="fancy-underline">ここは、無数の「if」の数だけ存在する、別の宇宙のあなたと出会う場所。</span></p>
+        <p className="cq"><span className="fancy-underline fit-line">ここは、無数の「if」の数だけ存在する、別の宇宙のあなたと出会う場所。</span></p>
         <p>量子力学の「多世界解釈」では、<br />私たちが人生で決断を下すたび、宇宙は枝分かれしていくと考えられています。</p>
         <p>今日とった選択。あの日、あの時の決断……。<br />あなたが選ばなかった無数の選択肢の先には、<br />今も「もう一人のあなた」が生きる平行宇宙(マルチバース)が広がっているのかもしれません。</p>
         <p>さあ、別の宇宙のあなたに会いに行ってみましょう。</p>

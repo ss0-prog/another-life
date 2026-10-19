@@ -926,15 +926,37 @@ html[data-tod="day"] .page-card {
   background-color: rgba(255, 255, 255, 0.88);
 }
 
-/* 印象に残したい一文の下線: あたたかい色から、つめたい色へ、両はしが、すっと消える、細い線(二つの宇宙の色)。折り返しても、行ごとに、かかる */
+/* 印象に残したい一文の下線: あたたかい色から、つめたい色へ、両はしが、すっと消える、細い線(二つの宇宙の色)。
+   線は、文字の背景ではなく、別の箱(::after)として置く(背景だと、画面の拡大率や文字の大きさで、にじんだり、太さが変わって、ブレるため)。 */
 .fancy-underline {
-  background-image:
-    linear-gradient(90deg, transparent 0%, var(--color-warm) 16%, var(--color-cool) 84%, transparent 100%),
-    linear-gradient(90deg, transparent 0%, color-mix(in srgb, var(--color-warm) 26%, transparent) 20%, color-mix(in srgb, var(--color-cool) 26%, transparent) 80%, transparent 100%);
-  background-repeat: no-repeat;
-  background-position: 0 100%, 0 100%;
-  background-size: 100% 2px, 100% 7px;
-  padding-bottom: 0.5em;
-  -webkit-box-decoration-break: clone;
-  box-decoration-break: clone;
+  position: relative;
+  display: inline-block;
+  padding-bottom: 0.55em;
+}
+.fancy-underline::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent 0%, var(--color-warm) 16%, var(--color-cool) 84%, transparent 100%);
+}
+.fancy-underline::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 6px;
+  background: linear-gradient(90deg, transparent 0%, color-mix(in srgb, var(--color-warm) 22%, transparent) 20%, color-mix(in srgb, var(--color-cool) 22%, transparent) 80%, transparent 100%);
+}
+
+/* どの画面幅でも、かならず、一行に収める一文: 親(.cq)の幅に合わせて、文字の大きさを小さくする(本来の大きさを、こえない) */
+.cq {
+  container-type: inline-size;
+}
+.fit-line {
+  white-space: nowrap;
+  font-size: min(1em, calc(100cqw / var(--fit, 35.2)));
 }

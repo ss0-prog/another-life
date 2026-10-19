@@ -4,7 +4,9 @@ import { addDoc, collection, serverTimestamp } from "firebase/firestore";
 import { firebaseEnabled, getDb } from "@/lib/firebase";
 
 export const contactEmail = process.env.NEXT_PUBLIC_CONTACT_EMAIL ?? "";
-export const contactAvailable = firebaseEnabled || contactEmail !== "";
+// 外部のフォームサービス(Tally など)のURL。設定されていれば、お問い合わせは、そこで受け付ける。
+export const contactFormUrl = process.env.NEXT_PUBLIC_CONTACT_FORM_URL ?? "";
+export const contactAvailable = contactFormUrl !== "" || firebaseEnabled || contactEmail !== "";
 
 export type ContactInput = { name: string; reply: string; message: string };
 

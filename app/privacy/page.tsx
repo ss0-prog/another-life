@@ -39,6 +39,7 @@ export default function PrivacyPage() {
 
       <Section title="お問い合わせ">
         <p>お問い合わせフォームに入力された内容は、返信のためにのみ使用します。</p>
+        <p>お問い合わせは、外部のフォームサービス(Tally)で受け付ける場合があります。その場合、入力した内容(お名前・返信先のメールアドレス・本文)は、Tally のサーバーに保存され、運営者だけが受け取ります。Tally での取り扱いは、Tally のプライバシーポリシーに従います。</p>
       </Section>
 
       <Section title="その他">

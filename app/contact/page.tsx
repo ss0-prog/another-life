@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { PageShell } from "@/components/PageShell";
 import { primaryButtonClass } from "@/components/controls";
-import { contactAvailable, sendContact } from "@/lib/contact";
+import { contactAvailable, contactFormUrl, sendContact } from "@/lib/contact";
 
 type Status = "idle" | "sending" | "sent" | "mailto" | "failed";
 
@@ -31,7 +31,16 @@ export default function ContactPage() {
 
   return (
     <PageShell title="お問い合わせ" lead="ご意見、ご感想、不具合のご報告など、お気軽にお寄せください。">
-      {!contactAvailable ? (
+      {contactFormUrl ? (
+        <div className="mx-auto flex max-w-xl flex-col items-center gap-6 text-center">
+          <p className="w-full text-left text-base leading-9 tracking-wider text-haze">お問い合わせは、外部のフォームサービス(Tally)で受け付けています。下のボタンから、フォームが開きます。</p>
+          <a href={contactFormUrl} target="_blank" rel="noopener noreferrer" className={primaryButtonClass}>
+            <span className="absolute inset-0 border border-warm/60 bg-warm/5 transition-colors group-hover:border-warm group-hover:bg-warm/10" />
+            お問い合わせフォームを開く
+          </a>
+          <p className="w-full text-left text-xs leading-6 tracking-wider text-dim">フォームに入力した内容は、Tally を通じて、運営者だけが受け取ります。お返事が必要なときは、フォームに、返信先のメールアドレスを書いてください。</p>
+        </div>
+      ) : !contactAvailable ? (
         <p className="mx-auto w-fit text-left text-base leading-9 tracking-wider text-haze">現在、お問い合わせの受け付けを準備しています。しばらくお待ちください。</p>
       ) : (
         <form onSubmit={submit} className="space-y-8">

@@ -42,6 +42,7 @@ let on = false;
 let chordIdx = 0;
 let chordTimer: ReturnType<typeof setTimeout> | null = null;
 let bellTimer: ReturnType<typeof setTimeout> | null = null;
+let crowTimer: ReturnType<typeof setTimeout> | null = null;
 const listeners = new Set<() => void>();
 const emit = () => listeners.forEach((l) => l());
 
@@ -128,6 +129,7 @@ function applyMood() {
   padBus.frequency.setTargetAtTime(cutoff, t, 3);
   wet.gain.setTargetAtTime(w === "snow" ? 0.8 : 0.55, t, 3);
   rainGain.gain.setTargetAtTime(w === "rain" ? 0.016 : w === "thunder" ? 0.028 : 0, t, 4);
+  syncCrow();
   rainFilter.frequency.setTargetAtTime(w === "thunder" ? 2600 : 3200, t, 4);
 }
 
@@ -226,6 +228,70 @@ export function watchLightning() {
   };
 }
 
+// ---- カラス: 夕方の晴れた空のときだけ、遠くで、小さく鳴く ----
+const crowOn = () => on && mood.phase === "dusk" && mood.weather === "clear";
+
+// 「カァー」を一声。のこぎり波を、ざらつかせ(60Hzで震わせ)、声の帯域だけ通し、こもらせて、遠くに聞こえさせる。
+function caw(delay: number, pan: number, f0: number) {
+  if (!ctx || !master) return;
+  const t = ctx.currentTime + delay;
+  const dur = 0.42;
+  const am = ctx.createGain();
+  am.gain.value = 0.75;
+  const lfo = ctx.createOscillator();
+  const lfoDepth = ctx.createGain();
+  lfo.frequency.value = 62;
+  lfoDepth.gain.value = 0.25;
+  lfo.connect(lfoDepth).connect(am.gain);
+  const band = ctx.createBiquadFilter();
+  band.type = "bandpass";
+  band.frequency.value = 1150;
+  band.Q.value = 1.1;
+  const far = ctx.createBiquadFilter();
+  far.type = "lowpass";
+  far.frequency.value = 2200;
+  const g = ctx.createGain();
+  g.gain.setValueAtTime(0, t);
+  g.gain.linearRampToValueAtTime(0.03, t + 0.05);
+  g.gain.setValueAtTime(0.03, t + dur - 0.15);
+  g.gain.linearRampToValueAtTime(0, t + dur);
+  const p = ctx.createStereoPanner();
+  p.pan.value = pan;
+  [1, 1.012].forEach((k) => {
+    const o = ctx!.createOscillator();
+    o.type = "sawtooth";
+    o.frequency.setValueAtTime(f0 * 1.12 * k, t);
+    o.frequency.exponentialRampToValueAtTime(f0 * 0.82 * k, t + dur);
+    o.connect(am);
+    o.start(t);
+    o.stop(t + dur + 0.05);
+  });
+  lfo.start(t);
+  lfo.stop(t + dur + 0.05);
+  am.connect(band).connect(far).connect(g).connect(p);
+  p.connect(master);
+  if (reverbBus) p.connect(reverbBus);
+}
+
+function playCrow() {
+  crowTimer = null;
+  if (!crowOn()) return;
+  const n = 1 + Math.floor(Math.random() * 3);
+  const f0 = 430 + Math.random() * 110;
+  const pan = Math.random() * 1.2 - 0.6;
+  for (let i = 0; i < n; i++) caw(i * (0.62 + Math.random() * 0.12), pan, f0 * (1 - i * 0.03));
+  crowTimer = setTimeout(playCrow, (14 + Math.random() * 22) * 1000);
+}
+
+// 夕方の晴れの間だけ、カラスの鳴き声の予約を入れておく。
+function syncCrow() {
+  if (crowOn() && !crowTimer) crowTimer = setTimeout(playCrow, (4 + Math.random() * 6) * 1000);
+  else if (!crowOn() && crowTimer) {
+    clearTimeout(crowTimer);
+    crowTimer = null;
+  }
+}
+
 // ---- 効果音(木の枝の分岐): BGMがオンのときだけ鳴る ----
 const SFX_SCALE = [60, 62, 64, 67, 69]; // Cメジャー・ペンタトニック
 
@@ -297,6 +363,7 @@ export function startBgm() {
   master.gain.cancelScheduledValues(ctx.currentTime);
   master.gain.setTargetAtTime(MASTER, ctx.currentTime, 1.5);
   playChord();
+  syncCrow();
   bellTimer = setTimeout(playBell, 9000);
   try {
     window.localStorage.setItem(KEY, "on");
@@ -309,6 +376,7 @@ export function stopBgm() {
   on = false;
   if (chordTimer) clearTimeout(chordTimer);
   if (bellTimer) clearTimeout(bellTimer);
+  syncCrow();
   master.gain.cancelScheduledValues(ctx.currentTime);
   master.gain.setTargetAtTime(0, ctx.currentTime, 0.8);
   // 余韻が消えてから、音を止める(鳴らし直すと、また最初の和音から)。
@@ -372,6 +440,7 @@ if (typeof window !== "undefined") {
     on = false;
     if (chordTimer) clearTimeout(chordTimer);
     if (bellTimer) clearTimeout(bellTimer);
+    if (crowTimer) clearTimeout(crowTimer);
     void ctx?.close();
     ctx = null;
   };

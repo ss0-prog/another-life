@@ -1,5 +1,6 @@
 "use client";
 
+import { IfMark } from "@/components/IfMark";
 import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import { CompareResult } from "@/components/CompareResult";
@@ -172,14 +173,16 @@ export default function Home() {
                 <span className="-mr-[0.12em] min-[400px]:-mr-[0.3em] sm:-mr-[0.4em]">{t.home.eyebrow}</span>
                 <span aria-hidden className="h-px w-3 shrink-0 bg-warm min-[400px]:w-5 sm:w-9" />
               </motion.p>
-              <motion.h1
-                className="-mr-[0.2em] [text-align-last:justify] mt-8 whitespace-nowrap text-center text-2xl tracking-[0.2em] text-mist sm:-mr-[0.35em] sm:text-4xl sm:tracking-[0.35em]"
+              {/* タイトルの行: ロゴ「if」を、タイトルの左に、同じ高さで置く。上の「もうひとつの人生を見届ける」と、左右の頭と尻をそろえる */}
+              <motion.div
+                className="mt-8 flex items-center justify-between gap-3 text-2xl sm:gap-5 sm:text-4xl"
                 initial={{ opacity: 0, filter: "blur(8px)" }}
                 animate={{ opacity: 1, filter: "blur(0px)" }}
                 transition={{ delay: 0.8, duration: 2.4, ease: "easeOut" }}
               >
-                {t.home.title}
-              </motion.h1>
+                <IfMark className="h-[1.15em] w-auto shrink-0 text-mist" />
+                <h1 className="-mr-[0.2em] min-w-0 flex-1 whitespace-nowrap text-center tracking-[0.2em] text-mist [text-align-last:justify] sm:-mr-[0.35em] sm:tracking-[0.35em]">{t.home.title}</h1>
+              </motion.div>
               <motion.p className="mt-4 whitespace-nowrap text-center text-sm tracking-[0.5em] text-haze sm:text-base" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1.6, duration: 1.8 }}>
                 {t.home.subtitle}
               </motion.p>

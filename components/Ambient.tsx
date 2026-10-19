@@ -545,7 +545,8 @@ function bodyAt(hour: number): { x: number; y: number; o: number; e: number } {
   // 見えないあいだに、反対側へ回りこませておく(アニメーションの途中で、画面を横切って見えてしまわないように)
   if (a > 1) return { x: a < 1.5 ? 108 : -8, y: Y_EDGE, o: 0, e: 0 };
   const e = Math.sin(Math.PI * a);
-  return { x: ((a - A_IN) / (A_OUT - A_IN)) * 100, y: Y_EDGE - (Y_EDGE - ZENITH) * e, o: 1, e };
+  // 地平線に出入りするごく最後(弧の最初と最後の5%)は、ゆっくり、透明になる(沈んだあと、画面のはしに、光が、のこらないように)。軌道は、変えない。
+  return { x: ((a - A_IN) / (A_OUT - A_IN)) * 100, y: Y_EDGE - (Y_EDGE - ZENITH) * e, o: Math.min(1, a / 0.05, (1 - a) / 0.05), e };
 }
 
 // 最後の0.6秒で、ゆっくり減速して、止まる(10秒のうち、最後の6%)。

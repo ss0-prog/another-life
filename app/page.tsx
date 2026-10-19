@@ -252,8 +252,15 @@ export default function Home() {
                   </li>
                 ))}
               </motion.ol>
+              {/* 「無数のifの先へ」の上にも、「別の人生をシミュレートする」を置く */}
+              <div className="mt-14">
+                <button type="button" onClick={() => { setPrefill(null); setPhase({ name: "wizard" }); }} className={primaryButtonClass}>
+                  <span className="absolute inset-0 border border-warm/60 bg-warm/5 transition-colors group-hover:border-warm group-hover:bg-warm/10" />
+                  {t.home.start}
+                </button>
+              </div>
               {/* 無数の「if」の先へ(多元宇宙の考え方に触れる) */}
-              <motion.div className="mt-16 w-full max-w-2xl text-center" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 2.8, duration: 1.6 }}>
+              <motion.div className="mt-14 w-full max-w-2xl text-center" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 2.8, duration: 1.6 }}>
                 <p className="text-xs tracking-[0.5em] text-haze">{t.home.ifTitle}</p>
                 <div className="mt-5 space-y-5 text-sm leading-8 tracking-[0.08em] text-haze">
                   {t.home.ifBody.map((line, i) => (

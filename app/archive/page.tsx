@@ -191,7 +191,7 @@ export default function ArchivePage() {
 
   return (
     <div className="mx-auto w-full max-w-[120rem] px-[2.5vw] pb-24 pt-12 sm:px-12">
-      <h1 className="text-center text-2xl tracking-[0.3em] text-mist">他の人生</h1>
+      <h1 className="text-center text-2xl tracking-[0.3em] text-mist">誰かの人生</h1>
       <p className="mx-auto mt-6 max-w-xl w-fit text-left text-base leading-9 tracking-wider text-haze lg:max-w-none lg:whitespace-nowrap">
         ターニングポイントのもう一方を歩いた人たちの、一生です。<span className="inline-block">名前も連絡先もなく人生だけが残ります。</span>
       </p>

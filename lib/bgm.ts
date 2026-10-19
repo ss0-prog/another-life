@@ -231,44 +231,92 @@ export function watchLightning() {
 // ---- カラス: 夕方の晴れた空のときだけ、遠くで、小さく鳴く ----
 const crowOn = () => on && mood.phase === "dusk" && mood.weather === "clear";
 
-// 「カァー」を一声。のこぎり波を、ざらつかせ(60Hzで震わせ)、声の帯域だけ通し、こもらせて、遠くに聞こえさせる。
+// 「カァー」を一声。カラスの声は、(1)ざらざらした荒い声(声帯の不規則な震え)、(2)口の形による、いくつかの強い共鳴、(3)出だしで鋭く上がって、すぐ下がる音程、でできている。
+// それぞれを、のこぎり波(+半分の高さの音で、ざらつきを足す)・ゆらぎ・ノイズ・複数の帯域フィルターで作り、遠くなので、こもらせる。
+let whiteBuf: AudioBuffer | null = null;
 function caw(delay: number, pan: number, f0: number) {
   if (!ctx || !master) return;
-  const t = ctx.currentTime + delay;
-  const dur = 0.42;
-  const am = ctx.createGain();
-  am.gain.value = 0.75;
-  const lfo = ctx.createOscillator();
-  const lfoDepth = ctx.createGain();
-  lfo.frequency.value = 62;
-  lfoDepth.gain.value = 0.25;
-  lfo.connect(lfoDepth).connect(am.gain);
-  const band = ctx.createBiquadFilter();
-  band.type = "bandpass";
-  band.frequency.value = 1150;
-  band.Q.value = 1.1;
-  const far = ctx.createBiquadFilter();
-  far.type = "lowpass";
-  far.frequency.value = 2200;
-  const g = ctx.createGain();
-  g.gain.setValueAtTime(0, t);
-  g.gain.linearRampToValueAtTime(0.03, t + 0.05);
-  g.gain.setValueAtTime(0.03, t + dur - 0.15);
-  g.gain.linearRampToValueAtTime(0, t + dur);
-  const p = ctx.createStereoPanner();
-  p.pan.value = pan;
-  [1, 1.012].forEach((k) => {
-    const o = ctx!.createOscillator();
+  const c = ctx;
+  const t = c.currentTime + delay;
+  const dur = 0.55;
+  if (!whiteBuf) whiteBuf = makeRainNoise(c);
+
+  // 声帯: 音程が、さっと上がって、下がる。ゆらぎ(ジッター)を加える。
+  const voice = c.createGain();
+  voice.gain.value = 1;
+  [[1, 1], [0.5, 0.45]].forEach(([mul, amp]) => {
+    const o = c.createOscillator();
     o.type = "sawtooth";
-    o.frequency.setValueAtTime(f0 * 1.12 * k, t);
-    o.frequency.exponentialRampToValueAtTime(f0 * 0.82 * k, t + dur);
-    o.connect(am);
+    o.frequency.setValueAtTime(f0 * mul * 0.92, t);
+    o.frequency.linearRampToValueAtTime(f0 * mul * 1.14, t + 0.07);
+    o.frequency.exponentialRampToValueAtTime(f0 * mul * 0.76, t + dur);
+    [[37, 70], [91, 45]].forEach(([hz, cents]) => {
+      const l = c.createOscillator();
+      const d = c.createGain();
+      l.frequency.value = hz;
+      d.gain.value = cents;
+      l.connect(d).connect(o.detune);
+      l.start(t);
+      l.stop(t + dur + 0.05);
+    });
+    const a = c.createGain();
+    a.gain.value = amp;
+    o.connect(a).connect(voice);
     o.start(t);
     o.stop(t + dur + 0.05);
   });
-  lfo.start(t);
-  lfo.stop(t + dur + 0.05);
-  am.connect(band).connect(far).connect(g).connect(p);
+  // ざらつき(息のノイズ)
+  const n = c.createBufferSource();
+  n.buffer = whiteBuf;
+  n.loop = true;
+  const nf = c.createBiquadFilter();
+  nf.type = "bandpass";
+  nf.frequency.value = 2400;
+  nf.Q.value = 0.7;
+  const ng = c.createGain();
+  ng.gain.value = 0.35;
+  n.connect(nf).connect(ng).connect(voice);
+  n.start(t, Math.random() * 3);
+  n.stop(t + dur + 0.05);
+
+  // 口の共鳴: 三つの帯域を、並べて、足しあわせる
+  const mix = c.createGain();
+  mix.gain.value = 0.22;
+  [[820, 5, 1], [2050, 6, 0.8], [3300, 6, 0.35]].forEach(([hz, q, amp]) => {
+    const f = c.createBiquadFilter();
+    f.type = "bandpass";
+    f.frequency.value = hz;
+    f.Q.value = q;
+    const a = c.createGain();
+    a.gain.value = amp;
+    voice.connect(f).connect(a).connect(mix);
+  });
+
+  // 声の強弱: 出だしは鋭く、あとはざらざらと震えながら、すっと消える
+  const env = c.createGain();
+  env.gain.setValueAtTime(0, t);
+  env.gain.linearRampToValueAtTime(1, t + 0.025);
+  env.gain.setValueAtTime(0.85, t + 0.12);
+  env.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+  const rasp = c.createGain();
+  rasp.gain.value = 0.65;
+  const rl = c.createOscillator();
+  const rd = c.createGain();
+  rl.frequency.value = 85;
+  rd.gain.value = 0.35;
+  rl.connect(rd).connect(rasp.gain);
+  rl.start(t);
+  rl.stop(t + dur + 0.05);
+
+  // 遠く: 高音を少しだけ落とし、小さく、反響を多めに
+  const far = c.createBiquadFilter();
+  far.type = "lowpass";
+  far.frequency.value = 3000;
+  const out = c.createGain();
+  out.gain.value = 0.16;
+  const p = c.createStereoPanner();
+  p.pan.value = pan;
+  mix.connect(rasp).connect(env).connect(far).connect(out).connect(p);
   p.connect(master);
   if (reverbBus) p.connect(reverbBus);
 }

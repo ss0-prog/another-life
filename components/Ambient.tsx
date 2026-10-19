@@ -782,6 +782,10 @@ export function Ambient() {
     const w = new URLSearchParams(window.location.search).get("weather");
     if (w === "clear" || w === "cloudy" || w === "rain" || w === "snow" || w === "thunder") setWeather(w);
   }, []);
+  // 空模様を、html に伝える(雨・雪・雷のときは、月が見えないので、文字の自動コントラストを止める。動く雨のうしろで、文字の色が、毎フレーム変わって、ちらつくため)。
+  useEffect(() => {
+    document.documentElement.dataset.weather = weather;
+  }, [weather]);
   return (
     <div aria-hidden className="ambient-root pointer-events-none fixed inset-0 -z-10 overflow-hidden" style={{ opacity: ready ? 1 : 0 }}>
       {/* 空の色: 4つの空を重ね、段階ごとに、ゆっくり入れ替える(夜 → 朝焼け → 昼 → 夕焼け → 夜) */}

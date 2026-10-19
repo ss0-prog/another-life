@@ -819,6 +819,13 @@ html:not([data-tod-lock])[data-phase="night"] main :is(button, input, select, te
   mix-blend-mode: normal;
 }
 
+/* 雨・雪・雷のときは、月が見えない。動く雨のうしろで、文字の色が毎フレーム変わらないよう、自動コントラストは使わない */
+html[data-weather="rain"] main *,
+html[data-weather="thunder"] main *,
+html[data-weather="snow"] main * {
+  mix-blend-mode: normal !important;
+}
+
 /* 昼は、明るい青空の上で、文字が読みにくいので、文字の縁を、ごく細く、足して太く見せる(文字の太さは変えない。変えると、切り替えのときに、文字の折り返しが変わって、画面が揺れる) */
 main,
 footer {

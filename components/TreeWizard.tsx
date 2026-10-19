@@ -597,6 +597,16 @@ export function TreeWizard({ t, onSubmit, auth, prefill }: Props) {
   const remaining = pending + chainLeft + stillToCome;
   const total = answeredCount + remaining;
 
+  // 次の質問へ進んだとき(戻ったときも)、画面を一番上まで戻す。
+  const firstStep = useRef(true);
+  useEffect(() => {
+    if (firstStep.current) {
+      firstStep.current = false;
+      return;
+    }
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }, [answers.length]);
+
   // さかのぼっている間は、見せる枝の数(shown)を、ひとつずつ減らす。
   const [cut, setCut] = useState<number | null>(null);
   const shown = cut ?? answers.length;

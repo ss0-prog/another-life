@@ -42,8 +42,6 @@ export default function Home() {
   const [realRun, setRealRun] = useState<GameState | null>(null);
 
   // マルチバース: 同じ運命(同じ種)のまま、別の道を歩んだ、ほかの宇宙。最大3つまで。
-  const MAX_UNIVERSES = 3;
-  const [past, setPast] = useState<{ label: string; life: LifeSummary }[]>([]);
   const [multi, setMulti] = useState(false);
   // 遊ぶ画面を、はじめから作りなおすための番号(やり直すたびに増やす。同じ画面のまま、前の人生が残らないように)。
   const [runId, setRunId] = useState(0);
@@ -52,7 +50,6 @@ export default function Home() {
   // 左上のタイトルが押されたら、トップ画面にもどる(遊んでいる途中なら、確かめてから)。
   useEffect(() => {
     const goHome = () => {
-      setPast([]);
       setMulti(false);
       setPrefill(null);
       setPhase({ name: "home" });
@@ -89,7 +86,6 @@ export default function Home() {
     setSetup(next);
     if (!keep) {
       setRealRun(autoRun(startReal(next)));
-      setPast([]);
     }
     setMulti(false);
     setRunId((n) => n + 1);
@@ -311,18 +307,14 @@ export default function Home() {
                 canPublish={Boolean(user)}
                 publishEnabled={enabled}
                 onLogin={() => void login()}
-                others={past}
-                multiLeft={MAX_UNIVERSES - 1 - past.length}
                 onMulti={() => {
-                  // いまの宇宙を、ほかの宇宙として残し、ターニングポイントの選び直しへ(「いまのあなた」の入力は、そのまま)。
+                  // ターニングポイントの選び直しへ(「いまのあなた」の入力と、運命は、そのまま)。何度でも、やり直せる。
                   if (!setup) return;
-                  setPast([...past, { label: phase.altLabel, life: phase.alt }]);
                   setMulti(true);
                   setPrefill(setup.self);
                   setPhase({ name: "wizard" });
                 }}
                 onAgain={() => {
-                  setPast([]);
                   setMulti(false);
                   setPrefill(null);
                   setPhase({ name: "wizard" });

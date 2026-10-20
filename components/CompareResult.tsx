@@ -93,12 +93,12 @@ export function CompareResult({ t, real, alt, onSave, canPublish, publishEnabled
       )}
 
       <FadeIn delay={afterScene} className="mt-24 flex flex-col items-center gap-6">
-        {onMulti && multiLeft > 0 && (
+        {onMulti && (
           <div className="text-center">
             <button type="button" onClick={onMulti} className="border border-warm/70 bg-warm/10 px-8 py-3 text-base font-bold tracking-[0.2em] text-mist transition-colors hover:border-warm">
-              同じ運命のまま、別の道を試す(あと{multiLeft}つ)
+              同じ条件で、別の道を試す
             </button>
-            <p className="mt-2 text-xs leading-6 tracking-wider text-dim">ターニングポイントまで巻き戻します。景気や空模様は同じまま選ぶ道だけを変えて、並べて比べられます。</p>
+            <p className="mt-2 text-xs leading-6 tracking-wider text-dim">ターニングポイントまで巻き戻します。景気や空模様は同じまま、選ぶ道だけを変えて、何度でも試せます。</p>
           </div>
         )}
         {publishEnabled && (

@@ -3,7 +3,7 @@
 import { splitEvent } from "@/components/EventText";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
-import { archiveEnabled, listShared, sampleList, type ArchiveEntry } from "@/lib/archive";
+import { archiveEnabled, listShared, type ArchiveEntry } from "@/lib/archive";
 
 const STAT_LABEL = { health: "健康", money: "経済", bonds: "つながり", learn: "学び", joy: "幸福度" } as const;
 const STAT_KEYS = ["health", "money", "bonds", "learn", "joy"] as const;
@@ -36,7 +36,7 @@ function EntryCard({ e }: { e: ArchiveEntry }) {
       {/* 見出し(スマホでは、タップで、詳しい内容が下にひらく) */}
       <button type="button" onClick={() => setOpen((o) => !o)} aria-expanded={open} className="block w-full px-5 py-5 text-left sm:cursor-default sm:px-6 sm:py-6">
         <span className="flex items-center justify-between gap-3 text-xs tracking-[0.2em] text-haze">
-          <span className="keep">{e.sample ? "サンプル" : "公開された人生"}</span>
+          <span className="keep">公開された人生</span>
           <span className="keep">{e.branchAge}歳のとき</span>
         </span>
         <span className="mt-3 block text-[11px] tracking-[0.2em] text-warm">あなたの人生のターニングポイント{tp.kind ? `(${tp.kind})` : ""}</span>
@@ -172,7 +172,6 @@ function matches(e: ArchiveEntry, f: Filters, hay: string): boolean {
 const chip = (on: boolean) => `border px-3 py-1 text-xs tracking-wider transition-colors ${on ? "border-warm bg-warm/15 text-mist" : "border-line text-haze hover:border-haze hover:text-mist"}`;
 
 export default function ArchivePage() {
-  const samples = useMemo(() => sampleList(), []);
   const [shared, setShared] = useState<ArchiveEntry[] | null>(archiveEnabled ? null : []);
   const [f, setF] = useState<Filters>(NO_FILTER);
 
@@ -180,13 +179,12 @@ export default function ArchivePage() {
     if (archiveEnabled) listShared().then(setShared);
   }, []);
 
-  const all = useMemo(() => [...(shared ?? []), ...samples], [shared, samples]);
+  const all = useMemo(() => shared ?? [], [shared]);
   const kinds = useMemo(() => [...new Set(all.map((e) => splitLabel(e.branchLabel).kind).filter(Boolean))], [all]);
   const causes = useMemo(() => [...new Set(all.map((e) => e.alt.deathCause).filter((c): c is string => Boolean(c)))], [all]);
   const hays = useMemo(() => new Map(all.map((e) => [e.id, haystack(e)])), [all]);
   const filter = (list: ArchiveEntry[]) => list.filter((e) => matches(e, f, hays.get(e.id) ?? ""));
   const sharedF = useMemo(() => filter(shared ?? []), [shared, f, hays]); // eslint-disable-line react-hooks/exhaustive-deps
-  const samplesF = useMemo(() => filter(samples), [samples, f, hays]); // eslint-disable-line react-hooks/exhaustive-deps
   const active = JSON.stringify(f) !== JSON.stringify(NO_FILTER);
   const set = (patch: Partial<Filters>) => setF((cur) => ({ ...cur, ...patch }));
 
@@ -252,7 +250,7 @@ export default function ArchivePage() {
         </div>
         <div className="mt-4 flex flex-wrap items-center justify-between gap-3 text-xs tracking-wider text-dim">
           <span>
-            {sharedF.length + samplesF.length}件が見つかりました(全{all.length}件)
+            {sharedF.length}件が見つかりました(全{all.length}件)
           </span>
           {active && (
             <button type="button" onClick={() => setF(NO_FILTER)} className="text-haze underline underline-offset-4 hover:text-mist">
@@ -262,25 +260,19 @@ export default function ArchivePage() {
         </div>
       </section>
 
-      {archiveEnabled && (
-        <section className="mt-14">
-          <h2 className="border-l-2 border-warm pl-4 text-lg tracking-[0.2em] text-warm">公開された人生</h2>
-          {shared === null ? (
-            <p className="mt-6 text-sm tracking-wider text-haze">読み込んでいます</p>
-          ) : shared.length === 0 ? (
-            <p className="mt-6 text-sm leading-8 tracking-wider text-haze">まだ公開された人生はありません。あなたの結果を保存するときに公開することもできます。</p>
-          ) : sharedF.length === 0 ? (
-            <p className="mt-6 text-sm leading-8 tracking-wider text-haze">条件に合う公開された人生は見つかりませんでした。</p>
-          ) : (
-            <PagedGrid entries={sharedF} />
-          )}
-        </section>
-      )}
-
       <section className="mt-14">
-        <h2 className="border-l-2 border-warm pl-4 text-lg tracking-[0.2em] text-warm">サンプルの人生</h2>
-        <p className="mt-4 text-sm leading-8 tracking-wider text-haze">統計シミュレーションだけでつくった、架空の人生です。</p>
-        {samplesF.length === 0 ? <p className="mt-6 text-sm leading-8 tracking-wider text-haze">条件に合うサンプルは見つかりませんでした。</p> : <PagedGrid entries={samplesF} />}
+        <h2 className="border-l-2 border-warm pl-4 text-lg tracking-[0.2em] text-warm">公開された人生</h2>
+        {!archiveEnabled ? (
+          <p className="mt-6 text-sm leading-8 tracking-wider text-haze">人生を公開する機能は、まだ準備中です。</p>
+        ) : shared === null ? (
+          <p className="mt-6 text-sm tracking-wider text-haze">読み込んでいます</p>
+        ) : shared.length === 0 ? (
+          <p className="mt-6 text-sm leading-8 tracking-wider text-haze">まだ公開された人生はありません。あなたの結果を保存するときに公開することもできます。</p>
+        ) : sharedF.length === 0 ? (
+          <p className="mt-6 text-sm leading-8 tracking-wider text-haze">条件に合う公開された人生は見つかりませんでした。</p>
+        ) : (
+          <PagedGrid entries={sharedF} />
+        )}
       </section>
     </div>
   );

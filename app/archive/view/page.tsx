@@ -41,7 +41,7 @@ function ArchiveEntry() {
 
   return (
     <div className="mx-auto w-full max-w-[120rem] px-6 sm:px-12 pb-24 pt-12">
-      <p className="text-center text-xs tracking-[0.3em] text-haze">{entry.sample ? "サンプルの人生" : "公開された人生"}</p>
+      <p className="text-center text-xs tracking-[0.3em] text-haze">公開された人生</p>
       <h1 className="mt-4 text-center text-xl leading-9 tracking-[0.2em] text-mist">{entry.branchLabel}</h1>
       <p className="mt-2 text-center text-sm tracking-wider text-haze">{entry.branchAge}歳で分かれた二つの人生</p>
 

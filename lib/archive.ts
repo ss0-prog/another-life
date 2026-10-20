@@ -13,7 +13,8 @@ export type PublicLife = Pick<LifeSummary, "deathAge" | "stats" | "assets"> & { 
 
 export type ArchiveEntry = {
   id: string;
-  createdAt: string | null; // サンプルは null
+  createdAt: string | null;
+  // 昔のサンプル(いまは使わない)との互換のため、残してある。いつも false。
   sample: boolean;
   branchLabel: string;
   branchAge: number;
@@ -35,42 +36,6 @@ export function entryFrom(id: string, setup: Setup, alt: LifeSummary, real: Life
   return { id, createdAt: new Date().toISOString(), sample: false, branchLabel: branchLabelOf(setup), branchAge: setup.branch.age, alt: toPublic(alt), real: toPublic(real), owner };
 }
 
-// サンプル: 種から決まる、統計シミュレーションだけでつくった人生(選択は標準の道)。
-export function makeSample(n: number): ArchiveEntry {
-  const rng = createRng(n * 2654435761);
-  const prefecture = pick(rng, jpData.prefectures);
-  const occs = Object.keys(jpData.occLabel).filter((k) => k !== "retired" && k !== "student") as Exclude<CurrentSelf["occ"], "none">[];
-  const self: CurrentSelf = {
-    age: 30 + Math.floor(rng() * 35),
-    prefecture: prefecture.name,
-    sex: pick(rng, ["female", "male", "none"] as const),
-    condition: "none",
-    mbti: null,
-    edu: pick(rng, ["hs_work", "vocational", "univ", "univ", "grad"] as const),
-    occ: pick(rng, occs),
-    job: null,
-    workStyle: pick(rng, ["private", "private", "private", "public", "self"] as const),
-    region: pick(rng, ["tokyo", "metro", "local", "local", "rural"] as const),
-    married: rng() < 0.6,
-    kids: Math.floor(rng() * 3),
-    housing: pick(rng, ["owned", "rent", "rent", "parents"] as const),
-    savings: null,
-  };
-  if (!self.married) self.kids = 0;
-  const kind = pick(rng, ["education", "job", "place", "family"] as const) as BranchKind;
-  const options = jpData.branches[kind].options.filter((o) => !o.matches(self));
-  const option = pick(rng, options);
-  const age = Math.min(jpData.branches[kind].defaultAge, self.age - 1);
-  const setup: Setup = { self, branch: { kind, option: option.id, age }, seed: n * 7919 + 17 };
-  const alt = summarize(autoRun(startAlt(setup)));
-  const real = summarize(autoRun(startReal(setup)));
-  return { id: `sample-${n}`, createdAt: null, sample: true, branchLabel: branchLabelOf(setup), branchAge: age, alt: toPublic(alt), real: toPublic(real) };
-}
-
-export const SAMPLE_COUNT = 18;
-export const isSampleId = (id: string) => /^sample-\d+$/.test(id);
-export const sampleList = () => Array.from({ length: SAMPLE_COUNT }, (_, i) => makeSample(i + 1));
-
 export const archiveEnabled = firebaseEnabled;
 
 export async function listShared(): Promise<ArchiveEntry[]> {
@@ -84,10 +49,6 @@ export async function listShared(): Promise<ArchiveEntry[]> {
 }
 
 export async function getShared(id: string): Promise<ArchiveEntry | null> {
-  if (isSampleId(id)) {
-    const n = Number(id.slice(7));
-    return n >= 1 && n <= SAMPLE_COUNT ? makeSample(n) : null;
-  }
   if (!firebaseEnabled) return null;
   try {
     const snap = await getDoc(doc(getDb(), "shared", id));

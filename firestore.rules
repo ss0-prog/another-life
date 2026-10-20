@@ -11,7 +11,7 @@ service cloud.firestore {
       allow read, write: if request.auth != null && request.auth.uid == uid;
     }
 
-    // みんなの人生(本人が公開を選んだもの): だれでも読める。作成・削除はログインした本人だけ。
+    // 誰かの人生(本人が公開を選んだもの): だれでも読める。作成・削除はログインした本人だけ。
     match /shared/{id} {
       allow read: if true;
       allow create: if request.auth != null

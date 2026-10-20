@@ -191,8 +191,8 @@ export default function ArchivePage() {
   return (
     <div className="mx-auto w-full max-w-[120rem] px-[2.5vw] pb-24 pt-12 sm:px-12">
       <h1 className="text-center text-2xl tracking-[0.3em] text-mist">誰かの人生</h1>
-      <p className="mx-auto mt-6 max-w-xl w-fit text-left text-sm leading-8 tracking-wider text-haze sm:text-base sm:leading-9 lg:max-w-none lg:whitespace-nowrap">
-        ターニングポイントのもう一方を歩いた人たちの、一生です。
+      <p className="cq mx-auto mt-6 w-full max-w-2xl text-center text-base leading-9 tracking-wider text-haze [--fit:30]">
+        <span className="fit-line">ターニングポイントのもう一方を歩いた人たちの、一生です。</span>
       </p>
 
       {/* 検索: 人生の特徴(ターニングポイント・職業・地域・最期の原因・出来事)で探す */}

@@ -217,7 +217,7 @@ export function AssetPanel({ t, state, month, onTrade, onStartStocks, onPlan, on
                     </dd>
                   </div>
                 </dl>
-                <p className="mt-2">税の計算は、実際の制度をもとにした簡略版です(くわしくは「データについて」)。</p>
+                <p className="mt-2">税の計算は、実際の制度をもとにした簡略版です(出典は「データについて」)。</p>
               </div>
             )}
           </div>

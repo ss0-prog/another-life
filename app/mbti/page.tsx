@@ -112,7 +112,7 @@ export default function MbtiPage() {
           </li>
         </ul>
         <p>
-          数字の仮定について、くわしくは、<Link href="/sources" className="text-warm underline underline-offset-4">データについて</Link>のページに書いています。
+          もとにした統計の出典は、<Link href="/sources" className="text-warm underline underline-offset-4">データについて</Link>のページに書いています。
         </p>
       </Section>
     </PageShell>

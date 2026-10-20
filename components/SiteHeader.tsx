@@ -27,7 +27,7 @@ const DRAWER_LINKS = [
   { href: "/archive", label: t.nav.archive, desc: "ほかの人の一生を見る・探す" },
   { href: "/collection", label: "コレクション", desc: "達成した実績を集めてならべる" },
   { href: "/mbti", label: "MBTIについて", desc: "16タイプの説明とゲームでの使われ方" },
-  { href: "/sources", label: t.nav.sources, desc: "もとにした統計と設計上の仮定" },
+  { href: "/sources", label: t.nav.sources, desc: "もとにした統計の出典" },
   { href: "/privacy", label: t.nav.privacy, desc: "入力した情報の扱い" },
   { href: "/contact", label: t.nav.contact, desc: "ご意見・ご質問" },
 ] as const;

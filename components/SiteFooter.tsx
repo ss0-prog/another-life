@@ -134,7 +134,7 @@ export function SiteFooter() {
               </li>
             ))}
           </ul>
-          <p className="mt-3 text-[11px] leading-5 tracking-wider text-dim">実在の統計をもとに確率を設計しています。統計の数字と設計上の仮定は「データについて」ではっきり分けて書いています。</p>
+          <p className="mt-3 text-[11px] leading-5 tracking-wider text-dim">実在の統計をもとに確率を設計しています。もとにした統計の出典は「データについて」に書いています。</p>
         </div>
 
         <div className="mt-8 flex flex-col items-center justify-between gap-2 border-t border-line/60 pt-5 text-[11px] tracking-wider text-dim sm:flex-row">

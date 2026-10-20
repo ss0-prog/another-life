@@ -1,6 +1,6 @@
 "use client";
 
-import { collection, deleteDoc, doc, getDoc, getDocs, limit, orderBy, query, setDoc } from "firebase/firestore";
+import { addDoc, collection, deleteDoc, doc, getDoc, getDocs, limit, orderBy, query, setDoc } from "firebase/firestore";
 import { firebaseEnabled, getDb } from "@/lib/firebase";
 import { jpData } from "@/lib/sim/data/jp";
 import { autoRun, startAlt, startReal, summarize } from "@/lib/sim/engine";
@@ -70,6 +70,38 @@ export async function publishEntry(entry: ArchiveEntry): Promise<boolean> {
 export async function unpublishEntry(id: string): Promise<boolean> {
   try {
     await deleteDoc(doc(getDb(), "shared", id));
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+export type Comment = { id: string; author: string; text: string; createdAt: string };
+
+export const COMMENT_MAX = 500;
+
+export async function listComments(entryId: string): Promise<Comment[]> {
+  if (!firebaseEnabled) return [];
+  try {
+    const q = query(collection(getDb(), "shared", entryId, "comments"), orderBy("createdAt", "asc"), limit(200));
+    return (await getDocs(q)).docs.map((d) => ({ ...(d.data() as Omit<Comment, "id">), id: d.id }));
+  } catch {
+    return [];
+  }
+}
+
+export async function addComment(entryId: string, author: string, text: string): Promise<boolean> {
+  try {
+    await addDoc(collection(getDb(), "shared", entryId, "comments"), { author, text: text.trim().slice(0, COMMENT_MAX), createdAt: new Date().toISOString() });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+export async function deleteComment(entryId: string, commentId: string): Promise<boolean> {
+  try {
+    await deleteDoc(doc(getDb(), "shared", entryId, "comments", commentId));
     return true;
   } catch {
     return false;

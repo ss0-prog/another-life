@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
+import { Comments } from "@/components/Comments";
 import { ShareButtons } from "@/components/ShareButtons";
 import { LifeCard } from "@/components/CompareResult";
 import { getShared, unpublishEntry, type ArchiveEntry } from "@/lib/archive";
@@ -51,6 +52,8 @@ function ArchiveEntry() {
       </div>
 
       <p className="mx-auto mt-14 max-w-md w-fit text-left text-xs leading-6 tracking-wider text-dim">{t.disclaimer}</p>
+
+      <Comments entryId={entry.id} ownerId={entry.owner} />
 
       <div className="mt-10 flex flex-col items-center gap-5">
         <ShareButtons text={`${entry.branchLabel}(${entry.branchAge}歳)で分かれた二つの人生。`} />

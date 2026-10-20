@@ -191,7 +191,7 @@ export default function ArchivePage() {
   return (
     <div className="mx-auto w-full max-w-[120rem] px-[2.5vw] pb-24 pt-12 sm:px-12">
       <h1 className="text-center text-2xl tracking-[0.3em] text-mist">誰かの人生</h1>
-      <p className="mx-auto mt-6 max-w-xl w-fit text-left text-base leading-9 tracking-wider text-haze lg:max-w-none lg:whitespace-nowrap">
+      <p className="mx-auto mt-6 max-w-xl w-fit text-left text-sm leading-8 tracking-wider text-haze sm:text-base sm:leading-9 lg:max-w-none lg:whitespace-nowrap">
         ターニングポイントのもう一方を歩いた人たちの、一生です。<span className="inline-block">名前も連絡先もなく人生だけが残ります。</span>
       </p>
 
@@ -207,7 +207,7 @@ export default function ArchivePage() {
         />
         <div className="mt-4 space-y-3">
           <div className="flex flex-wrap items-center gap-2">
-            <span className="keep w-28 shrink-0 text-xs tracking-wider text-haze">ターニングポイント</span>
+            <span className="keep w-full shrink-0 sm:w-28 text-xs tracking-wider text-haze">ターニングポイント</span>
             <button type="button" onClick={() => set({ kind: "" })} className={chip(f.kind === "")}>すべて</button>
             {kinds.map((k) => (
               <button key={k} type="button" onClick={() => set({ kind: f.kind === k ? "" : k })} className={chip(f.kind === k)}>
@@ -216,7 +216,7 @@ export default function ArchivePage() {
             ))}
           </div>
           <div className="flex flex-wrap items-center gap-2">
-            <span className="keep w-28 shrink-0 text-xs tracking-wider text-haze">そのときの年齢</span>
+            <span className="keep w-full shrink-0 sm:w-28 text-xs tracking-wider text-haze">そのときの年齢</span>
             <button type="button" onClick={() => set({ age: "" })} className={chip(f.age === "")}>すべて</button>
             {AGE_BANDS.map(([id, label]) => (
               <button key={id} type="button" onClick={() => set({ age: f.age === id ? "" : id })} className={chip(f.age === id)}>
@@ -225,20 +225,20 @@ export default function ArchivePage() {
             ))}
           </div>
           <div className="flex flex-wrap items-center gap-2">
-            <span className="keep w-28 shrink-0 text-xs tracking-wider text-haze">寿命</span>
+            <span className="keep w-full shrink-0 sm:w-28 text-xs tracking-wider text-haze">寿命</span>
             <button type="button" onClick={() => set({ life: "" })} className={chip(f.life === "")}>すべて</button>
             <button type="button" onClick={() => set({ life: f.life === "longer" ? "" : "longer" })} className={chip(f.life === "longer")}>長くなった</button>
             <button type="button" onClick={() => set({ life: f.life === "shorter" ? "" : "shorter" })} className={chip(f.life === "shorter")}>短くなった</button>
           </div>
           <div className="flex flex-wrap items-center gap-2">
-            <span className="keep w-28 shrink-0 text-xs tracking-wider text-haze">資産</span>
+            <span className="keep w-full shrink-0 sm:w-28 text-xs tracking-wider text-haze">資産</span>
             <button type="button" onClick={() => set({ asset: "" })} className={chip(f.asset === "")}>すべて</button>
             <button type="button" onClick={() => set({ asset: f.asset === "richer" ? "" : "richer" })} className={chip(f.asset === "richer")}>増えた</button>
             <button type="button" onClick={() => set({ asset: f.asset === "poorer" ? "" : "poorer" })} className={chip(f.asset === "poorer")}>減った</button>
           </div>
           {causes.length > 0 && (
             <div className="flex flex-wrap items-center gap-2">
-              <span className="keep w-28 shrink-0 text-xs tracking-wider text-haze">最期の原因</span>
+              <span className="keep w-full shrink-0 sm:w-28 text-xs tracking-wider text-haze">最期の原因</span>
               <button type="button" onClick={() => set({ cause: "" })} className={chip(f.cause === "")}>すべて</button>
               {causes.map((c) => (
                 <button key={c} type="button" onClick={() => set({ cause: f.cause === c ? "" : c })} className={chip(f.cause === c)}>

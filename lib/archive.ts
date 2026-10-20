@@ -65,7 +65,8 @@ export async function publishEntry(entry: ArchiveEntry): Promise<boolean> {
   try {
     await setDoc(doc(getDb(), "shared", entry.id), entry);
     return true;
-  } catch {
+  } catch (e) {
+    console.error("publish failed", e);
     return false;
   }
 }

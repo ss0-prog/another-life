@@ -2,7 +2,7 @@
 
 import { getApp, getApps, initializeApp, type FirebaseApp } from "firebase/app";
 import { getAuth, type Auth } from "firebase/auth";
-import { getFirestore, type Firestore } from "firebase/firestore";
+import { getFirestore, initializeFirestore, type Firestore } from "firebase/firestore";
 
 // Firebase の Web 設定は公開前提の値(秘密情報ではない)。アクセス制御は Firestore ルールで行う。
 const config = {
@@ -20,4 +20,14 @@ function app(): FirebaseApp {
 }
 
 export const getFirebaseAuth = (): Auth => getAuth(app());
-export const getDb = (): Firestore => getFirestore(app());
+// 値が undefined の項目があっても、保存に失敗しないようにする(その項目は、書き込まない)。
+let db: Firestore | null = null;
+export const getDb = (): Firestore => {
+  if (db) return db;
+  try {
+    db = initializeFirestore(app(), { ignoreUndefinedProperties: true });
+  } catch {
+    db = getFirestore(app());
+  }
+  return db;
+};

@@ -34,7 +34,8 @@ export const cloudEchoStore = {
     try {
       await setDoc(doc(getDb(), "users", uid, "echoes", echo.id), echo);
       return true;
-    } catch {
+    } catch (e) {
+      console.error("echo save failed", e);
       return false;
     }
   },

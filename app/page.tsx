@@ -76,9 +76,9 @@ export default function Home() {
     if (process.env.NODE_ENV !== "production") setDev(new URLSearchParams(window.location.search).get("dev") === "1");
   }, []);
 
-  const startPlay = (self: CurrentSelf, branch: Branch, fresh = false) => {
+  const startPlay = (self: CurrentSelf, branch: Branch, fresh = false, keepFate = false) => {
     // 巻き戻しのときは、同じ種(景気・空模様・めぐり合わせ)のまま、選ぶ道だけを変える。
-    const keep = !fresh && multi && setup;
+    const keep = setup && (keepFate || (!fresh && multi));
     const next: Setup = { self: keep ? setup.self : self, branch, seed: keep ? setup.seed : Math.floor(Math.random() * 2 ** 31) };
     // 入力した条件は、このブラウザに覚えておく(次から、入力を飛ばして始められる)。
     profileLocal.set({ self: next.self, branch: next.branch });
@@ -308,11 +308,9 @@ export default function Home() {
                 publishEnabled={enabled}
                 onLogin={() => void login()}
                 onMulti={() => {
-                  // ターニングポイントの選び直しへ(「いまのあなた」の入力と、運命は、そのまま)。何度でも、やり直せる。
+                  // 同じ条件(いまのあなた・ターニングポイント・運命)のまま、すぐに、遊ぶ画面へ。何度でも、やり直せる。
                   if (!setup) return;
-                  setMulti(true);
-                  setPrefill(setup.self);
-                  setPhase({ name: "wizard" });
+                  startPlay(setup.self, setup.branch, false, true);
                 }}
                 onAgain={() => {
                   setMulti(false);

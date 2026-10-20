@@ -96,9 +96,8 @@ export function CompareResult({ t, real, alt, onSave, canPublish, publishEnabled
         {onMulti && (
           <div className="text-center">
             <button type="button" onClick={onMulti} className="border border-warm/70 bg-warm/10 px-8 py-3 text-base font-bold tracking-[0.2em] text-mist transition-colors hover:border-warm">
-              同じ条件で、別の道を試す
+              同じ条件で、別の人生を試す
             </button>
-            <p className="mt-2 text-xs leading-6 tracking-wider text-dim">ターニングポイントまで巻き戻します。景気や空模様は同じまま、選ぶ道だけを変えて、何度でも試せます。</p>
           </div>
         )}
         {publishEnabled && (

@@ -119,7 +119,7 @@ export function SiteFooter() {
               </li>
             ))}
           </ul>
-          <p className="mt-3 text-[11px] leading-5 tracking-wider text-dim">くわしくは「プライバシー」のページに書いています。</p>
+          <p className="mt-3 text-[11px] leading-5 tracking-wider text-dim">くわしくは「プライバシーポリシー」のページに書いています。</p>
         </div>
 
         {/* データの出典 */}

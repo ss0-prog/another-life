@@ -3,14 +3,14 @@ import Link from "next/link";
 import { PageShell, Section } from "@/components/PageShell";
 
 export const metadata: Metadata = {
-  title: "プライバシー",
+  title: "プライバシーポリシー",
   alternates: { canonical: "/privacy" },
   description: "入力した情報の扱いについて。",
 };
 
 export default function PrivacyPage() {
   return (
-    <PageShell title="プライバシー" lead="入力された情報を、どこで、どのように扱うのかをまとめています。">
+    <PageShell title="プライバシーポリシー" lead="入力された情報を、どこで、どのように扱うのかをまとめています。">
       <Section title="入力した内容">
         <p>年齢・出生地・性別・性自認・惹かれる相手・先天性の持病・MBTI・仕事・貯金などの入力は、あなたの端末(ブラウザ)の中でだけ計算に使われます。サーバーには送信されません。</p>
       </Section>

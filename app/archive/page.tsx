@@ -192,7 +192,7 @@ export default function ArchivePage() {
     <div className="mx-auto w-full max-w-[120rem] px-[2.5vw] pb-24 pt-12 sm:px-12">
       <h1 className="text-center text-2xl tracking-[0.3em] text-mist">誰かの人生</h1>
       <p className="mx-auto mt-6 max-w-xl w-fit text-left text-sm leading-8 tracking-wider text-haze sm:text-base sm:leading-9 lg:max-w-none lg:whitespace-nowrap">
-        ターニングポイントのもう一方を歩いた人たちの、一生です。<span className="inline-block">名前も連絡先もなく人生だけが残ります。</span>
+        ターニングポイントのもう一方を歩いた人たちの、一生です。
       </p>
 
       {/* 検索: 人生の特徴(ターニングポイント・職業・地域・最期の原因・出来事)で探す */}

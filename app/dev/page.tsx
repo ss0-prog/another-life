@@ -95,7 +95,7 @@ export default function DevPage() {
     return (
       <div className="w-full px-6 pb-24 pt-10 sm:px-10">
         <button type="button" onClick={() => setMode({ name: "form" })} className="mb-6 border border-line px-3 py-1 text-xs text-haze hover:text-mist">← 条件にもどる</button>
-        <CompareResult t={t.result} real={mode.real} alt={mode.alt} altLabel={mode.label} onSave={async () => "local"} canPublish={false} onAgain={() => setMode({ name: "form" })} />
+        <CompareResult t={t.result} real={mode.real} alt={mode.alt} altLabel={mode.label} onSave={async () => "local"} canPublish={false} publishEnabled={false} onLogin={() => {}} onAgain={() => setMode({ name: "form" })} />
       </div>
     );
 

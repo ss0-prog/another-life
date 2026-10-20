@@ -18,8 +18,10 @@ type Props = {
   t: Messages["result"];
   real: LifeSummary;
   alt: LifeSummary;
-  onSave: (publish: boolean) => Promise<"cloud" | "local" | "failed">;
+  onSave: (publish: boolean) => Promise<"cloud" | "local" | "failed" | "publishFailed">;
   canPublish: boolean;
+  publishEnabled: boolean;
+  onLogin: () => void;
   onAgain: () => void;
   // マルチバース: 同じ運命のまま、別の道を歩んだ、ほかの宇宙。
   altLabel?: string;
@@ -30,7 +32,7 @@ type Props = {
 
 const STAT_KEYS = ["health", "money", "bonds", "learn", "joy"] as const;
 
-export function CompareResult({ t, real, alt, onSave, canPublish, onAgain, altLabel, others = [], onMulti, multiLeft = 0 }: Props) {
+export function CompareResult({ t, real, alt, onSave, canPublish, publishEnabled, onLogin, onAgain, altLabel, others = [], onMulti, multiLeft = 0 }: Props) {
   const [publish, setPublish] = useState(false);
   const [saved, setSaved] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
@@ -97,14 +99,30 @@ export function CompareResult({ t, real, alt, onSave, canPublish, onAgain, altLa
             <p className="mt-2 text-xs leading-6 tracking-wider text-dim">ターニングポイントまで巻き戻します。景気や空模様は同じまま選ぶ道だけを変えて、並べて比べられます。</p>
           </div>
         )}
-        {canPublish && (
-          <label className="flex max-w-md cursor-pointer items-start gap-3 text-sm leading-7 tracking-wider text-haze">
-            <input type="checkbox" checked={publish} onChange={(e) => setPublish(e.target.checked)} className="mt-2 accent-[#f0c994]" />
-            <span>
-              {t.publish}
-              <span className="block text-xs text-dim">{t.publishHint}</span>
-            </span>
-          </label>
+        {publishEnabled && (
+          <div className="flex max-w-md flex-col gap-2">
+            <label className={`flex items-start gap-3 text-sm leading-7 tracking-wider text-haze ${canPublish ? "cursor-pointer" : "cursor-not-allowed opacity-50"}`}>
+              <input
+                type="checkbox"
+                checked={canPublish && publish}
+                disabled={!canPublish}
+                onChange={(e) => setPublish(e.target.checked)}
+                className="mt-2 accent-[#f0c994]"
+              />
+              <span>
+                {t.publish}
+                <span className="block text-xs text-dim">{t.publishHint}</span>
+              </span>
+            </label>
+            {!canPublish && (
+              <p className="text-left text-xs leading-6 tracking-wider text-haze">
+                {t.publishNeedLogin}
+                <button type="button" onClick={onLogin} className="ml-2 underline underline-offset-4 transition-colors hover:text-mist">
+                  {t.login}
+                </button>
+              </p>
+            )}
+          </div>
         )}
         <div className="flex flex-wrap items-center justify-center gap-4 text-sm tracking-[0.2em]">
           <button
@@ -114,7 +132,7 @@ export function CompareResult({ t, real, alt, onSave, canPublish, onAgain, altLa
               setSaving(true);
               const r = await onSave(publish);
               setSaving(false);
-              setSaved(r === "cloud" ? t.savedCloud : r === "local" ? t.savedLocal : t.saveFailed);
+              setSaved(r === "cloud" ? t.savedCloud : r === "publishFailed" ? t.publishFailed : r === "local" ? t.savedLocal : t.saveFailed);
             }}
             className="border border-warm/60 bg-warm/5 px-6 py-3 text-mist transition-colors hover:border-warm disabled:opacity-50"
           >

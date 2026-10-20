@@ -118,13 +118,14 @@ export default function Home() {
   };
 
   // ログイン中はアカウント(Firestore)、未ログインならこのブラウザに保存する。
-  const save = async (publish: boolean): Promise<"cloud" | "local" | "failed"> => {
+  const save = async (publish: boolean): Promise<"cloud" | "local" | "failed" | "publishFailed"> => {
     if (phase.name !== "result" || !setup) return "failed";
     const item = { id: crypto.randomUUID(), createdAt: new Date().toISOString(), setup, alt: phase.alt, real: phase.real };
     if (user) {
       const saved = await cloudEchoStore.save(user.uid, item);
-      if (saved && publish) await publishEntry(entryFrom(item.id, setup, phase.alt, phase.real, user.uid));
-      return saved ? "cloud" : "failed";
+      if (!saved) return "failed";
+      if (publish && !(await publishEntry(entryFrom(item.id, setup, phase.alt, phase.real, user.uid)))) return "publishFailed";
+      return "cloud";
     }
     return echoStore.save(item) ? "local" : "failed";
   };
@@ -308,6 +309,8 @@ export default function Home() {
                 altLabel={phase.altLabel}
                 onSave={save}
                 canPublish={Boolean(user)}
+                publishEnabled={enabled}
+                onLogin={() => void login()}
                 others={past}
                 multiLeft={MAX_UNIVERSES - 1 - past.length}
                 onMulti={() => {

@@ -1,6 +1,6 @@
 "use client";
 
-import { addDoc, collection, deleteDoc, doc, getDoc, getDocs, limit, orderBy, query, setDoc } from "firebase/firestore";
+import { collection, deleteDoc, doc, getDoc, getDocs, limit, orderBy, query, setDoc } from "firebase/firestore";
 import { firebaseEnabled, getDb } from "@/lib/firebase";
 import { jpData } from "@/lib/sim/data/jp";
 import { autoRun, startAlt, startReal, summarize } from "@/lib/sim/engine";
@@ -21,6 +21,8 @@ export type ArchiveEntry = {
   alt: PublicLife;
   real: PublicLife;
   owner?: string;
+  // 公開した本人が、その人生にそえたひとこと。
+  comment?: string;
 };
 
 const toPublic = (l: LifeSummary): PublicLife => ({ deathAge: l.deathAge, deathCause: l.deathCause, stats: l.stats, assets: l.assets, echo: l.pub });
@@ -32,8 +34,9 @@ export const branchLabelOf = (setup: Setup) => {
 };
 
 // 本人が公開を選んだ結果から、アーカイブの1件をつくる。
-export function entryFrom(id: string, setup: Setup, alt: LifeSummary, real: LifeSummary, owner: string): ArchiveEntry {
-  return { id, createdAt: new Date().toISOString(), sample: false, branchLabel: branchLabelOf(setup), branchAge: setup.branch.age, alt: toPublic(alt), real: toPublic(real), owner };
+export function entryFrom(id: string, setup: Setup, alt: LifeSummary, real: LifeSummary, owner: string, comment = ""): ArchiveEntry {
+  const note = comment.trim().slice(0, COMMENT_MAX);
+  return { id, createdAt: new Date().toISOString(), sample: false, branchLabel: branchLabelOf(setup), branchAge: setup.branch.age, alt: toPublic(alt), real: toPublic(real), owner, ...(note ? { comment: note } : {}) };
 }
 
 export const archiveEnabled = firebaseEnabled;
@@ -76,34 +79,4 @@ export async function unpublishEntry(id: string): Promise<boolean> {
   }
 }
 
-export type Comment = { id: string; author: string; text: string; createdAt: string };
-
 export const COMMENT_MAX = 500;
-
-export async function listComments(entryId: string): Promise<Comment[]> {
-  if (!firebaseEnabled) return [];
-  try {
-    const q = query(collection(getDb(), "shared", entryId, "comments"), orderBy("createdAt", "asc"), limit(200));
-    return (await getDocs(q)).docs.map((d) => ({ ...(d.data() as Omit<Comment, "id">), id: d.id }));
-  } catch {
-    return [];
-  }
-}
-
-export async function addComment(entryId: string, author: string, text: string): Promise<boolean> {
-  try {
-    await addDoc(collection(getDb(), "shared", entryId, "comments"), { author, text: text.trim().slice(0, COMMENT_MAX), createdAt: new Date().toISOString() });
-    return true;
-  } catch {
-    return false;
-  }
-}
-
-export async function deleteComment(entryId: string, commentId: string): Promise<boolean> {
-  try {
-    await deleteDoc(doc(getDb(), "shared", entryId, "comments", commentId));
-    return true;
-  } catch {
-    return false;
-  }
-}

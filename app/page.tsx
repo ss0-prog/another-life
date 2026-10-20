@@ -118,13 +118,13 @@ export default function Home() {
   };
 
   // ログイン中はアカウント(Firestore)、未ログインならこのブラウザに保存する。
-  const save = async (publish: boolean): Promise<"cloud" | "local" | "failed" | "publishFailed"> => {
+  const save = async (publish: boolean, comment: string): Promise<"cloud" | "local" | "failed" | "publishFailed"> => {
     if (phase.name !== "result" || !setup) return "failed";
     const item = { id: crypto.randomUUID(), createdAt: new Date().toISOString(), setup, alt: phase.alt, real: phase.real };
     if (user) {
       const saved = await cloudEchoStore.save(user.uid, item);
       if (!saved) return "failed";
-      if (publish && !(await publishEntry(entryFrom(item.id, setup, phase.alt, phase.real, user.uid)))) return "publishFailed";
+      if (publish && !(await publishEntry(entryFrom(item.id, setup, phase.alt, phase.real, user.uid, comment)))) return "publishFailed";
       return "cloud";
     }
     return echoStore.save(item) ? "local" : "failed";

@@ -5,6 +5,7 @@ import { ShareButtons } from "@/components/ShareButtons";
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import { recordUnlocked } from "@/lib/achievementStore";
+import { COMMENT_MAX } from "@/lib/archive";
 import { soften } from "@/lib/jp";
 import { EventText } from "@/components/EventText";
 import type { Messages } from "@/lib/i18n";
@@ -18,7 +19,7 @@ type Props = {
   t: Messages["result"];
   real: LifeSummary;
   alt: LifeSummary;
-  onSave: (publish: boolean) => Promise<"cloud" | "local" | "failed" | "publishFailed">;
+  onSave: (publish: boolean, comment: string) => Promise<"cloud" | "local" | "failed" | "publishFailed">;
   canPublish: boolean;
   publishEnabled: boolean;
   onLogin: () => void;
@@ -34,6 +35,7 @@ const STAT_KEYS = ["health", "money", "bonds", "learn", "joy"] as const;
 
 export function CompareResult({ t, real, alt, onSave, canPublish, publishEnabled, onLogin, onAgain, altLabel, others = [], onMulti, multiLeft = 0 }: Props) {
   const [publish, setPublish] = useState(false);
+  const [comment, setComment] = useState("");
   const [saved, setSaved] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const afterScene = 3;
@@ -114,6 +116,20 @@ export function CompareResult({ t, real, alt, onSave, canPublish, publishEnabled
                 <span className="block text-xs text-dim">{t.publishHint}</span>
               </span>
             </label>
+            {canPublish && publish && (
+              <div>
+                <textarea
+                  value={comment}
+                  onChange={(e) => setComment(e.target.value.slice(0, COMMENT_MAX))}
+                  rows={3}
+                  placeholder={t.commentPlaceholder}
+                  className="w-full resize-y border border-line bg-transparent p-3 text-sm leading-7 tracking-wider text-mist placeholder:text-dim"
+                />
+                <p className="mt-1 text-right text-xs tracking-wider text-dim">
+                  {comment.length}/{COMMENT_MAX}
+                </p>
+              </div>
+            )}
             {!canPublish && (
               <p className="text-left text-xs leading-6 tracking-wider text-haze">
                 {t.publishNeedLogin}
@@ -130,7 +146,7 @@ export function CompareResult({ t, real, alt, onSave, canPublish, publishEnabled
             disabled={saving || (saved !== null && saved !== t.saveFailed)}
             onClick={async () => {
               setSaving(true);
-              const r = await onSave(publish);
+              const r = await onSave(publish, comment);
               setSaving(false);
               setSaved(r === "cloud" ? t.savedCloud : r === "publishFailed" ? t.publishFailed : r === "local" ? t.savedLocal : t.saveFailed);
             }}

@@ -254,6 +254,7 @@
     "pnl": "うち運用の損益",
     "unit": "万円",
     "publish": "この結果を「誰かの人生」に公開する",
+    "commentPlaceholder": "この人生に、ひとこと添えられます(任意)",
     "publishNeedLogin": "ログインすると、公開できます。",
     "login": "ログインする",
     "publishFailed": "保存しました(公開はできませんでした)",

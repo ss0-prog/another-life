@@ -24,6 +24,16 @@ service cloud.firestore {
       allow delete: if request.auth != null && resource.data.owner == request.auth.uid;
     }
 
+    // いま見ている人の数(管理者用): 訪問者は「いるよ」(時刻だけ)を書ける。数を読めるのは、管理者だけ。
+    match /presence/{sid} {
+      allow read: if request.auth != null
+                  && request.auth.token.email == '__ADMIN_EMAIL__'
+                  && request.auth.token.email_verified == true;
+      allow create, update: if request.resource.data.keys().hasOnly(['t'])
+                            && request.resource.data.t is number;
+      allow delete: if true;
+    }
+
     // お問い合わせ: 書き込みだけできる。読めるのは運営(コンソール)だけ。
     match /contacts/{id} {
       allow read, update, delete: if false;

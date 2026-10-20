@@ -335,7 +335,7 @@ export function PlayScreen({ t, initial, birthYear, selfAge, ghost, dev = false,
         <LifeRibbon age={state.deathAge ?? p.age} dead={dead} startAge={state.events[0]?.age ?? p.age} events={state.events.slice(0, seen)} />
 
         {naming && !dead && revealed ? (
-          <motion.div key={`name-${naming.kind}-${naming.index}`} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }} className="rounded-sm border border-warm/50 bg-panel px-6 py-7 shadow-[0_0_50px_rgba(240,201,148,0.12)]">
+          <motion.div key={`name-${naming.kind}-${naming.index}`} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }} className="relative z-[35] rounded-sm border border-warm/50 bg-panel px-6 py-7 shadow-[0_0_50px_rgba(240,201,148,0.12)]">
             <h3 className="text-center text-xl tracking-[0.2em] text-warm">{t.naming.title}</h3>
             <p className="mx-auto mt-3 w-fit text-left text-base leading-8 tracking-wider text-mist">
               {naming.label}
@@ -397,7 +397,7 @@ export function PlayScreen({ t, initial, birthYear, selfAge, ghost, dev = false,
           </AnimatePresence>
         </ol>
         {/* 画面の下に、ずっと表示する(スマホなど、ページ全体をスワイプする画面でも、消えない) */}
-        <p className="fixed inset-x-0 bottom-0 z-30 border-t border-line/60 bg-void/85 px-4 py-1.5 text-left text-[10px] leading-4 lg:py-2 lg:text-[11px] lg:leading-5 tracking-wider text-dim lg:sticky lg:-bottom-8 lg:inset-x-auto lg:z-auto lg:-mb-8 lg:mt-auto lg:border-0 lg:bg-void/60 lg:px-2">
+        <p className="fixed inset-x-0 bottom-0 z-20 border-t border-line/60 bg-void/85 px-4 py-1.5 text-left text-[10px] leading-4 lg:py-2 lg:text-[11px] lg:leading-5 tracking-wider text-dim lg:sticky lg:-bottom-8 lg:inset-x-auto lg:z-auto lg:-mb-8 lg:mt-auto lg:border-0 lg:bg-void/60 lg:px-2">
           <span className="lg:hidden">※ シミュレーションです。占い・予言ではありません。株価は架空です。</span>
           <span className="hidden lg:inline">※ これはシミュレーションです。占いや予言ではなく実際の人生や将来を当てるものでは、決してありません。株価の動きは、乱数でつくった完全な架空のもので、実際の相場とは関係がありません。景気は、実際の統計がある過去の年はその数字を使い、未来は毎回ランダムです。</span>
         </p>
@@ -569,7 +569,7 @@ function LifeRibbon({ age, dead, startAge, events }: { age: number; dead: boolea
   // 100歳をこえて、右はしに近づいたら、軸を、のばす。
   const MAX = Math.max(116, age + 8);
   const pos = (a: number) => `${Math.min(100, Math.max(0, (a / MAX) * 100))}%`;
-  const marks = events.filter((e) => e.weight >= 66 && e.age > startAge).slice(0, 40);
+  const marks = events.filter((e) => e.weight >= 66 && e.age > startAge);
   const seenAge = new Set<number>();
   const dots = marks.filter((e) => (seenAge.has(e.age) ? false : (seenAge.add(e.age), true)));
   return (

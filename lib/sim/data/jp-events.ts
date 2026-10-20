@@ -56,6 +56,12 @@ const recent = (p: Person, key: string, years: number) => p.age - (p.history[key
 const mark = (p: Person, key: string) => {
   p.history[key] = p.age;
 };
+// 孫・ひ孫の、名前と性別(ランダム。男の子と女の子は半々で、名前はときどき中性的なものがまざる)。
+const descendant = (r: () => number, d: CountryData) => {
+  const boy = r() < 0.5;
+  const pool = [...d.names[boy ? "boy" : "girl"], ...d.names[boy ? "boy" : "girl"], ...d.names.neutral];
+  return `${pickOne(r, pool)}・${boy ? "男の子" : "女の子"}`;
+};
 const ev = (id: string, weight: AutoEvent["weight"], apply: AutoEvent["apply"], importance?: number): AutoEvent => ({ id, weight, apply, importance });
 
 export const lifeEvents: AutoEvent[] = [
@@ -237,7 +243,9 @@ export const lifeEvents: AutoEvent[] = [
   }, 42),
   ev("anniversary", (p) => (p.married ? 1.5 : 0), (s) => (money(s, -2), bump(s.person, { bonds: 3 }), `結婚記念日に、${partnerCall(s.person)}と食事に出かけた`), 35),
   ev("sibling_wedding", (p) => (inAge(p, 22, 46) ? 0.8 : 0), (s) => (money(s, -3), bump(s.person, { bonds: 3 }), "きょうだいが結婚し、家族が集まった"), 42),
-  ev("grandchild", (p) => (p.kids > 0 && inAge(p, 55, 88) ? 1.0 : 0), (s) => (bump(s.person, { bonds: 6 }), "孫が生まれた"), 60),
+  ev("grandchild", (p) => (p.kids > 0 && inAge(p, 55, 88) ? 1.0 : 0), (s, r, d) => (bump(s.person, { bonds: 6 }), mark(s.person, "grandchild"), `孫が生まれた(${descendant(r, d)})`), 60),
+  // ひ孫: 孫が生まれてから、ある程度の年月がたったあと。
+  ev("great_grandchild", (p) => (p.history.grandchild != null && p.age - p.history.grandchild >= 20 && inAge(p, 76, 110) ? 0.6 : 0), (s, r, d) => (bump(s.person, { bonds: 4, joy: 3 }), `ひ孫が生まれた(${descendant(r, d)})`), 58),
   ev("in_laws", (p) => (p.married && inAge(p, 27, 55) ? 0.5 : 0), (s, r) => {
     const p = s.person;
     const inlaw = npcMbti(p, "inlaw", r);

@@ -116,20 +116,29 @@ export function CompareResult({ t, real, alt, onSave, canPublish, publishEnabled
                 <span className="block text-xs text-dim">{t.publishHint}</span>
               </span>
             </label>
-            {canPublish && publish && (
-              <div>
-                <textarea
-                  value={comment}
-                  onChange={(e) => setComment(e.target.value.slice(0, COMMENT_MAX))}
-                  rows={3}
-                  placeholder={t.commentPlaceholder}
-                  className="w-full resize-y border border-line bg-transparent p-3 text-sm leading-7 tracking-wider text-mist placeholder:text-dim"
-                />
+            <div className="group relative">
+              <textarea
+                value={canPublish ? comment : ""}
+                onChange={(e) => setComment(e.target.value.slice(0, COMMENT_MAX))}
+                disabled={!canPublish}
+                rows={3}
+                placeholder={canPublish ? t.commentPlaceholder : t.commentLoginPlaceholder}
+                className="w-full resize-y border border-line bg-transparent p-3 text-sm leading-7 tracking-wider text-mist placeholder:text-dim disabled:cursor-not-allowed disabled:opacity-50"
+              />
+              {!canPublish && (
+                <span
+                  role="tooltip"
+                  className="pointer-events-none absolute -top-9 left-0 hidden rounded-sm border border-warm/50 bg-panel px-3 py-1.5 text-xs tracking-wider text-mist shadow-xl group-hover:block"
+                >
+                  {t.commentLoginHint}
+                </span>
+              )}
+              {canPublish && (
                 <p className="mt-1 text-right text-xs tracking-wider text-dim">
                   {comment.length}/{COMMENT_MAX}
                 </p>
-              </div>
-            )}
+              )}
+            </div>
             {!canPublish && (
               <p className="text-left text-xs leading-6 tracking-wider text-haze">
                 {t.publishNeedLogin}

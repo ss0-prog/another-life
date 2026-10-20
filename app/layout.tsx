@@ -3,6 +3,7 @@ import { Shippori_Mincho } from "next/font/google";
 import { Ambient } from "@/components/Ambient";
 import { Analytics } from "@/components/Analytics";
 import { OrphanGuard } from "@/components/OrphanGuard";
+import { PresenceBeacon } from "@/components/PresenceBeacon";
 import { SiteFooter } from "@/components/SiteFooter";
 import { SiteHeader } from "@/components/SiteHeader";
 import { getMessages } from "@/lib/i18n";
@@ -71,6 +72,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <SiteFooter />
         <Analytics />
         <OrphanGuard />
+        <PresenceBeacon />
       </body>
     </html>
   );

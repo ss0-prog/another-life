@@ -160,6 +160,8 @@ export type Person = {
   background: Background;
   // ひとり親家庭のとき、育ててくれた親(もう一方の親とは、離れて暮らしている)。
   soloParent?: "mother" | "father";
+  // 親友・友人などの名前(出会ったときに、ランダムに決まる)。
+  friendNames?: Record<string, string>;
   birthPlace: string;
   birthRegion: Region;
   edu: Edu;

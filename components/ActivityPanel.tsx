@@ -1,7 +1,7 @@
 "use client";
 
 import { partTimeAvailable, yearOf } from "@/lib/sim/era";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { chipClass } from "@/components/controls";
 import { LessonPanel } from "@/components/LessonPanel";
 import type { Messages } from "@/lib/i18n";
@@ -31,6 +31,16 @@ type View = "lesson" | "hobby" | "part" | "meet" | "office" | "shop";
 export function ActivityPanel({ t, state, onStartLesson, onStopLesson, onStartPart, onStopPart, onRun, onBuy, onSell, onMeet }: Props) {
   const [open, setOpen] = useState(false);
   const [view, setView] = useState<View | null>(null);
+  const root = useRef<HTMLDivElement>(null);
+  // スマホの上のバーの「活動する」から、ひらく。
+  useEffect(() => {
+    const onOpen = () => {
+      setOpen(true);
+      window.setTimeout(() => root.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 50);
+    };
+    window.addEventListener("betsu-uchu:open-activity", onOpen);
+    return () => window.removeEventListener("betsu-uchu:open-activity", onOpen);
+  }, []);
   const p = state.person;
   const dead = state.deathAge !== null;
   if (dead) return null;
@@ -53,7 +63,7 @@ export function ActivityPanel({ t, state, onStartLesson, onStopLesson, onStartPa
   const affordable = offices.filter((o) => state.wallet.cash >= o.costMan * 10000);
 
   return (
-    <div className="mb-6">
+    <div ref={root} className="mb-6 scroll-mt-28">
       <button type="button" onClick={() => { setOpen((o) => !o); if (open) setView(null); }} className="w-full border border-warm/60 bg-warm/10 px-4 py-2.5 text-base font-bold tracking-[0.3em] text-mist hover:border-warm">
         {open ? "活動をとじる" : "活動する"}
       </button>

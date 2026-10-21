@@ -8,7 +8,7 @@ import { applyChangeIncome, changeIncome, incomeOf, round10 } from "@/lib/sim/sa
 import { leaveLoss, man as manText, retirementTax } from "@/lib/sim/tax";
 import { STUDY_MAIN, STUDY_OTHERS, countryById } from "@/lib/sim/data/jp-countries";
 import type { TurningQuestion } from "@/lib/sim/types";
-import { addDebt, assignJob, bump, chargeWithDebt, fullName, kidCall, moveAbroad, moveHome, moveTo, bearerOf, noBearer, npcMbti, partnerCall, randomPartner } from "@/lib/sim/helpers";
+import { addDebt, assignJob, bump, chargeWithDebt, friendName, fullName, kidCall, moveAbroad, moveHome, moveTo, bearerOf, noBearer, npcMbti, partnerCall, randomPartner } from "@/lib/sim/helpers";
 import { WAITLIST, parentsAround, partnerWorks } from "@/lib/sim/childcare";
 import { compat, compatMark, idealChance, isE, isJ, isN, isT, IDEAL, typeCall } from "@/lib/sim/mbti";
 import { interpolate, weighted } from "@/lib/sim/rng";
@@ -147,11 +147,12 @@ export const lifeEvents: AutoEvent[] = [
     bump(p, { learn: -3, bonds: -2, joy: -9 });
     return `${reason}、学校に行けない日が続いた`;
   }, 55),
-  ev("best_friend", (p) => (inAge(p, 6, 18) ? 1.6 : 0), (s, r) => {
+  ev("best_friend", (p) => (inAge(p, 6, 18) ? 1.6 : 0), (s, r, d) => {
     const f = npcMbti(s.person, "friend", r);
     const c = compat(s.person.mbti, f);
+    const nm = friendName(s.person, "best", r, d);
     bump(s.person, { bonds: c >= 62 ? 7 : 5, joy: c >= 80 ? 3 : 0 });
-    return `${typeCall(f)}の、親友と呼べる友だちができた${s.person.mbti ? `(相性 ${compatMark(c)})` : ""}`;
+    return `${nm}という、${typeCall(f)}の、親友と呼べる友だちができた${s.person.mbti ? `(相性 ${compatMark(c)})` : ""}`;
   }, 50),
   ev("first_love", (p) => (inAge(p, 12, 19) ? 1.2 : 0), (s) => (bump(s.person, { bonds: 3 }), "はじめて、誰かを好きになった"), 50),
   ev("sports_day", (p) => (inAge(p, 6, 15) ? 1.2 : 0), (s) => (bump(s.person, { health: 2, bonds: 3 }), "運動会で活躍して、みんなに驚かれた"), 35),
@@ -295,10 +296,10 @@ export const lifeEvents: AutoEvent[] = [
     return `${call}が、細かいことは任せてくれて、自分のやり方で仕事を進められた`;
   }, 36),
   // 友人のタイプによる、つきあいのちがい。
-  ev("friend_trait", (p) => (inAge(p, 10, 85) ? 0.8 : 0), (s, r) => {
+  ev("friend_trait", (p) => (inAge(p, 10, 85) ? 0.8 : 0), (s, r, d) => {
     const p = s.person;
     const f = npcMbti(p, "friend", r);
-    const call = `${typeCall(f)}の友人`;
+    const call = `${typeCall(f)}の友人の${friendName(p, "friend", r, d)}`;
     if (isE(f)) {
       bump(p, { bonds: 4, joy: 3 });
       return `${call}に誘われ、大勢で集まる楽しい夜を過ごした`;
@@ -317,15 +318,15 @@ export const lifeEvents: AutoEvent[] = [
   ev("home_visit", (p) => (inAge(p, 20, 80) && !p.withParents ? 1.0 : 0), (s) => (bump(s.person, { bonds: 3 }), "久しぶりに実家に帰り、家族と食卓を囲んだ"), 32),
 
   // ---- 友人 ----
-  ev("friend_wedding", (p) => (inAge(p, 24, 40) ? 2.4 : 0), (s) => (money(s, -3), bump(s.person, { bonds: 2 }), "友人の結婚式に招かれた(ご祝儀3万円)"), 42),
+  ev("friend_wedding", (p) => (inAge(p, 24, 40) ? 2.4 : 0), (s, r, d) => (money(s, -3), bump(s.person, { bonds: 2 }), `友人の${friendName(s.person, "friend", r, d)}の結婚式に招かれた(ご祝儀3万円)`), 42),
   ev("reunion", (p) => (inAge(p, 25, 75) ? 1.2 : 0), (s) => (bump(s.person, { bonds: 3 }), "同窓会で、懐かしい顔ぶれと再会した"), 38),
-  ev("friend_fight", (p) => (inAge(p, 12, 70) ? 0.6 * clash(friendCompat(p)) : 0), (s, r) => {
+  ev("friend_fight", (p) => (inAge(p, 12, 70) ? 0.6 * clash(friendCompat(p)) : 0), (s, r, d) => {
     const friend = npcMbti(s.person, "friend", r);
     bump(s.person, { bonds: -3, joy: -4 });
-    return `${pickOne(r, ["ささいな言い違いがきっかけで", "お金の貸し借りがもとで", "価値観のちがいが表に出て", "長く連絡をとらずにいたうちに"])}、親しい${typeCall(friend)}の友人と、気まずくなってしまった`;
+    return `${pickOne(r, ["ささいな言い違いがきっかけで", "お金の貸し借りがもとで", "価値観のちがいが表に出て", "長く連絡をとらずにいたうちに"])}、親しい${typeCall(friend)}の友人の${friendName(s.person, "friend", r, d)}と、気まずくなってしまった`;
   }, 38),
-  ev("friend_passed", (p) => (p.age >= 42 ? 0.8 + (p.age - 42) * 0.03 : 0), (s) => (bump(s.person, { bonds: -3, health: -1, joy: -6 }), "旧友の訃報が届いた"), 55),
-  ev("friend_success", (p) => (inAge(p, 25, 60) ? 0.7 : 0), (s) => (bump(s.person, { bonds: 1, learn: 1 }), "友人が、仕事で大きな成功をおさめたと聞いた"), 34),
+  ev("friend_passed", (p) => (p.age >= 42 ? 0.8 + (p.age - 42) * 0.03 : 0), (s, r, d) => (bump(s.person, { bonds: -3, health: -1, joy: -6 }), `旧友の${friendName(s.person, "old", r, d)}の訃報が届いた`), 55),
+  ev("friend_success", (p) => (inAge(p, 25, 60) ? 0.7 : 0), (s, r, d) => (bump(s.person, { bonds: 1, learn: 1 }), `友人の${friendName(s.person, "friend", r, d)}が、仕事で大きな成功をおさめたと聞いた`), 34),
   ev("neighbor", (p) => (p.age >= 22 ? 0.5 : 0), (s) => (bump(s.person, { bonds: -1 }), "近所づきあいで、小さなトラブルがあった"), 32),
 
   // ---- 恋愛 ----

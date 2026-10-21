@@ -68,8 +68,8 @@ const MOMENTS: Def[] = [
   { id: "p_mirror", ok: (p) => p.age >= 38 && (!alive(p, "mother") || !alive(p, "father")), w: 0.7, text: () => "鏡の中の自分が亡くなった親に似てきた。笑うとなおさらそっくりだった", joy: 0, bonds: 1 },
 
   // ───── 友人・職場 ─────
-  { id: "f_call", w: 0.8, cd: 20, ok: (p) => p.age >= 20, text: () => "親友から前触れもなく電話があった。声を聞いただけで肩の力が少し抜けた", joy: 2, bonds: 2 },
-  { id: "f_old", w: 0.8, cd: 20, ok: (p) => p.age >= 35, text: () => "久しぶりに会った親友は少し老けていた。お互いにそう思って笑った", joy: 2, bonds: 2 },
+  { id: "f_call", w: 0.8, cd: 20, ok: (p) => p.age >= 20, text: (p) => `親友${p.friendNames?.best ? `の${p.friendNames.best}` : ""}から前触れもなく電話があった。声を聞いただけで肩の力が少し抜けた`, joy: 2, bonds: 2 },
+  { id: "f_old", w: 0.8, cd: 20, ok: (p) => p.age >= 35, text: (p) => `久しぶりに会った親友${p.friendNames?.best ? `の${p.friendNames.best}` : ""}は少し老けていた。お互いにそう思って笑った`, joy: 2, bonds: 2 },
   { id: "f_night", w: 0.8, cd: 20, ok: (p) => p.age >= 18 && p.age <= 35, text: () => "友人の部屋で朝まで話した。何を話したのかは覚えていない。笑ったことだけ覚えている", joy: 2, bonds: 2 },
   { id: "w_praise", w: 0.8, cd: 20, ok: (p) => working(p) && p.employment !== "self" && p.age >= 22, text: () => "上司がさりげなく「助かったよ」と言った。たったそれだけで報われた気がした", joy: 2, bonds: 1 },
   { id: "w_late", w: 0.8, cd: 20, ok: (p) => working(p) && p.employment !== "self" && p.extra.stress > 60, text: () => "終電の窓に疲れた顔が映っていた。同じ顔の人たちがとなりに並んで揺れていた", joy: -1, bonds: 0 },

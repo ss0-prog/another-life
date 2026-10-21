@@ -8,6 +8,8 @@ type Home = { age: number; place: string };
 type Stop = { age: number; place: string; short: string; xy: [number, number] | null };
 
 const OKI_XY: [number, number] = projectSouth(OKINAWA);
+// 海外で暮らした、の札: 地図の左上(日本海がある側)。
+const OVERSEAS_BOX = { x: 8, y: 10, w: 136 };
 
 // 海岸線の数字の並びを、SVGの線にする(最初に、一度だけ作る)
 const toPath = (flat: number[], proj: (ll: [number, number]) => [number, number]) => {
@@ -88,7 +90,7 @@ export function JapanMap({ homes, city, age, abroad }: { homes: Home[]; city: st
         {stops.slice(1).map((s, i) => {
           const from = stops[i];
           if (s.xy || !from.xy) return null;
-          return <path key={`o${i}`} d={`M ${from.xy[0]} ${from.xy[1]} Q ${(from.xy[0] + 84) / 2} ${VIEW.h - 90} 84 ${VIEW.h - 80}`} fill="none" stroke="var(--color-warm)" strokeWidth={1.4} strokeDasharray="4 3" markerEnd="url(#jm-arrow)" opacity={0.8} />;
+          return <path key={`o${i}`} d={`M ${from.xy[0]} ${from.xy[1]} Q ${(from.xy[0] + OVERSEAS_BOX.x + OVERSEAS_BOX.w) / 2} ${(from.xy[1] + OVERSEAS_BOX.y) / 2} ${OVERSEAS_BOX.x + OVERSEAS_BOX.w + 2} ${OVERSEAS_BOX.y + 22}`} fill="none" stroke="var(--color-warm)" strokeWidth={1.4} strokeDasharray="4 3" markerEnd="url(#jm-arrow)" opacity={0.8} />;
         })}
 
         {/* 場所の印と、年齢 */}
@@ -115,13 +117,13 @@ export function JapanMap({ homes, city, age, abroad }: { homes: Home[]; city: st
           );
         })}
 
-        {/* 海外 */}
+        {/* 海外(日本海側の、海の上に置く。日本の地図と、重ならないように) */}
         {overseas.length > 0 && (
           <g>
-            <rect x={86} y={VIEW.h - 92} width={196} height={20 + overseas.slice(-3).length * 13} rx={3} fill="var(--color-void)" fillOpacity={0.55} stroke="var(--color-warm)" strokeOpacity={0.7} />
-            <text x={94} y={VIEW.h - 77} fontSize={9.5} fill="var(--color-warm)">海外で暮らした</text>
+            <rect x={OVERSEAS_BOX.x} y={OVERSEAS_BOX.y} width={OVERSEAS_BOX.w} height={20 + overseas.slice(-3).length * 13} rx={3} fill="var(--color-void)" fillOpacity={0.55} stroke="var(--color-warm)" strokeOpacity={0.7} />
+            <text x={OVERSEAS_BOX.x + 8} y={OVERSEAS_BOX.y + 15} fontSize={9.5} fill="var(--color-warm)">海外で暮らした</text>
             {overseas.slice(-3).map((s, i) => (
-              <text key={i} x={94} y={VIEW.h - 63 + i * 13} fontSize={9} fill="var(--color-mist)">
+              <text key={i} x={OVERSEAS_BOX.x + 8} y={OVERSEAS_BOX.y + 29 + i * 13} fontSize={9} fill="var(--color-mist)">
                 {s.age}歳〜 {s.short}
               </text>
             ))}

@@ -49,6 +49,17 @@ const PRESETS: { key: keyof Messages["play"]["assets"]["presets"]; tag: Tag; min
 export function AssetPanel({ t, state, month, onTrade, onStartStocks, onPlan, onSpend, onKidNisa, onBorrow, offers }: Props) {
   const [loan, setLoan] = useState<{ yen: number; text: string; tag: Tag | null } | null>(null);
   const [menu, setMenu] = useState(false);
+  const rootRef = useRef<HTMLDivElement>(null);
+  // スマホの上のバーの「資産の使い方」から、ひらく。
+  useEffect(() => {
+    const onOpen = () => {
+      setMenu(true);
+      setWriting(false);
+      window.setTimeout(() => rootRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 50);
+    };
+    window.addEventListener("betsu-uchu:open-spend", onOpen);
+    return () => window.removeEventListener("betsu-uchu:open-spend", onOpen);
+  }, []);
   const [taxOpen, setTaxOpen] = useState(false);
   // 手取りは、左の「年収の目安」と同じ計算で、いまの状態から出す(年のはじめの値のままだと、年のなかで能力値が変わると、ずれる)。結婚していれば、配偶者のぶんをふくめた世帯の目安。
   const ownIncome = state.person.occ !== null ? Math.round(incomeOf(state.person, jpData, state.person.econ)) : 0;
@@ -154,12 +165,12 @@ export function AssetPanel({ t, state, month, onTrade, onStartStocks, onPlan, on
     );
 
   return (
-    <div className="flex flex-col">
-      <h3 className="text-sm tracking-[0.3em] text-warm">{minor ? t.allowance : t.title}</h3>
-      <p className="mt-1 text-[11px] leading-4 tracking-wider text-dim">{minor ? "親からもらうお金。使い道は自分で決められます" : "貯金・運用資産・借金をまとめたお金の状況です。「合計」は借金を引いた実質の資産"}</p>
+    <div ref={rootRef} className="flex scroll-mt-28 flex-col">
+      <h3 className="text-sm tracking-[0.3em] text-warm max-lg:hidden">{minor ? t.allowance : t.title}</h3>
+      <p className="mt-1 text-[11px] leading-4 tracking-wider text-dim max-lg:hidden">{minor ? "親からもらうお金。使い道は自分で決められます" : "貯金・運用資産・借金をまとめたお金の状況です。「合計」は借金を引いた実質の資産"}</p>
 
       <div className="mt-5 text-center">
-        <p className="tabular-nums text-mist text-3xl sm:text-4xl">
+        <p className="tabular-nums text-mist text-3xl max-lg:hidden sm:text-4xl">
           {minor ? (Number.isFinite(state.wallet.cash) ? Math.round(state.wallet.cash) : 0).toLocaleString("ja-JP") : manParts(net / 10000).num}
           <span className="ml-1 text-xs text-haze">{minor ? t.unitYen : manParts(net / 10000).unit}</span>
         </p>

@@ -22,32 +22,53 @@ const t = getMessages();
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
-  title: { default: t.meta.title, template: `%s | ${SITE_NAME}` },
+  title: { default: t.meta.titleFull, template: `%s | ${SITE_NAME}` },
+  applicationName: SITE_NAME,
+  keywords: ["人生シミュレーション", "もしもの人生", "別の人生", "人生ゲーム", "if", "シミュレーション", "ターニングポイント"],
+  authors: [{ name: SITE_NAME }],
+  creator: SITE_NAME,
+  category: "game",
   description: t.meta.description,
   alternates: { canonical: "/" },
   openGraph: {
     type: "website",
     locale: "ja_JP",
     siteName: SITE_NAME,
-    title: t.meta.title,
+    url: "/",
+    title: t.meta.titleFull,
     description: t.meta.description,
     images: [{ url: "/og.png", width: 1200, height: 630, alt: SITE_NAME }],
   },
-  twitter: { card: "summary_large_image", title: t.meta.title, description: t.meta.description, images: ["/og.png"] },
+  twitter: { card: "summary_large_image", title: t.meta.titleFull, description: t.meta.description, images: ["/og.png"] },
   // 検索に載せたくない間(身内確認など)は、環境変数 NEXT_PUBLIC_NOINDEX=1 で、検索への登録をことわる
   robots: process.env.NEXT_PUBLIC_NOINDEX === "1" ? { index: false, follow: false } : undefined,
   // Google Search Console の所有確認(環境変数が設定されているときだけ出す)
   verification: process.env.NEXT_PUBLIC_GSC_VERIFICATION ? { google: process.env.NEXT_PUBLIC_GSC_VERIFICATION } : undefined,
 };
 
-const jsonLd = {
-  "@context": "https://schema.org",
-  "@type": "WebSite",
-  name: SITE_NAME,
-  url: SITE_URL,
-  inLanguage: "ja",
-  description: t.meta.description,
-};
+// 検索結果に出る、サービス名(WebSite)と、サービスの種類(WebApplication)。
+const jsonLd = [
+  {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    name: SITE_NAME,
+    alternateName: ["ifverse", "別の宇宙のあなた 人生シミュレーション"],
+    url: SITE_URL,
+    inLanguage: "ja",
+    description: t.meta.description,
+  },
+  {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    name: SITE_NAME,
+    url: SITE_URL,
+    applicationCategory: "GameApplication",
+    operatingSystem: "Any",
+    inLanguage: "ja",
+    description: t.meta.description,
+    offers: { "@type": "Offer", price: "0", priceCurrency: "JPY" },
+  },
+];
 
 export const viewport: Viewport = {
   themeColor: "#07080a",

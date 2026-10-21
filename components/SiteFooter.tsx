@@ -48,7 +48,7 @@ export function SiteFooter() {
         </nav>
         {/* リンクと、注意書きの境目 */}
         <span aria-hidden className="h-4 w-px shrink-0 bg-line" />
-        <p className="min-w-0 flex-1 text-left leading-4">※ 統計と設計上の仮定にもとづく数字です。占い・予言ではなく、株価は架空です。</p>
+        <p className="min-w-0 flex-1 text-left leading-4">※ 入力した情報は、このサービス以外には絶対に使いません。数字は統計と設計上の仮定にもとづき、占い・予言ではなく、株価は架空です。</p>
         <p className="hidden shrink-0 whitespace-nowrap tracking-[0.2em] xl:block">© {t.footer.copy}</p>
       </div>
       <div className="footer-full mx-auto max-w-6xl px-[2.5vw] pb-6 pt-12 sm:px-8">
@@ -66,7 +66,8 @@ export function SiteFooter() {
             </div>
           </div>
 
-          {/* 遊ぶ */}
+          {/* 遊ぶ・サイトについて: スマホでは、横ならび */}
+          <div className="grid grid-cols-2 gap-6 md:contents">
           <nav aria-label="遊ぶ">
             <p className="text-xs tracking-[0.35em] text-warm">遊ぶ</p>
             <ul className="mt-3 space-y-2 text-sm tracking-[0.12em] text-haze">
@@ -93,6 +94,7 @@ export function SiteFooter() {
               ))}
             </ul>
           </nav>
+          </div>
 
           {/* 約束 */}
           <div>
@@ -106,6 +108,12 @@ export function SiteFooter() {
               ))}
             </ul>
           </div>
+        </div>
+
+        {/* 重要: 入力した情報は、このサービス以外には、絶対に使わない */}
+        <div className="font-gothic mt-10 rounded-sm border border-warm/50 bg-warm/5 px-4 py-4 text-left">
+          <p className="text-xs tracking-[0.35em] text-warm">重要なお知らせ</p>
+          <p className="mt-2 text-sm leading-7 tracking-wider text-mist">入力していただいた情報は、このサービスの中だけで使います。ほかのサービスや、ほかの目的には、絶対に使いません。</p>
         </div>
 
         {/* データの扱い */}

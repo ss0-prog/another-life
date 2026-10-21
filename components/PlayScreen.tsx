@@ -1,5 +1,6 @@
 "use client";
 
+import { manParts } from "@/lib/money";
 import { BG_LABEL, absentWho, soloWho } from "@/lib/sim/family";
 import { AchievementToaster } from "@/components/Achievements";
 import { JapanMap } from "@/components/JapanMap";
@@ -60,6 +61,8 @@ export function PlayScreen({ t, initial, birthYear, selfAge, ghost, dev = false,
     setState(u);
   };
   const [month, setMonth] = useState(0);
+  // スマホの、速度ボタン(ひらくと、×1〜×8が出る)。
+  const [speedOpen, setSpeedOpen] = useState(false);
   // スマホ(lg より狭い画面)では、資産の枠を、年齢と役職のすぐ下に出す。
   const [narrow, setNarrow] = useState(false);
   useEffect(() => {
@@ -248,12 +251,24 @@ export function PlayScreen({ t, initial, birthYear, selfAge, ghost, dev = false,
       <section className={`${col} order-2 lg:order-1`}>
         <p className="text-sm tracking-[0.4em] text-warm">{random ? "ランダムな世界" : t.branchBadge}</p>
         <p className="mt-1 text-xs leading-5 tracking-wider text-dim">{random ? "すべてがランダムに決まった条件で、最後まで歩む人生です" : t.notes.branch}</p>
-        <div className="mt-5">
-          <div className="text-4xl font-bold tabular-nums tracking-widest text-mist sm:text-5xl drop-shadow-[0_0_24px_rgba(240,201,148,0.35)]">{p.age}<span className="ml-2 text-lg font-medium text-haze sm:text-xl">歳</span></div>
-          <p className="mt-1 text-base tabular-nums tracking-[0.2em] text-warm sm:text-lg">{birthYear + p.age}年</p>
-          <p className="mt-2 text-[13px] tracking-[0.12em] text-haze sm:mt-3 sm:text-sm sm:tracking-[0.15em]">
-            {lifeLabel(p, jpData)} / {p.city}
-          </p>
+        <div className="mt-5 flex items-start justify-between gap-3 lg:block">
+          <div className="min-w-0">
+            <div className="text-4xl font-bold tabular-nums tracking-widest text-mist sm:text-5xl drop-shadow-[0_0_24px_rgba(240,201,148,0.35)]">{p.age}<span className="ml-2 text-lg font-medium text-haze sm:text-xl">歳</span></div>
+            <p className="mt-1 text-base tabular-nums tracking-[0.2em] text-warm sm:text-lg">{birthYear + p.age}年</p>
+            <p className="mt-2 text-[13px] tracking-[0.12em] text-haze sm:mt-3 sm:text-sm sm:tracking-[0.15em]">
+              {lifeLabel(p, jpData)} / {p.city}
+            </p>
+          </div>
+          {/* スマホでは、年齢の右に、資産を、横ならびで出す(資産の増減などは、下の枠のまま) */}
+          {narrow && (
+            <div className="shrink-0 text-right">
+              <p className="text-xs tracking-[0.3em] text-warm">{p.age < 18 ? "お小遣い" : "資産"}</p>
+              <p className="mt-1 text-2xl font-bold tabular-nums text-mist">
+                {p.age < 6 ? "—" : p.age < 18 ? Math.round(state.wallet.cash).toLocaleString("ja-JP") : manParts((state.wallet.cash + holdingsValue(state, month) - debtTotal(state.wallet.debts)) / 10000).num}
+                <span className="ml-0.5 text-xs font-medium text-haze">{p.age < 6 ? "" : p.age < 18 ? "円" : manParts((state.wallet.cash + holdingsValue(state, month) - debtTotal(state.wallet.debts)) / 10000).unit}</span>
+              </p>
+            </div>
+          )}
         </div>
         {narrow && <div className="mt-5">{assetPanel}</div>}
 
@@ -314,24 +329,41 @@ export function PlayScreen({ t, initial, birthYear, selfAge, ghost, dev = false,
             <div ref={yearBarM} className="h-2 rounded-full bg-warm" style={{ width: `${(month / 12) * 100}%` }} />
           </div>
         {!dead && (
-          <div className="mt-2 flex max-w-full flex-nowrap items-center gap-1 whitespace-nowrap text-xs font-bold tracking-[0.02em]">
-            <button type="button" onClick={() => setRunning((r) => !r)} disabled={popupWanted || Boolean(naming && revealed)} aria-label={running ? t.pause : t.resume} title={running ? t.pause : t.resume} className="keep shrink-0 border border-warm/60 bg-warm/5 px-2 py-1.5 text-mist hover:border-warm disabled:opacity-40">
-              {running ? (
-                <svg viewBox="0 0 24 24" className="h-4 w-4" fill="currentColor" aria-hidden>
-                  <rect x="6" y="5" width="4.2" height="14" rx="1" />
-                  <rect x="13.8" y="5" width="4.2" height="14" rx="1" />
-                </svg>
-              ) : (
-                <svg viewBox="0 0 24 24" className="h-4 w-4" fill="currentColor" aria-hidden>
-                  <path d="M7 4.8v14.4a.8.8 0 0 0 1.2.7l11.2-7.2a.8.8 0 0 0 0-1.4L8.2 4.1a.8.8 0 0 0-1.2.7Z" />
-                </svg>
-              )}
-            </button>
-            {[1, 2, 4, 8].map((sp) => (
-              <button key={sp} type="button" onClick={() => setSpeed(sp)} aria-pressed={speed === sp} aria-label={`${t.speed} ×${sp}`} className={`keep shrink-0 border px-1.5 py-1.5 ${speed === sp ? "border-warm bg-warm/15 text-mist" : "border-line text-haze hover:border-haze hover:text-mist"}`}>
-                ×{sp}
+          <div className="mt-2">
+            <div className="flex items-stretch gap-1.5 text-xs font-bold tracking-[0.02em]">
+              <button type="button" onClick={() => setRunning((r) => !r)} disabled={popupWanted || Boolean(naming && revealed)} aria-label={running ? t.pause : t.resume} title={running ? t.pause : t.resume} className="keep flex shrink-0 items-center border border-warm/60 bg-warm/5 px-2.5 py-1.5 text-mist hover:border-warm disabled:opacity-40">
+                {running ? (
+                  <svg viewBox="0 0 24 24" className="h-4 w-4" fill="currentColor" aria-hidden>
+                    <rect x="6" y="5" width="4.2" height="14" rx="1" />
+                    <rect x="13.8" y="5" width="4.2" height="14" rx="1" />
+                  </svg>
+                ) : (
+                  <svg viewBox="0 0 24 24" className="h-4 w-4" fill="currentColor" aria-hidden>
+                    <path d="M7 4.8v14.4a.8.8 0 0 0 1.2.7l11.2-7.2a.8.8 0 0 0 0-1.4L8.2 4.1a.8.8 0 0 0-1.2.7Z" />
+                  </svg>
+                )}
               </button>
-            ))}
+              {/* 速度: 押すと、×1〜×8が、ひらく */}
+              <button type="button" onClick={() => setSpeedOpen((o) => !o)} aria-expanded={speedOpen} aria-label="速度をえらぶ" className={`keep flex shrink-0 items-center gap-1.5 border px-2.5 py-1.5 ${speedOpen ? "border-warm bg-warm/15 text-mist" : "border-line text-haze hover:border-haze hover:text-mist"}`}>
+                <span>速度 ×{speed}</span>
+                <span aria-hidden className={`text-[9px] text-warm transition-transform ${speedOpen ? "rotate-180" : ""}`}>▼</span>
+              </button>
+              <button type="button" onClick={() => window.dispatchEvent(new Event("betsu-uchu:open-activity"))} className="keep min-w-0 flex-1 border border-warm/50 bg-warm/5 px-1 py-1.5 text-center text-mist hover:border-warm">
+                活動する
+              </button>
+              <button type="button" onClick={() => window.dispatchEvent(new Event("betsu-uchu:open-spend"))} className="keep min-w-0 flex-1 border border-warm/50 bg-warm/5 px-1 py-1.5 text-center text-mist hover:border-warm">
+                資産の使い方
+              </button>
+            </div>
+            {speedOpen && (
+              <div className="mt-1.5 grid grid-cols-4 gap-1.5">
+                {[1, 2, 4, 8].map((sp) => (
+                  <button key={sp} type="button" onClick={() => { setSpeed(sp); setSpeedOpen(false); }} aria-pressed={speed === sp} aria-label={`${t.speed} ×${sp}`} className={`keep border py-1.5 text-center text-xs font-bold ${speed === sp ? "border-warm bg-warm/15 text-mist" : "border-line text-haze hover:border-haze hover:text-mist"}`}>
+                    ×{sp}
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
         )}
         </div>
@@ -617,9 +649,25 @@ function LifeRibbon({ age, dead, startAge, events }: { age: number; dead: boolea
         <span><span className="text-warm">○</span> 人生の節目</span>
         <span><span className="text-warm">●</span> いま　<span>×</span> 最期</span>
       </p>
+      {/* スマホ: これまでの節目の一覧は、この枠の中に、はじめから入れておく */}
+      <div className="mt-3 border-t border-line/60 pt-3 lg:hidden">
+        <p className="text-xs tracking-[0.2em] text-warm">これまでの節目({dots.length}個)</p>
+        {dots.length === 0 ? (
+          <p className="mt-2 text-xs leading-6 tracking-wider text-dim">まだ、節目はありません。</p>
+        ) : (
+          <ol className="mt-2 max-h-[40dvh] space-y-2.5 overflow-y-auto pr-1">
+            {dots.map((e, i) => (
+              <li key={i} className="border-l-2 border-warm/60 pl-3">
+                <span className="text-xs tracking-[0.15em] text-warm">{e.age}歳</span>
+                <EventText text={e.event} className="text-xs leading-6 tracking-wide text-mist" noteClassName="text-[11px] leading-5" />
+              </li>
+            ))}
+          </ol>
+        )}
       </div>
-      {/* 右下: これまでの節目の一覧(シミュレーション中も、見返せる)。外側を押しても、閉じる */}
-      <div className="mt-1.5 flex justify-end">
+      </div>
+      {/* 右下(PC): これまでの節目の一覧(シミュレーション中も、見返せる)。外側を押しても、閉じる */}
+      <div className="mt-1.5 hidden justify-end lg:flex">
         <button type="button" onClick={() => setList((o) => !o)} aria-expanded={list} className="keep flex items-center gap-1.5 border border-line px-2.5 py-1 text-[11px] tracking-wider text-haze hover:border-haze hover:text-mist">
           節目の一覧
           <span aria-hidden className={`text-[9px] text-dim transition-transform ${list ? "rotate-180" : ""}`}>▼</span>

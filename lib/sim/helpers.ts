@@ -214,3 +214,15 @@ export function condOf(data: CountryData, p: Person) {
   const a = data.ailments.find((x) => x.id === p.ailment) ?? data.ailments[0];
   return { healthBase: c.healthBase + a.healthDelta + (p.healthAdj ?? 0), illness: c.illness * a.illness, income: c.income * a.income };
 }
+
+// 親友・友人・旧友などの名前。はじめて出会うときに、ランダムに決まり、そのあとも、同じ名前で出てくる。
+export function friendName(p: Person, role: "best" | "friend" | "old", rng: Rng, data: CountryData): string {
+  p.friendNames ??= {};
+  if (!p.friendNames[role]) {
+    const used = new Set(Object.values(p.friendNames));
+    const r = rng();
+    const pool = (r < 0.47 ? data.names.girl : r < 0.94 ? data.names.boy : data.names.neutral).filter((n) => !used.has(n) && n !== p.partner?.given);
+    p.friendNames[role] = pool.length ? pool[Math.floor(rng() * pool.length)] : "友人";
+  }
+  return p.friendNames[role];
+}

@@ -64,3 +64,47 @@ export const profileLocal = {
     }
   },
 };
+
+// ランダムで始めた人生の、履歴とお気に入り。このブラウザに、あわせて10件まで(履歴は最新5件・お気に入りは5件まで)。
+const RANDOM_STORAGE = "betsu-uchu:random-lives";
+export const HISTORY_MAX = 5;
+export const FAVORITE_MAX = 5;
+export type RandomLife = { id: string; createdAt: string; self: CurrentSelf; branch: Branch; seed: number; favorite: boolean };
+
+const readRandom = (): RandomLife[] => {
+  const raw = safeGet(RANDOM_STORAGE);
+  if (!raw) return [];
+  try {
+    const o = JSON.parse(raw);
+    return Array.isArray(o) ? o.filter((x) => x && x.self && x.branch && typeof x.seed === "number") : [];
+  } catch {
+    return [];
+  }
+};
+// 履歴(お気に入りでないもの)は新しい順に5件、お気に入りは5件まで。
+const trimRandom = (list: RandomLife[]): RandomLife[] => [...list.filter((x) => !x.favorite).slice(0, HISTORY_MAX), ...list.filter((x) => x.favorite).slice(0, FAVORITE_MAX)].sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1));
+
+export const randomLives = {
+  list: readRandom,
+  add(item: Omit<RandomLife, "id" | "createdAt" | "favorite">): RandomLife[] {
+    const next = trimRandom([{ ...item, id: crypto.randomUUID(), createdAt: new Date().toISOString(), favorite: false }, ...readRandom()]);
+    safeSet(RANDOM_STORAGE, JSON.stringify(next));
+    return next;
+  },
+  // お気に入りの入れかえ。5件をこえるときは、入れられない。
+  toggleFavorite(id: string): { list: RandomLife[]; full: boolean } {
+    const list = readRandom();
+    const target = list.find((x) => x.id === id);
+    if (!target) return { list, full: false };
+    if (!target.favorite && list.filter((x) => x.favorite).length >= FAVORITE_MAX) return { list, full: true };
+    target.favorite = !target.favorite;
+    const next = trimRandom(list);
+    safeSet(RANDOM_STORAGE, JSON.stringify(next));
+    return { list: next, full: false };
+  },
+  remove(id: string): RandomLife[] {
+    const next = readRandom().filter((x) => x.id !== id);
+    safeSet(RANDOM_STORAGE, JSON.stringify(next));
+    return next;
+  },
+};

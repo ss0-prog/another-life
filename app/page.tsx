@@ -5,6 +5,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import { CompareResult } from "@/components/CompareResult";
 import { PlayScreen } from "@/components/PlayScreen";
+import { RandomHistory } from "@/components/RandomHistory";
 import { TreeWizard } from "@/components/TreeWizard";
 import { primaryButtonClass } from "@/components/controls";
 import { branchLabelOf, entryFrom, publishEntry } from "@/lib/archive";
@@ -12,7 +13,7 @@ import { cloudEchoStore, profileStore, type SavedProfile } from "@/lib/cloud";
 import { getMessages } from "@/lib/i18n";
 import { autoRun, startAlt, startReal, summarize } from "@/lib/sim/engine";
 import type { Branch, CurrentSelf, GameState, LifeSummary, Setup } from "@/lib/sim/types";
-import { echoStore, profileLocal } from "@/lib/storage";
+import { echoStore, profileLocal, randomLives } from "@/lib/storage";
 import { getFirebaseAuth } from "@/lib/firebase";
 import { useAuth } from "@/lib/useAuth";
 
@@ -81,13 +82,16 @@ export default function Home() {
     if (phase.name === "wizard") window.scrollTo({ top: 0, behavior: "smooth" });
   }, [phase.name]);
 
-  const startPlay = (self: CurrentSelf, branch: Branch, fresh = false, keepFate = false) => {
+  const startPlay = (self: CurrentSelf, branch: Branch, fresh = false, keepFate = false, opts?: { random?: boolean; seed?: number }) => {
     // 巻き戻しのときは、同じ種(景気・空模様・めぐり合わせ)のまま、選ぶ道だけを変える。
     const keep = setup && (keepFate || (!fresh && multi));
-    const next: Setup = { self: keep ? setup.self : self, branch, seed: keep ? setup.seed : Math.floor(Math.random() * 2 ** 31) };
+    const next: Setup = { self: keep ? setup.self : self, branch, seed: keep ? setup.seed : (opts?.seed ?? Math.floor(Math.random() * 2 ** 31)) };
     // 入力した条件は、このブラウザに覚えておく(次から、入力を飛ばして始められる)。
-    profileLocal.set({ self: next.self, branch: next.branch });
-    setSaved({ self: next.self, branch: next.branch });
+    // ランダムで始めた人生は、「前回の入力」には、残さない(履歴に残す)。
+    if (!opts?.random) {
+      profileLocal.set({ self: next.self, branch: next.branch });
+      setSaved({ self: next.self, branch: next.branch });
+    }
     setSetup(next);
     if (!keep) {
       setRealRun(autoRun(startReal(next)));
@@ -270,6 +274,7 @@ export default function Home() {
                   ))}
                 </div>
               </motion.div>
+              <RandomHistory loggedIn={Boolean(user)} onPlay={(x) => startPlay(x.self, x.branch, true, false, { random: true, seed: x.seed })} />
             </motion.div>
           )}
 
@@ -278,6 +283,11 @@ export default function Home() {
               <TreeWizard
                 t={t.wizard}
                 onSubmit={startPlay}
+                onRandom={(self, branch) => {
+                  const seed = Math.floor(Math.random() * 2 ** 31);
+                  randomLives.add({ self, branch, seed });
+                  startPlay(self, branch, true, false, { random: true, seed });
+                }}
                 prefill={prefill}
                 auth={{
                   enabled,

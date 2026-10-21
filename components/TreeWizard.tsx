@@ -32,6 +32,8 @@ type Props = {
     rememberOff: string;
   };
   onSubmit: (self: CurrentSelf, branch: Branch) => void;
+  // ランダムで始めたとき(前回の入力には、残さない)。
+  onRandom?: (self: CurrentSelf, branch: Branch) => void;
   prefill?: CurrentSelf | null;
   auth: { enabled: boolean; loggedIn: boolean; login: () => Promise<boolean>; remember: (self: CurrentSelf, branch: Branch) => Promise<boolean> };
 };
@@ -589,7 +591,7 @@ function randomSetup(): { self: CurrentSelf; branch: Branch } | null {
   return null;
 }
 
-export function TreeWizard({ t, onSubmit, auth, prefill }: Props) {
+export function TreeWizard({ t, onSubmit, onRandom, auth, prefill }: Props) {
   const [remember, setRemember] = useState<"idle" | "busy" | "ok" | "fail">("idle");
   const [answers, setAnswers] = useState<Answer[]>(() => (prefill ? answersFromSelf(prefill) : []));
   const box = useRef<HTMLDivElement>(null);
@@ -710,7 +712,7 @@ export function TreeWizard({ t, onSubmit, auth, prefill }: Props) {
 
   const startRandom = () => {
     const r = randomSetup();
-    if (r) onSubmit(r.self, r.branch);
+    if (r) (onRandom ?? onSubmit)(r.self, r.branch);
   };
 
   const rememberNow = async () => {

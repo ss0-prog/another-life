@@ -104,7 +104,7 @@ export async function renderCard(real: LifeSummary, alt: LifeSummary): Promise<B
   ctx.fillText("ふたつの人生", W / 2, 180);
 
   const colW = 440;
-  drawLife(ctx, real, "分かれなかった、現実のあなた", "#9bbdf0", 70, 270, colW);
+  drawLife(ctx, real, "現実のあなた", "#9bbdf0", 70, 270, colW);
   drawLife(ctx, alt, "分岐した、もうひとりのあなた", "#f0c994", 570, 270, colW);
 
   ctx.textAlign = "center";

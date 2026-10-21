@@ -1070,7 +1070,8 @@ export const turningPoints: TurningPoint[] = [
   },
   {
     id: "career25",
-    age: 25,
+    // 仕事を選んだ直後には聞かない。同じ仕事を、5年は続けてから。
+    age: (p) => Math.max(25, (p.jobSince ?? 0) + 5),
     title: "働き方を見つめ直す",
     prompt: "いまの仕事と、これからをどう考えるだろう。",
     when: (p) => p.occ !== null,
@@ -1215,7 +1216,7 @@ export const turningPoints: TurningPoint[] = [
   },
   {
     id: "career40",
-    age: 40,
+    age: (p) => Math.max(40, (p.jobSince ?? 0) + 5),
     title: "これからのキャリア",
     prompt: "働き方を、どうしていくだろう。",
     when: (p) => p.occ !== null && p.occ !== "retired",

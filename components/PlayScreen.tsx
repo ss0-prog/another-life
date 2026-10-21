@@ -218,6 +218,7 @@ export function PlayScreen({ t, initial, birthYear, selfAge, ghost, dev = false,
   const last = trail[trail.length - 1];
   // ポップアップは、閉じて、画面を見ながら考えられる(閉じているあいだも、選ぶまで、時間は止まったまま)。
   const [closedKey, setClosedKey] = useState<string | null>(null);
+  const [deathClosed, setDeathClosed] = useState(false); // 最期の画面を閉じて、人生を見返している間は true
   const popupKey = tp ? `${tp.id}-${p.age}` : "";
   const popupWanted = Boolean(tp) && !dead && !naming && revealed;
   const showPopup = popupWanted && closedKey !== popupKey;
@@ -535,7 +536,20 @@ export function PlayScreen({ t, initial, birthYear, selfAge, ghost, dev = false,
       </section>
       <AchievementToaster state={state} />
       {dev && <DevPanel state={state} act={act} setSpeed={setSpeed} />}
-      {dead && revealed && <DeathOverlay age={state.deathAge ?? p.age} cause={state.deathCause ?? ""} why={state.deathNote?.reasons.join("。")} quote={pickEpitaph({ seed: state.seed, age: state.deathAge ?? p.age, cause: state.deathCause ?? "", joy: p.stats.joy, bonds: p.stats.bonds, money: p.stats.money })} label={t.compare} line={t.dead} onCompare={() => onFinish(state)} />}
+      {dead && revealed && !deathClosed && <DeathOverlay onClose={() => setDeathClosed(true)} age={state.deathAge ?? p.age} cause={state.deathCause ?? ""} why={state.deathNote?.reasons.join("。")} quote={pickEpitaph({ seed: state.seed, age: state.deathAge ?? p.age, cause: state.deathCause ?? "", joy: p.stats.joy, bonds: p.stats.bonds, money: p.stats.money })} label={t.compare} line={t.dead} onCompare={() => onFinish(state)} />}
+      {dead && revealed && deathClosed && (
+        <div className="fixed inset-x-[2.5vw] bottom-4 z-50 flex items-center justify-between gap-3 rounded-sm border border-warm/70 bg-panel px-4 py-3 shadow-xl lg:inset-x-auto lg:left-1/2 lg:-translate-x-1/2 lg:gap-6 lg:px-5">
+          <p className="min-w-0 text-xs leading-5 tracking-wider text-mist sm:text-sm">人生は、{state.deathAge ?? p.age}歳で終わりました。</p>
+          <div className="flex shrink-0 items-center gap-2">
+            <button type="button" onClick={() => setDeathClosed(false)} className="keep border border-line px-3 py-1.5 text-xs font-bold text-haze hover:border-haze hover:text-mist sm:text-sm">
+              最期の画面
+            </button>
+            <button type="button" onClick={() => onFinish(state)} className="keep border border-warm/70 bg-warm/10 px-3 py-1.5 text-xs font-bold text-mist hover:border-warm sm:text-sm">
+              {t.compare}
+            </button>
+          </div>
+        </div>
+      )}
       {popupWanted && !showPopup && tp && (
         <div data-choice-bar className="fixed inset-x-[2.5vw] bottom-4 z-50 flex items-center justify-between gap-3 rounded-sm border border-warm/70 bg-panel px-4 py-3 shadow-xl lg:inset-x-auto lg:left-1/2 lg:-translate-x-1/2 lg:gap-4 lg:px-5">
           <p className="min-w-0 text-xs leading-5 tracking-wider text-mist sm:text-sm">選択の場面で時間を止めています。<span className="block font-bold text-warm sm:ml-2 sm:inline">{soften(question?.title ?? "")}</span></p>

@@ -4,10 +4,10 @@ import { motion } from "framer-motion";
 import { useMemo } from "react";
 import { primaryButtonClass } from "@/components/controls";
 
-type Props = { age: number; cause: string; why?: string; quote?: { text: string; by: string }; label: string; line: string; onCompare: () => void };
+type Props = { age: number; cause: string; why?: string; quote?: { text: string; by: string }; label: string; line: string; onCompare: () => void; onClose?: () => void };
 
 // 人生が終わったとき: 画面がゆっくり暗くなり、光の粒が、空へのぼっていく。
-export function DeathOverlay({ age, cause, why, quote, label, line, onCompare }: Props) {
+export function DeathOverlay({ age, cause, why, quote, label, line, onCompare, onClose }: Props) {
   // 光の粒は、少しだけ。ゆっくり、静かにのぼる。
   const motes = useMemo(
     () =>
@@ -58,6 +58,11 @@ export function DeathOverlay({ age, cause, why, quote, label, line, onCompare }:
           <span className="absolute inset-0 border border-[#f0c994]/70 bg-[#f0c994]/10 transition-colors group-hover:border-[#f0c994] group-hover:bg-[#f0c994]/20" />
           {label}
         </button>
+        {onClose && (
+          <button type="button" onClick={onClose} className="mt-5 block w-full text-center text-sm tracking-[0.25em] text-[#a9a391] underline-offset-8 hover:text-[#f4efe2] hover:underline">
+            閉じて、人生を見返す
+          </button>
+        )}
       </motion.div>
     </motion.div>
   );

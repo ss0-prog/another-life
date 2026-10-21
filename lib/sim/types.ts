@@ -108,6 +108,9 @@ export type Setup = { self: CurrentSelf; branch: Branch; seed: number; random?: 
 // ゲーム中のひとりの人物。occ が null の間は学生(または子ども)。
 export type Person = {
   age: number;
+  // いまの仕事に就いた年齢(仕事が変わるたびに更新。「同じ仕事を何年続けたか」の判定に使う)。
+  jobKey?: string;
+  jobSince?: number;
   // いまの持病(あとから診断される場合は ailmentOnset に予定が入る)。
   ailment: Ailment;
   ailmentOnset: { age: number; id: Ailment } | null;

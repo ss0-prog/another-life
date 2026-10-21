@@ -1129,6 +1129,13 @@ export function tick(state: GameState, data: CountryData = jpData): GameState {
     last = fxSnap(next);
     next.events.push({ age: a, event, weight, ...(fx ? { fx } : {}) });
   };
+  // いまの仕事に就いた年齢を、記録しておく(仕事が変わったら、数えなおす)。
+  const jk = p.occ === null || p.occ === "retired" ? "" : `${p.occ}:${p.job ?? ""}`;
+  if (jk && p.jobKey !== jk) {
+    p.jobKey = jk;
+    p.jobSince = a - 1;
+  }
+  if (!jk) p.jobKey = undefined;
   const c = cond(data, p);
   p.age = a;
   p.econ = economyAt(seed, a, p.birthYear);

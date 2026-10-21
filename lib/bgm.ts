@@ -404,6 +404,14 @@ export function resumeBgmOnFirstTouch() {
     pref = window.localStorage.getItem(KEY) === "on";
   } catch {}
   if (!pref) return () => {};
+  // 画面を読みこみなおしたあとも、ブラウザが許すなら、さわらなくても、すぐに鳴らしつづける(許されない場合は、最初にさわったときから)。
+  try {
+    build();
+    if (ctx && ctx.state === "running") {
+      startBgm();
+      return () => {};
+    }
+  } catch {}
   const go = () => {
     startBgm();
     cleanup();
@@ -415,6 +423,21 @@ export function resumeBgmOnFirstTouch() {
   window.addEventListener("pointerdown", go, { once: true });
   window.addEventListener("keydown", go, { once: true });
   return cleanup;
+}
+
+// 鳴らしているはずなのに、ブラウザに止められた音(タブを切りかえた・画面を戻したときなど)を、もどす。
+export function keepBgmAlive() {
+  const wake = () => {
+    if (on && ctx && ctx.state !== "running" && document.visibilityState !== "hidden") void ctx.resume();
+  };
+  document.addEventListener("visibilitychange", wake);
+  window.addEventListener("pageshow", wake);
+  window.addEventListener("focus", wake);
+  return () => {
+    document.removeEventListener("visibilitychange", wake);
+    window.removeEventListener("pageshow", wake);
+    window.removeEventListener("focus", wake);
+  };
 }
 
 export const useBgmOn = () =>

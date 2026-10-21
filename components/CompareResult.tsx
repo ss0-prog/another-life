@@ -8,7 +8,7 @@ import { useEffect, useState } from "react";
 import { recordUnlocked } from "@/lib/achievementStore";
 import { COMMENT_MAX } from "@/lib/archive";
 import { soften } from "@/lib/jp";
-import { EventText } from "@/components/EventText";
+import { EventText, splitEvent } from "@/components/EventText";
 import type { Messages } from "@/lib/i18n";
 import { downloadBlob, renderCard } from "@/lib/card";
 import { DeltaItem } from "@/components/Delta";
@@ -54,6 +54,12 @@ export function CompareResult({ t, real, alt, onSave, canPublish, publishEnabled
           <p data-no-og className="text-justify text-xs leading-6 tracking-wider text-dim [text-justify:inter-character]">※ これはあくまでシミュレーションです。占いや予言ではなくあなたの実際の人生や将来を、当てたり保証したりするものでは決してありません。</p>
           <p data-no-og className="mt-6 text-justify text-sm leading-8 tracking-wider text-haze [text-justify:inter-character]">{t.lead}</p>
         </div>
+      </FadeIn>
+
+      {/* 一番はじめに、それぞれの人生のまとめ(なぜ亡くなったのか・どんな人生だったのか) */}
+      <FadeIn delay={0.4} className="mx-auto mt-10 grid max-w-7xl gap-6 md:grid-cols-2">
+        <LifeStory t={t} heading={t.realHeading} life={real} accent="cool" />
+        <LifeStory t={t} heading={t.altHeading} life={alt} accent="warm" />
       </FadeIn>
 
       <FadeIn delay={0.6} className="mx-auto mt-12 max-w-7xl">
@@ -181,6 +187,44 @@ export function CompareResult({ t, real, alt, onSave, canPublish, publishEnabled
         <p className="mx-auto mt-8 max-w-md w-fit text-left text-xs leading-6 tracking-wider text-dim">{t.disclaimer}</p>
       </FadeIn>
     </motion.article>
+  );
+}
+
+const JOY_WORD = (joy: number) => (joy >= 70 ? "満ち足りた" : joy >= 50 ? "おおむね穏やかな" : joy >= 35 ? "苦しさも多かった" : "つらさの多かった");
+
+// 人生ひとつ分の、まとめ。亡くなった理由と、どんな人生だったかを、はじめに、文章で書く。
+function LifeStory({ t, heading, life, accent }: { t: Messages["result"]; heading: string; life: LifeSummary; accent: "cool" | "warm" }) {
+  const death = life.death;
+  const cause = death?.cause || life.deathCause;
+  const reasons = (death?.reasons ?? []).slice(0, 3);
+  const keys = STAT_KEYS.slice().sort((a, b) => life.stats[b] - life.stats[a]);
+  const best = keys[0];
+  const worst = keys[keys.length - 1];
+  const rest = life.echo.status.summary.replace(/^\d+歳のあなた。/, "").replace(/、?(子ども\d+人と暮らす|パートナーと二人で暮らす|実家で暮らす|ひとりで暮らす)$/, "");
+  const home = life.kids > 0 ? `${life.kids}人の子どもを育て` : life.married ? "パートナーと家庭を築き" : "ひとりで自分の道を歩み";
+  const big = (life.turning ?? []).slice().sort((x, y) => y.impact - x.impact).slice(0, 2).sort((x, y) => x.age - y.age);
+  return (
+    <section className="rounded-sm border border-line bg-panel/80 px-5 py-7 text-left sm:px-7" style={{ borderTop: `2px solid var(--color-${accent})` }}>
+      <p className="text-sm tracking-[0.3em]" style={{ color: `var(--color-${accent})` }}>{heading}のまとめ</p>
+      <h3 className="mt-3 text-base font-bold leading-8 tracking-wider text-mist">{life.deathAge}歳で、{cause ? `${cause}により、` : ""}人生を終えた</h3>
+      {reasons.length > 0 && (
+        <p data-no-og className="mt-2 text-sm leading-8 tracking-wider text-haze">{reasons.map((x) => soften(x)).join("。")}。</p>
+      )}
+      <p data-no-og className="mt-4 text-sm leading-8 tracking-wider text-mist">
+        {rest ? `最期のころは、${soften(rest.replace("で、", "で"))}${/として$/.test(rest) ? "暮らしていた" : /暮らし$/.test(rest) ? "をしていた" : "だった"}。` : ""}
+        {home}、{JOY_WORD(life.stats.joy)}一生だった。最終的な資産は、約{manText(life.assets.total)}。
+        {t.stats[best]}がもっとも高く、{t.stats[worst]}がもっとも低かった。
+      </p>
+      {big.length > 0 && (
+        <ul className="mt-3 space-y-1 text-sm leading-7 tracking-wider text-haze">
+          {big.map((m, i) => (
+            <li key={i}>
+              <span className="text-warm">{m.age}歳</span>: {soften(splitEvent(m.event).main)}
+            </li>
+          ))}
+        </ul>
+      )}
+    </section>
   );
 }
 

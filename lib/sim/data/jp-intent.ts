@@ -43,8 +43,10 @@ const rules: IntentRule[] = [
       const text = m.input ?? "";
       const named = COUNTRIES.find((c) => c.kw.test(text));
       if (p.abroad && named && p.abroad.country === named.name) return "";
+      if (s.wallet.cash < 1000000) return "海外への移住を考えたが、渡航や住まいの準備にかかる費用(約100万円)が足りなかった";
       const city = moveAbroad(p, rng, data, named?.id);
-      return `${city}に移り住んだ`;
+      p.cashDelta -= 1000000;
+      return `${city}に移り住んだ(渡航や住まいの準備に、約100万円がかかった)`;
     },
   },
   {
@@ -408,7 +410,10 @@ const rules: IntentRule[] = [
       if (p.owned) return "";
       const price = HOME_PRICE[p.region] * 0.85;
       const takeHome = netIncome(p, data, p.econ);
-      if (monthlyMan(price) * 12 > takeHome * 0.35) return "住宅の購入を考えたが、ローンの審査が通らなかった";
+      const down = Math.round(price * 0.15);
+      if (s.wallet.cash < down * 10000) return `住宅の購入を考えたが、頭金(約${down}万円)が足りなかった`;
+      if (p.occ === null || p.occ === "retired" || monthlyMan(price) * 12 > takeHome * 0.35) return "住宅の購入を考えたが、ローンの審査が通らなかった";
+      p.cashDelta -= down * 10000;
       p.owned = true;
       p.withParents = false;
       p.owns.home = p.age;

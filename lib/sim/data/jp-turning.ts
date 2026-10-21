@@ -818,15 +818,19 @@ const opt = (id: string, label: string, apply: TurningOption["apply"], extra: Pa
 const flowText = (t: string) => () => t;
 
 // ---- 海外へ移住する: 国を選ぶ ----
+const MOVE_ABROAD_MAN = 100;
 const countryQuestion = (): TurningQuestion => ({
   title: "どの国へ？",
   prompt: "移り住む国で、現在地も、収入も、物価も変わります。",
   options: jpDataCountries().map((c) => ({
     id: c.id,
     label: `${c.name}(${c.cities.join("・")})`,
+    // 渡航・住まいの契約・当面の生活の準備にかかる費用。
+    cost: () => MOVE_ABROAD_MAN,
     apply: (p, r, d) => {
       const city = moveAbroad(p, r, d, c.id);
-      return `${city}に移り住んだ`;
+      p.cashDelta -= MOVE_ABROAD_MAN * 10000;
+      return `${city}に移り住んだ(渡航や住まいの準備に、約${MOVE_ABROAD_MAN}万円がかかった)`;
     },
     detail: () => `収入の水準は日本の約${Math.round(c.incomeFactor * 100)}%、物価は約${Math.round(c.costFactor * 100)}%。言葉や文化のちがいに、慣れるまで時間がかかる。`,
   })),
@@ -851,10 +855,13 @@ const homeQuestion = (): TurningQuestion => ({
   options: HOME_TYPES.map((h) => ({
     id: h.id,
     label: h.label,
+    // 頭金(価格の約15%)は、貯金から出す。足りなければ、選べない。
+    cost: (p) => Math.round(HOME_PRICE[p.region] * h.f * 0.15),
     apply: (p, r, d) => {
       const price = HOME_PRICE[p.region] * h.f;
       const takeHome = netIncome(p, d, p.econ);
-      if (monthlyMan(price) * 12 > takeHome * 0.35 || (p.stats.money < 35 && p.background === "tight")) return "住宅の購入を考えたが、ローンの審査が通らなかった";
+      if (p.occ === null || p.occ === "retired" || monthlyMan(price) * 12 > takeHome * 0.35 || (p.stats.money < 35 && p.background === "tight")) return "住宅の購入を考えたが、ローンの審査が通らなかった";
+      p.cashDelta -= Math.round(price * 0.15) * 10000;
       p.owned = true;
       p.withParents = false;
       p.owns.home = p.age;

@@ -26,7 +26,8 @@ export function lenderAvailable(p: Person, id: LenderId, amountYen: number, annu
       return amountYen <= annualIncomeMan * 10000 * 3 ? { ok: true } : { ok: false, why: "年収の3倍までしか、借りられない" };
     case "card":
       if (bankrupt) return { ok: false, why: "自己破産から7年は、借りられない" };
-      return amountYen <= Math.max(500000, annualIncomeMan * 10000) ? { ok: true } : { ok: false, why: "借りられる額の上限を超えている" };
+      if (!hasIncome) return { ok: false, why: "安定した収入がないと、借りられない" };
+      return amountYen <= (annualIncomeMan * 10000) / 3 ? { ok: true } : { ok: false, why: "年収の3分の1までしか、借りられない" };
     case "shark":
       return { ok: true };
   }

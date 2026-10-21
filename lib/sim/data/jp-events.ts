@@ -571,7 +571,9 @@ const nextCountryQuestion = (p: Person): TurningQuestion => {
       return {
         id,
         label: `${c.name}(${c.cities.join("・")})`,
-        apply: (q: Person, r: () => number, d: CountryData) => (moveAbroad(q, r, d, id), q.abroad && (q.abroad.visa = "work"), q.employment = "regular", ""),
+        // 渡航・ビザ・住まいの準備にかかる費用。
+        cost: () => 50,
+        apply: (q: Person, r: () => number, d: CountryData) => (moveAbroad(q, r, d, id), (q.cashDelta -= 500000), q.abroad && (q.abroad.visa = "work"), q.employment = "regular", ""),
         detail: () => `収入の水準は日本の約${Math.round(c.incomeFactor * 100)}%、物価は約${Math.round(c.costFactor * 100)}%。就労ビザは、更新が必要で、認められないこともある。あとで、働く業界と職種を選ぶ。`,
         children: () => industryQuestion({ factor: 1, finish: (q, title) => `${q.city.split("・")[0]}に移り、就労ビザで、${title}として働き始めた` }),
       } as TurningOption;
@@ -1689,9 +1691,9 @@ export const eventQuestions: EventQuestionDef[] = [
       title: "ペットを迎える？",
       prompt: "新しい家族が増えると、暮らしが変わります。",
       options: [
-        opt("dog", "犬を迎える", (p) => (p.pets.push({ name: "", kind: "犬", adoptedAge: p.age }), bump(p, { health: 3, bonds: 4, money: -2 }), "犬を家族に迎えた"), { detail: () => "毎日の散歩で健康になるが、世話と費用(年に約30万円)がかかる。" }),
-        opt("cat", "猫を迎える", (p) => (p.pets.push({ name: "", kind: "猫", adoptedAge: p.age }), bump(p, { bonds: 4, money: -1 }), "猫を家族に迎えた"), { detail: () => "気ままな同居人。費用は年に約20万円。" }),
-        opt("small", "小動物を迎える", (p) => (p.pets.push({ name: "", kind: "小さな動物", adoptedAge: p.age }), bump(p, { bonds: 2 }), "小さな動物を家族に迎えた"), { detail: () => "手軽だが、寿命は短め。" }),
+        opt("dog", "犬を迎える", (p) => (addCash(p, -30), p.pets.push({ name: "", kind: "犬", adoptedAge: p.age }), bump(p, { health: 3, bonds: 4, money: -2 }), "犬を家族に迎えた"), { cost: () => 30, detail: () => "毎日の散歩で健康になるが、世話と費用(年に約30万円)がかかる。" }),
+        opt("cat", "猫を迎える", (p) => (addCash(p, -15), p.pets.push({ name: "", kind: "猫", adoptedAge: p.age }), bump(p, { bonds: 4, money: -1 }), "猫を家族に迎えた"), { cost: () => 15, detail: () => "気ままな同居人。費用は年に約20万円。" }),
+        opt("small", "小動物を迎える", (p) => (addCash(p, -5), p.pets.push({ name: "", kind: "小さな動物", adoptedAge: p.age }), bump(p, { bonds: 2 }), "小さな動物を家族に迎えた"), { cost: () => 5, detail: () => "手軽だが、寿命は短め。" }),
         opt("no", "迎えない", () => "", { auto: true }),
       ],
     }),

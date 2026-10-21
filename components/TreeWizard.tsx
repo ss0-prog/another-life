@@ -200,6 +200,7 @@ const STEP_LEVEL: Partial<Record<keyof Values, Level>> = {
 };
 const levelOf = (id: keyof Values): Level => STEP_LEVEL[id] ?? 1;
 const LEVEL_KEY = "betsu-uchu:level";
+const PRIVACY_NOTE = "※ 入力した情報は、このサービスの中だけで使い、ほかの目的には一切使いません。";
 // 答えなかった項目の、おぎない(いまの住んでいる場所など)。
 const regionOf = (prefecture: string): Region => jpData.prefectures.find((p) => p.name === prefecture)?.region ?? "local";
 
@@ -543,6 +544,54 @@ function answersFromSelf(self: CurrentSelf): Answer[] {
   return out;
 }
 
+// 質問のすべてに、ランダムに答えて、「いまのあなた」とターニングポイントを、つくる(人生は、0歳からはじまる)。
+function randomSetup(): { self: CurrentSelf; branch: Branch } | null {
+  const int = (a: number, b: number) => a + Math.floor(Math.random() * (b - a + 1));
+  const pickOne = <T,>(xs: T[]): T | undefined => xs[Math.floor(Math.random() * xs.length)];
+  const rawFor = (step: Step): string | null => {
+    // ランダムで始めるときは、0歳から(ターニングポイントは、子どもの頃の道で、0歳のとき)。
+    if (step.id === "kind") return step.options?.some((o) => o.value === "childhood") ? "childhood" : null;
+    if (step.id === "branchAge") return "0";
+    switch (step.input) {
+      case "chips":
+      case "select":
+        return pickOne(dropdownItems(step))?.value ?? null;
+      case "multi": {
+        const all = (step.options ?? []).map((o) => o.value).sort(() => Math.random() - 0.5);
+        return all.slice(0, int(1, Math.min(3, all.length))).join(",");
+      }
+      case "number": {
+        const x = String(int(step.min ?? 0, step.max ?? 90));
+        return step.withSex ? `${x}|${pickOne(["boy", "girl"])}` : x;
+      }
+      case "optionalNumber":
+        return Math.random() < 0.5 ? "" : String(int(0, 3000));
+      default:
+        return "";
+    }
+  };
+  for (let attempt = 0; attempt < 20; attempt++) {
+    const answers: { id: keyof Values; value: string }[] = [];
+    let ok = true;
+    for (let i = 0; i < 80; i++) {
+      const v = valuesOf(answers);
+      const step = stepsFor(v, v.age, 3).find((x) => !answers.some((a) => a.id === x.id));
+      if (!step) break;
+      const raw = rawFor(step);
+      if (raw === null) {
+        ok = false;
+        break;
+      }
+      answers.push({ id: step.id, value: raw });
+    }
+    if (!ok) continue;
+    const v = valuesOf(answers);
+    const self = selfFrom(v);
+    if (self && v.kind && v.branchAge !== undefined && v.option) return { self, branch: { kind: v.kind, option: v.option, age: v.branchAge } };
+  }
+  return null;
+}
+
 export function TreeWizard({ t, onSubmit, auth, prefill }: Props) {
   const [remember, setRemember] = useState<"idle" | "busy" | "ok" | "fail">("idle");
   const [answers, setAnswers] = useState<Answer[]>(() => (prefill ? answersFromSelf(prefill) : []));
@@ -660,6 +709,11 @@ export function TreeWizard({ t, onSubmit, auth, prefill }: Props) {
         sfxRewind(n - i);
       }, FADE + (i - 1) * step);
     later(() => onSubmit(self, branch), FADE + n * step + 1100);
+  };
+
+  const startRandom = () => {
+    const r = randomSetup();
+    if (r) onSubmit(r.self, r.branch);
   };
 
   const rememberNow = async () => {
@@ -804,6 +858,7 @@ export function TreeWizard({ t, onSubmit, auth, prefill }: Props) {
             <p className="text-xs tracking-[0.4em] text-warm">はじめに</p>
             <h2 className="cq mt-3 text-xl font-bold leading-9 tracking-[0.12em] text-mist sm:text-2xl"><span className="fit-line [--fit:17.9]">どのくらいくわしく答えますか？</span></h2>
             <p className="mt-2 text-sm leading-7 tracking-wider text-haze">答えなかった項目はふつうの値でおぎないます。あとからいつでも変えられます。</p>
+            <p className="font-gothic mt-1 text-[11px] leading-5 tracking-wider text-dim">{PRIVACY_NOTE}</p>
             <div className="mt-6 grid gap-3 sm:grid-cols-3">
               {LEVELS.map((l) => (
                 <button key={l.level} type="button" onClick={() => setLevel(l.level)} className="group relative flex flex-col items-center border border-line bg-panel/95 px-4 py-5 text-center transition-colors hover:border-warm">
@@ -819,6 +874,10 @@ export function TreeWizard({ t, onSubmit, auth, prefill }: Props) {
                 </button>
               ))}
             </div>
+            <button type="button" onClick={startRandom} disabled={rewinding} className="group mt-4 flex w-full flex-col items-center border border-warm/60 bg-warm/5 px-4 py-4 text-center transition-colors hover:border-warm hover:bg-warm/10 disabled:opacity-50">
+              <span className="text-lg font-bold tracking-[0.2em] text-mist">ランダムで始める</span>
+              <span className="font-gothic mt-1 text-xs leading-6 tracking-wider text-haze">年齢・仕事・ターニングポイントまで、すべてランダムに決めて、0歳から始めます。</span>
+            </button>
           </motion.div>
         ) : (
         <AnimatePresence mode="wait">
@@ -969,6 +1028,7 @@ export function TreeWizard({ t, onSubmit, auth, prefill }: Props) {
             {t.back}
           </button>
         )}
+        {!choosing && <p className="font-gothic mt-6 text-center text-[11px] leading-5 tracking-wider text-dim/80">{PRIVACY_NOTE}</p>}
       </div>
     </div>
   );

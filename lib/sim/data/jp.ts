@@ -167,7 +167,7 @@ export const jpData: CountryData = {
   ],
 
   stageLabel: (age, occ) =>
-    occ === "retired" ? "仕事を退いた暮らし" : occ ? jpData.occLabel[occ] : age < 12 ? "小学生" : age < 15 ? "中学生" : age < 18 ? "高校生" : "学生",
+    occ === "retired" ? "仕事を退いた暮らし" : occ ? jpData.occLabel[occ] : age < 3 ? "乳幼児" : age < 6 ? "園児" : age < 12 ? "小学生" : age < 15 ? "中学生" : age < 18 ? "高校生" : "学生",
 
   vignette,
   smallEvents,

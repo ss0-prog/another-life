@@ -76,6 +76,11 @@ export default function Home() {
     if (process.env.NODE_ENV !== "production") setDev(new URLSearchParams(window.location.search).get("dev") === "1");
   }, []);
 
+  // 入力画面に入ったときは、画面の一番上から始める。
+  useEffect(() => {
+    if (phase.name === "wizard") window.scrollTo({ top: 0, behavior: "smooth" });
+  }, [phase.name]);
+
   const startPlay = (self: CurrentSelf, branch: Branch, fresh = false, keepFate = false) => {
     // 巻き戻しのときは、同じ種(景気・空模様・めぐり合わせ)のまま、選ぶ道だけを変える。
     const keep = setup && (keepFate || (!fresh && multi));

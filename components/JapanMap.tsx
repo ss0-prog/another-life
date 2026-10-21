@@ -9,7 +9,7 @@ type Stop = { age: number; place: string; short: string; xy: [number, number] | 
 
 const OKI_XY: [number, number] = projectSouth(OKINAWA);
 // 海外で暮らした、の札: 地図の左上(日本海がある側)。
-const OVERSEAS_BOX = { x: 8, y: 10, w: 136 };
+const OVERSEAS_BOX = { x: 6, y: 10, w: 156 };
 
 // 海岸線の数字の並びを、SVGの線にする(最初に、一度だけ作る)
 const toPath = (flat: number[], proj: (ll: [number, number]) => [number, number]) => {

@@ -285,7 +285,8 @@ const toYen = (man: number) => Math.round(man * 10000);
 function startWallet(p: Person, data: CountryData, savingsMan: number | null): Wallet {
   // 18歳未満は、お小遣い(円)。年齢と家計で、持っている額が違う。
   if (p.age < 18) {
-    const pocket = Math.min(20000, Math.round((1500 + Math.max(0, p.age - 6) * 1100) * data.cashflow.backgroundFactor[p.background] / 100) * 100);
+    // 6歳になるまでは、自分のお金は持たない(家族が管理する)。
+    const pocket = p.age < 6 ? 0 : Math.min(20000, Math.round((1500 + Math.max(0, p.age - 6) * 1100) * data.cashflow.backgroundFactor[p.background] / 100) * 100);
     return { cash: pocket, units: { index: 0, world: 0, balanced: 0, reit: 0, gold: 0, growth: 0, crypto: 0, bond: 0 }, contributed: 0, stocks: false, debts: [] };
   }
   const guess = interpolate(data.cashflow.startSavings, p.age) * data.cashflow.backgroundFactor[p.background];
@@ -1616,8 +1617,13 @@ export function tick(state: GameState, data: CountryData = jpData): GameState {
     // ふだんのお菓子や遊びで、お金の多くは、気づかないうちに、なくなっていく(出来事としては、書かない)。
     const gain = allow + otoshidama;
     const everyday = Math.round((gain * (0.82 + 0.14 * roll(seed, a, S.allow))) / 100) * 100;
-    next.wallet.cash += gain - everyday;
-    push(`お正月に、お年玉を${otoshidama.toLocaleString("ja-JP")}円もらった。お小遣いは、月に${monthly.toLocaleString("ja-JP")}円`, 18);
+    if (a >= 6) {
+      next.wallet.cash += gain - everyday;
+      push(`お正月に、お年玉を${otoshidama.toLocaleString("ja-JP")}円もらった。お小遣いは、月に${monthly.toLocaleString("ja-JP")}円`, 18);
+    } else if (a >= 3) {
+      // 3〜5歳: お年玉はもらうが、お金は親が預かる。お小遣いは、まだない。
+      push("お正月に、親戚からお年玉をもらった。お金は、親が預かってくれた", 18);
+    }
   }
 
   // 物価: 実際の統計がある年は、その年の物価上昇率を使う。ない年(未来)は、毎回ランダム。物価が大きく上がった年は、暮らしが苦しくなる。

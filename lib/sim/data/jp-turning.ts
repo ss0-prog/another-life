@@ -364,16 +364,19 @@ export const branchAsk: Record<string, string> = {
   "family.option.childfree": "子どもを持たなかったら？",
 };
 
+// 年齢にあった言い方(0〜2歳・3〜5歳・6歳以上)。
+const young = (p: { age: number }, baby: string, kinder: string, school: string) => (p.age < 3 ? baby : p.age < 6 ? kinder : school);
+
 export const branches: CountryData["branches"] = {
   childhood: {
     label: "子どもの頃",
     defaultAge: 6,
     minAge: 3,
     options: [
-      { id: "out", label: "外で体を動かして過ごす", matches: () => false, apply: (p) => (bump(p, { health: 8, bonds: 3 }), "放課後は、外で体を動かして過ごした") },
-      { id: "study", label: "習い事や勉強に打ち込む", matches: () => false, apply: (p) => (bump(p, { learn: 8 }), "習い事や勉強に打ち込む日々を送った") },
-      { id: "friends", label: "友だちと過ごす時間を大切にする", matches: () => false, apply: (p) => (bump(p, { bonds: 8 }), "友だちと過ごす時間がいちばん長かった") },
-      { id: "alone", label: "ひとりで本やゲームに没頭する", matches: () => false, apply: (p) => (bump(p, { learn: 4, bonds: -2 }), "ひとりで本やゲームに没頭して過ごした") },
+      { id: "out", label: "外で体を動かして過ごす", matches: () => false, apply: (p) => (bump(p, { health: 8, bonds: 3 }), young(p, "家族に連れられて、外でのびのびと体を動かして過ごした", "園から帰ったあとも、外で体を動かして過ごした", "放課後は、外で体を動かして過ごした")) },
+      { id: "study", label: "習い事や勉強に打ち込む", matches: () => false, apply: (p) => (bump(p, { learn: 8 }), young(p, "絵本や歌にたくさん触れて、ことばを覚えていく日々を送った", "習い事や、ひらがなの勉強に親しむ日々を送った", "習い事や勉強に打ち込む日々を送った")) },
+      { id: "friends", label: "友だちと過ごす時間を大切にする", matches: () => false, apply: (p) => (bump(p, { bonds: 8 }), young(p, "家族に囲まれて、人と関わる時間がいちばん長かった", "園の友だちと過ごす時間がいちばん長かった", "友だちと過ごす時間がいちばん長かった")) },
+      { id: "alone", label: "ひとりで本やゲームに没頭する", matches: () => false, apply: (p) => (bump(p, { learn: 4, bonds: -2 }), young(p, "ひとりでおもちゃや絵本を相手に、静かに過ごす時間が長かった", "ひとりで絵本やおもちゃに没頭して過ごした", "ひとりで本やゲームに没頭して過ごした")) },
     ] satisfies BranchOption[],
     motives: [
       { id: "people", label: "もっと、人と関わる時間がほしかった", options: ["out", "friends"] },

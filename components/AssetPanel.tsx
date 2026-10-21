@@ -142,6 +142,15 @@ export function AssetPanel({ t, state, month, onTrade, onStartStocks, onPlan, on
 
   const field = "border-b border-line bg-transparent py-1 text-mist outline-none placeholder:text-dim focus:border-haze";
 
+  // 6歳になるまでは、自分のお金は持たない。
+  if (state.person.age < 6)
+    return (
+      <div className="flex flex-col">
+        <h3 className="text-sm tracking-[0.3em] text-warm">{t.allowance}</h3>
+        <p className="mt-3 text-sm leading-7 tracking-wider text-haze">まだ、自分のお金は持っていません。お金のことは、家族が見てくれています。</p>
+      </div>
+    );
+
   return (
     <div className="flex flex-col">
       <h3 className="text-sm tracking-[0.3em] text-warm">{minor ? t.allowance : t.title}</h3>

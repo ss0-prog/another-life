@@ -36,14 +36,17 @@ export default function SourcesPage() {
             <A href="https://www.mhlw.go.jp/toukei/itiran/roudou/koyou/doukou/index.html">厚生労働省「令和6年 雇用動向調査」</A>
             : 転職したときの賃金の変化の割合。
           </li>
-          <li>内閣府「長期経済統計」: 景気(実質GDP)・物価・失業率。統計のある年だけ使っています。</li>
+          <li>
+            <A href="https://www.esri.cao.go.jp/jp/sna/menu.html">内閣府「国民経済計算(GDP統計)」</A>
+            : 景気(実質GDP)・物価・失業率。統計のある年だけ使っています。
+          </li>
           <li>
             <A href="https://www.ipss.go.jp/syoushika/tohkei/Data/Popular2025/T12-40.files/sheet001.htm">厚生労働省「令和2年都道府県別生命表」(国立社会保障・人口問題研究所「人口統計資料集」に収録)</A>
-            : 都道府県ごとの平均寿命。亡くなる確率に、生まれた県(7割)といま暮らす県(3割)の差を反映しています。
+            : 都道府県ごとの平均寿命。
           </li>
           <li>
             <A href="https://eic.obunsha.co.jp/file/educational_info/202501/02.pdf">文部科学省「令和6年度 学校基本調査(確定値)」(旺文社 教育情報センターの集計)</A>
-            : 都道府県ごとの、大学等への現役進学率。ランダムで始めたときの学歴と、同級生の進学の話に使っています。
+            : 都道府県ごとの、大学等への現役進学率。
           </li>
           <li>
             <A href="https://www.mhlw.go.jp/stf/seisakunitsuite/bunya/koyou_roudou/roudoukijun/minimumichiran/index.html">厚生労働省「地域別最低賃金の全国一覧」</A>
@@ -51,16 +54,40 @@ export default function SourcesPage() {
           </li>
           <li>
             <A href="https://news.tiiki.jp/articles/4897">株式会社ブランド総合研究所「幸福度調査2024」</A>
-            : 都道府県ごとの幸福度。インターネット調査(各県の回答は500人あまり)で、県ごとの差は、あまり大きくありません。暮らしの幸福度に、ごくわずかに反映しています。
+            : 都道府県ごとの幸福度。
           </li>
-          <li>厚生労働省「人口動態統計」: 結婚と子どもの図、死因の割合。</li>
-          <li>国税庁「民間給与実態統計調査」: 年収の図。</li>
-          <li>総務省統計局「家計調査(貯蓄・負債編)」: 貯蓄・資産の図。</li>
-          <li>国立社会保障・人口問題研究所「出生動向基本調査」: 結婚までの交際期間。</li>
-          <li>厚生労働省「雇用均等基本調査」: 育児休業の取得割合。</li>
-          <li>気象庁・内閣府・日本銀行などの公表資料: 年表に入る、実際に起きた出来事。</li>
-          <li>宝くじ公式サイト「年末ジャンボ宝くじ(第984回)」: 宝くじの当せん金。</li>
-          <li>公職選挙法: 出馬の供託金。</li>
+          <li>
+            <A href="https://www.mhlw.go.jp/toukei/list/81-1.html">厚生労働省「人口動態統計」</A>
+            : 結婚と子どもの図、死因の割合。
+          </li>
+          <li>
+            <A href="https://www.nta.go.jp/publication/statistics/kokuzeicho/minkan2024/minkan.htm">国税庁「民間給与実態統計調査」</A>
+            : 年収の図。
+          </li>
+          <li>
+            <A href="https://www.stat.go.jp/data/kakei/index.html">総務省統計局「家計調査(貯蓄・負債編)」</A>
+            : 貯蓄・資産の図。
+          </li>
+          <li>
+            <A href="https://www.ipss.go.jp/site-ad/index_Japanese/shussho-index.html">国立社会保障・人口問題研究所「出生動向基本調査」</A>
+            : 結婚までの交際期間。
+          </li>
+          <li>
+            <A href="https://www.mhlw.go.jp/toukei/list/71-r06.html">厚生労働省「雇用均等基本調査」</A>
+            : 育児休業の取得割合。
+          </li>
+          <li>
+            <A href="https://www.jma.go.jp/">気象庁</A>・<A href="https://www.cao.go.jp/">内閣府</A>・<A href="https://www.boj.or.jp/">日本銀行</A>
+            などの公表資料: 年表に入る、実際に起きた出来事。
+          </li>
+          <li>
+            <A href="https://www.takarakuji-official.jp/">宝くじ公式サイト「年末ジャンボ宝くじ(第984回)」</A>
+            : 宝くじの当せん金。
+          </li>
+          <li>
+            <A href="https://elaws.e-gov.go.jp/document?lawid=325AC1000000100">公職選挙法</A>
+            : 出馬の供託金。
+          </li>
           <li>
             国税庁・日本年金機構・厚生労働省の公式ページ: 税と社会保険料の制度(
             <A href="https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2260.htm">所得税</A>・

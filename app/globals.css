@@ -278,16 +278,11 @@ body {
   line-break: strict;
   overflow-wrap: anywhere;
 }
-h1,
-h2,
-h3,
-button,
-dt {
+/* whitespace-nowrap を付けた要素は、折り返さない(ここで text-wrap を上書きしない) */
+:is(h1, h2, h3, button, dt):not(.whitespace-nowrap) {
   text-wrap: balance;
 }
-p,
-li,
-dd {
+:is(p, li, dd):not(.whitespace-nowrap) {
   text-wrap: wrap;
 }
 /* 数字と単位・短い見出しは、途中で切らない */

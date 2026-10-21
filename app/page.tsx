@@ -174,10 +174,10 @@ export default function Home() {
             >
               {/* タイトルまわりの3行は、いちばん幅の広い行にそろえて、左右の頭をそろえる */}
               <div className="flex w-fit max-w-full flex-col items-stretch">
-              <motion.p className="flex items-center justify-between gap-2 whitespace-nowrap text-[13px] font-bold tracking-[0.12em] text-warm min-[400px]:gap-3 min-[400px]:text-lg min-[400px]:tracking-[0.3em] sm:gap-5 sm:text-2xl sm:tracking-[0.4em]" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3, duration: 1.6 }}>
-                <span aria-hidden className="h-px w-3 shrink-0 bg-warm min-[400px]:w-5 sm:w-9" />
-                <span className="-mr-[0.12em] min-[400px]:-mr-[0.3em] sm:-mr-[0.4em]">{t.home.eyebrow}</span>
-                <span aria-hidden className="h-px w-3 shrink-0 bg-warm min-[400px]:w-5 sm:w-9" />
+              <motion.p className="flex items-center justify-between gap-2 whitespace-nowrap text-[15px] font-bold tracking-[0.18em] text-warm min-[360px]:text-base min-[360px]:tracking-[0.2em] min-[400px]:gap-3 min-[400px]:text-[19px] sm:gap-5 sm:text-2xl sm:tracking-[0.4em]" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3, duration: 1.6 }}>
+                <span aria-hidden className="h-px min-w-3 flex-1 bg-warm sm:w-9 sm:flex-none" />
+                <span className="-mr-[0.18em] min-[360px]:-mr-[0.2em] sm:-mr-[0.4em]">{t.home.eyebrow}</span>
+                <span aria-hidden className="h-px min-w-3 flex-1 bg-warm sm:w-9 sm:flex-none" />
               </motion.p>
               {/* タイトルの行: ロゴ「if」を、タイトルの左に、同じ高さで置く。上の「もうひとつの人生を見届ける」と、左右の頭と尻をそろえる */}
               <motion.div

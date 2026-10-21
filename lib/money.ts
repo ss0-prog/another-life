@@ -6,13 +6,16 @@ export function manParts(n: number): { num: string; unit: string } {
   const a = Math.abs(Math.round(n));
   if (a < 10000) return { num: `${sign}${a.toLocaleString("ja-JP")}`, unit: "万円" };
   if (a < 100000000) {
-    let oku = Math.floor(a / 10000);
-    let rest = a % 10000;
-    if (oku >= 10000 && rest === 0) rest = 0;
+    const oku = Math.floor(a / 10000);
+    const rest = a % 10000;
     return { num: rest > 0 ? `${sign}${oku.toLocaleString("ja-JP")}億${rest.toLocaleString("ja-JP")}万` : `${sign}${oku.toLocaleString("ja-JP")}億`, unit: "円" };
   }
-  const cho = Math.floor(a / 100000000);
-  const oku = Math.round((a % 100000000) / 10000);
+  let cho = Math.floor(a / 100000000);
+  let oku = Math.round((a % 100000000) / 10000);
+  if (oku >= 10000) {
+    cho += 1;
+    oku = 0;
+  }
   return { num: oku > 0 ? `${sign}${cho.toLocaleString("ja-JP")}兆${oku.toLocaleString("ja-JP")}億` : `${sign}${cho.toLocaleString("ja-JP")}兆`, unit: "円" };
 }
 

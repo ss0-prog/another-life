@@ -207,11 +207,14 @@ html {
 }
 
 /* 昼 → 夕方: 太陽が沈むのに合わせて、ヘッダーやフッターなど、画面の色を、ゆっくり暗くする(空に日没のオレンジが出はじめる5.5秒後から、空と同じ4.5秒かけて、暗くなる。Ambient.tsx の空の色の切り替えと、同じ時間) */
-html[data-phase="dusk"],
-html[data-phase="dusk"] header,
-html[data-phase="dusk"] footer {
+html[data-phase="dusk"] {
   transition-duration: 4.5s;
   transition-delay: 5.5s;
+}
+/* 夕方になると、ヘッダー・フッターの「昼用の色」の指定がなくなり、空と同じ色の変数を、そのまま受けつぐ。ここで、さらに時間をかけて変えると、文字の色だけが遅れる(待ち時間が、二重になる)ので、ヘッダー・フッター自身では、時間をかけない */
+html[data-phase="dusk"] header,
+html[data-phase="dusk"] footer {
+  transition: none;
 }
 /* 夜 → 昼(朝焼け → 昼): 太陽がのぼって空が明るくなるのに合わせて、画面の色も、ゆっくり白くする(2.5秒待ってから、7.5秒かけて) */
 html[data-phase="dawn"],

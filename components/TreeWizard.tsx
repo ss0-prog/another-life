@@ -544,14 +544,11 @@ function answersFromSelf(self: CurrentSelf): Answer[] {
   return out;
 }
 
-// 質問のすべてに、ランダムに答えて、「いまのあなた」とターニングポイントを、つくる(人生は、0歳からはじまる)。
+// 質問のすべてに、ランダムに答えて、「いまのあなた」とターニングポイントを、つくる(年齢も、ランダム)。
 function randomSetup(): { self: CurrentSelf; branch: Branch } | null {
   const int = (a: number, b: number) => a + Math.floor(Math.random() * (b - a + 1));
   const pickOne = <T,>(xs: T[]): T | undefined => xs[Math.floor(Math.random() * xs.length)];
   const rawFor = (step: Step): string | null => {
-    // ランダムで始めるときは、0歳から(ターニングポイントは、子どもの頃の道で、0歳のとき)。
-    if (step.id === "kind") return step.options?.some((o) => o.value === "childhood") ? "childhood" : null;
-    if (step.id === "branchAge") return "0";
     switch (step.input) {
       case "chips":
       case "select":
@@ -876,7 +873,7 @@ export function TreeWizard({ t, onSubmit, auth, prefill }: Props) {
             </div>
             <button type="button" onClick={startRandom} disabled={rewinding} className="group mt-4 flex w-full flex-col items-center border border-warm/60 bg-warm/5 px-4 py-4 text-center transition-colors hover:border-warm hover:bg-warm/10 disabled:opacity-50">
               <span className="text-lg font-bold tracking-[0.2em] text-mist">ランダムで始める</span>
-              <span className="font-gothic mt-1 text-xs leading-6 tracking-wider text-haze">年齢・仕事・ターニングポイントまで、すべてランダムに決めて、0歳から始めます。</span>
+              <span className="font-gothic mt-1 text-xs leading-6 tracking-wider text-haze">年齢・仕事・ターニングポイントまで、すべてランダムに決めて、すぐに始めます。</span>
             </button>
           </motion.div>
         ) : (

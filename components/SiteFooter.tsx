@@ -31,7 +31,12 @@ const DATA_POLICY = [
   "外部のサービスには入力を渡しません。ただし職業を「声で探す」を使ったときだけ、ブラウザの音声認識サービスに声が送られます。",
 ] as const;
 
-const SOURCES = ["厚生労働省 簡易生命表", "人口動態統計", "賃金構造基本統計調査", "国税庁 民間給与実態統計", "家計調査", "出生動向基本調査"] as const;
+const SOURCE_GROUPS = [
+  { label: "寿命・人口", items: ["簡易生命表", "都道府県別生命表", "人口動態統計", "出生動向基本調査"] },
+  { label: "仕事・お金", items: ["賃金構造基本統計調査", "雇用動向調査", "民間給与実態統計調査", "家計調査", "地域別最低賃金", "雇用均等基本調査"] },
+  { label: "暮らし・社会", items: ["学校基本調査", "幸福度調査", "長期経済統計", "気象庁・内閣府・日本銀行の公表資料"] },
+  { label: "制度・その他", items: ["税と社会保険の公式資料", "年末ジャンボ宝くじ", "公職選挙法"] },
+] as const;
 
 export function SiteFooter() {
   return (
@@ -129,15 +134,22 @@ export function SiteFooter() {
         {/* データの出典 */}
         <div className="mt-10 border-t border-line/60 pt-6">
           <p className="text-xs tracking-[0.35em] text-warm">もとにした統計</p>
-          <ul className="mt-3 flex flex-wrap gap-2">
-            {SOURCES.map((s) => (
-              <li key={s}>
-                <Link href="/sources" className="inline-block rounded-full border border-line px-3 py-1 text-[11px] tracking-wider text-haze hover:border-warm hover:text-mist">
-                  {s}
-                </Link>
-              </li>
+          <div className="mt-3 space-y-3">
+            {SOURCE_GROUPS.map((g) => (
+              <div key={g.label} className="flex flex-col gap-1.5 sm:flex-row sm:items-start sm:gap-4">
+                <p className="shrink-0 text-[11px] tracking-wider text-dim sm:w-24 sm:pt-1">{g.label}</p>
+                <ul className="flex flex-wrap gap-2">
+                  {g.items.map((s) => (
+                    <li key={s}>
+                      <Link href="/sources" className="inline-block rounded-full border border-line px-3 py-1 text-[11px] tracking-wider text-haze hover:border-warm hover:text-mist">
+                        {s}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </div>
             ))}
-          </ul>
+          </div>
           <p className="mt-3 text-[11px] leading-5 tracking-wider text-dim">実在の統計をもとに確率を設計しています。もとにした統計の出典は「データについて」に書いています。</p>
         </div>
 

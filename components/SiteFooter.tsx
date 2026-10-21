@@ -40,7 +40,7 @@ export function SiteFooter() {
       {/* PC のシミュレーション画面だけ、1行に縮めたフッター(画面の高さに、おさめるため) */}
       <div className="footer-compact hidden h-10 shrink-0 items-center gap-5 px-8 text-[11px] tracking-wider text-dim">
         <nav aria-label="フッター(簡易)" className="flex shrink-0 items-center gap-x-5 whitespace-nowrap">
-          {[...PLAY, ...ABOUT].map((l) => (
+          {ABOUT.map((l) => (
             <Link key={l.href} href={l.href} className="transition-colors hover:text-mist">
               {l.label}
             </Link>
@@ -48,8 +48,8 @@ export function SiteFooter() {
         </nav>
         {/* リンクと、注意書きの境目 */}
         <span aria-hidden className="h-4 w-px shrink-0 bg-line" />
-        <p className="line-clamp-2 min-w-0 flex-1 text-left leading-4">※ あくまで統計上の数字と設計上の仮定です。<br />占い・予言ではなく、株価は架空です。景気は、過去は統計、未来はランダムです。</p>
-        <p className="shrink-0 whitespace-nowrap tracking-[0.2em]">© {t.footer.copy}</p>
+        <p className="min-w-0 flex-1 text-left leading-4">※ 統計と設計上の仮定にもとづく数字です。占い・予言ではなく、株価は架空です。</p>
+        <p className="hidden shrink-0 whitespace-nowrap tracking-[0.2em] xl:block">© {t.footer.copy}</p>
       </div>
       <div className="footer-full mx-auto max-w-6xl px-[2.5vw] pb-6 pt-12 sm:px-8">
         <div className="grid gap-10 md:grid-cols-[1.4fr_1fr_1fr_1.6fr]">

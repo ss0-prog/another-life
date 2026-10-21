@@ -85,7 +85,7 @@ export default function Home() {
   const startPlay = (self: CurrentSelf, branch: Branch, fresh = false, keepFate = false, opts?: { random?: boolean; seed?: number }) => {
     // 巻き戻しのときは、同じ種(景気・空模様・めぐり合わせ)のまま、選ぶ道だけを変える。
     const keep = setup && (keepFate || (!fresh && multi));
-    const next: Setup = { self: keep ? setup.self : self, branch, seed: keep ? setup.seed : (opts?.seed ?? Math.floor(Math.random() * 2 ** 31)) };
+    const next: Setup = { self: keep ? setup.self : self, branch, seed: keep ? setup.seed : (opts?.seed ?? Math.floor(Math.random() * 2 ** 31)), random: keep ? setup.random : opts?.random };
     // 入力した条件は、このブラウザに覚えておく(次から、入力を飛ばして始められる)。
     // ランダムで始めた人生は、「前回の入力」には、残さない(履歴に残す)。
     if (!opts?.random) {
@@ -307,7 +307,7 @@ export default function Home() {
 
           {phase.name === "play" && (
             <motion.div key={`play-${runId}`} className="flex w-full flex-1" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.8 }}>
-              <PlayScreen t={t.play} initial={phase.initial} birthYear={new Date().getFullYear() - (setup?.self.age ?? 0)} selfAge={setup?.self.age ?? 0} ghost={realRun?.series ?? []} dev={dev} onFinish={finish} />
+              <PlayScreen t={t.play} initial={phase.initial} birthYear={new Date().getFullYear() - (setup?.self.age ?? 0)} selfAge={setup?.self.age ?? 0} ghost={realRun?.series ?? []} dev={dev} random={setup?.random} onFinish={finish} />
             </motion.div>
           )}
 

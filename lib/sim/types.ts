@@ -102,7 +102,8 @@ export type CurrentSelf = {
 
 export type Branch = { kind: BranchKind; option: string; age: number };
 
-export type Setup = { self: CurrentSelf; branch: Branch; seed: number };
+// random: ランダムで始めた人生(遊ぶ画面の文言が変わる)。
+export type Setup = { self: CurrentSelf; branch: Branch; seed: number; random?: boolean };
 
 // ゲーム中のひとりの人物。occ が null の間は学生(または子ども)。
 export type Person = {

@@ -35,6 +35,8 @@ type Props = {
   selfAge: number;
   ghost: SeriesPoint[];
   dev?: boolean;
+  // ランダムで始めた人生(「分岐した世界」の文言が変わる)。
+  random?: boolean;
   onFinish: (final: GameState) => void;
 };
 
@@ -48,7 +50,7 @@ const STAT_KEYS = ["health", "money", "bonds", "learn", "joy"] as const;
 // 等倍で1年=12秒。100歳まで生きると、ちょうど20分かかる。
 const BASE_MS = 12000;
 
-export function PlayScreen({ t, initial, birthYear, selfAge, ghost, dev = false, onFinish }: Props) {
+export function PlayScreen({ t, initial, birthYear, selfAge, ghost, dev = false, random = false, onFinish }: Props) {
   const [state, setState] = useState(initial);
   // 1年のあいだに起きる出来事は、一個ずつ順番に見せる。自分で操作した結果は、すぐに見せる。
   const [seen, setSeen] = useState(initial.events.length);
@@ -244,8 +246,8 @@ export function PlayScreen({ t, initial, birthYear, selfAge, ghost, dev = false,
     <div className="grid w-full flex-1 divide-line lg:h-[calc(100dvh-3.5rem-2.5rem)] lg:grid-cols-[minmax(17rem,0.9fr)_minmax(0,1.7fr)_minmax(17rem,0.9fr)] lg:divide-x">
       {/* 左: 年の移り変わり */}
       <section className={`${col} order-2 lg:order-1`}>
-        <p className="text-sm tracking-[0.4em] text-warm">{t.branchBadge}</p>
-        <p className="mt-1 text-xs leading-5 tracking-wider text-dim">{t.notes.branch}</p>
+        <p className="text-sm tracking-[0.4em] text-warm">{random ? "ランダムな世界" : t.branchBadge}</p>
+        <p className="mt-1 text-xs leading-5 tracking-wider text-dim">{random ? "すべてがランダムに決まった条件で、最後まで歩む人生です" : t.notes.branch}</p>
         <div className="mt-5">
           <div className="text-4xl font-bold tabular-nums tracking-widest text-mist sm:text-5xl drop-shadow-[0_0_24px_rgba(240,201,148,0.35)]">{p.age}<span className="ml-2 text-lg font-medium text-haze sm:text-xl">歳</span></div>
           <p className="mt-1 text-base tabular-nums tracking-[0.2em] text-warm sm:text-lg">{birthYear + p.age}年</p>
@@ -397,11 +399,6 @@ export function PlayScreen({ t, initial, birthYear, selfAge, ghost, dev = false,
             ))}
           </AnimatePresence>
         </ol>
-        {/* 画面の下に、ずっと表示する(スマホなど、ページ全体をスワイプする画面でも、消えない) */}
-        <p className="fixed inset-x-0 bottom-0 z-20 border-t border-line/60 bg-void/85 px-4 py-1.5 text-left text-[10px] leading-4 lg:py-2 lg:text-[11px] lg:leading-5 tracking-wider text-dim lg:sticky lg:-bottom-8 lg:inset-x-auto lg:z-auto lg:-mb-8 lg:mt-auto lg:border-0 lg:bg-void/60 lg:px-2">
-          <span className="lg:hidden">※ シミュレーションです。占い・予言ではありません。株価は架空です。</span>
-          <span className="hidden lg:inline">※ これはシミュレーションです。占いや予言ではなく実際の人生や将来を当てるものでは、決してありません。株価の動きは、乱数でつくった完全な架空のもので、実際の相場とは関係がありません。景気は、実際の統計がある過去の年はその数字を使い、未来は毎回ランダムです。</span>
-        </p>
       </section>
 
       {/* 右: 株(資産) */}

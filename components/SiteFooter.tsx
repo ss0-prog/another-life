@@ -109,11 +109,8 @@ export function SiteFooter() {
           </div>
         </div>
 
-        {/* 重要: 入力した情報は、このサービス以外には、絶対に使わない */}
-        <div className="font-gothic mt-10 rounded-sm border border-warm/50 bg-warm/5 px-4 py-4 text-left">
-          <p className="text-xs tracking-[0.35em] text-warm">重要なお知らせ</p>
-          <p className="mt-2 text-sm leading-7 tracking-wider text-mist">入力していただいた情報は、このサービスの中だけで使います。ほかのサービスや、ほかの目的には、絶対に使いません。</p>
-        </div>
+        {/* 入力した情報は、このサービス以外には、絶対に使わない */}
+        <p className="font-gothic mt-10 text-left text-sm leading-7 tracking-wider text-mist">入力していただいた情報は、このサービスの中だけで使います。ほかのサービスや、ほかの目的には、絶対に使いません。</p>
 
         {/* データの扱い */}
         <div className="font-gothic mt-10 border-t border-line/60 pt-6">

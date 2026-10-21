@@ -623,7 +623,7 @@ const MAJORS: { id: Major; label: string; note: string; learn: number }[] = [
 ];
 
 const majorQuestion = (): TurningQuestion => ({
-  title: "何を学ぶ？",
+  title: "学ぶ分野",
   prompt: "学ぶ分野は、卒業後の仕事と給料にも関わってきます。",
   options: MAJORS.map((m) => ({
     id: m.id,
@@ -672,7 +672,7 @@ function enterUniv(p: Person, got: (typeof LEVELS)[number]) {
   }
 }
 const levelQuestion = (u: UnivKind): TurningQuestion => ({
-  title: "どのレベルの大学をめざす？",
+  title: "めざす大学のレベル",
   prompt: "合格できるかどうかは、あなたの素質と、これまでの学びで決まります。数字(偏差値など)は出しません。",
   options: LEVELS.map((l) => ({
     id: l.id,
@@ -710,7 +710,7 @@ const GRAD_LEVELS = [
 ] as const;
 
 const univQuestion = (): TurningQuestion => ({
-  title: "どんな大学？",
+  title: "大学の種類",
   prompt: "学費と暮らし方が、ここで大きく変わります。",
   options: UNIVS.map((u) => ({
     id: u.id,
@@ -727,7 +727,7 @@ const univQuestion = (): TurningQuestion => ({
   })),
 });
 const vocationalQuestion = (): TurningQuestion => ({
-  title: "どの分野の専門学校？",
+  title: "専門学校の分野",
   prompt: "2〜3年で資格や技術を身につけ、早く働き始められます。",
   options: [
     { id: "care", label: "医療・福祉", note: "資格を取れば、全国で働ける。", mult: 1.1, learn: 6 },

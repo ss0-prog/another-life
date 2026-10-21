@@ -550,10 +550,11 @@ function answersFromSelf(self: CurrentSelf): Answer[] {
 }
 
 // 質問のすべてに、ランダムに答えて、「いまのあなた」とターニングポイントを、つくる(年齢も、ランダム)。
-function randomSetup(): { self: CurrentSelf; branch: Branch } | null {
+// ひとつの質問の答えを、ランダムに決める(「わからない・その他」や、ランダムで始めるときに使う)。
+const pickOne = <T,>(xs: T[]): T | undefined => xs[Math.floor(Math.random() * xs.length)];
+function rawForStep(step: Step, v: Values): string | null {
   const int = (a: number, b: number) => a + Math.floor(Math.random() * (b - a + 1));
-  const pickOne = <T,>(xs: T[]): T | undefined => xs[Math.floor(Math.random() * xs.length)];
-  const rawFor = (step: Step, v: Values): string | null => {
+  {
     // 最終学歴は、生まれた都道府県の、大学等への現役進学率(文部科学省・2024年度)にあわせて、ランダムに決める。
     if (step.id === "edu") {
       const r = univRate(prefKey(v.prefecture));
@@ -582,9 +583,14 @@ function randomSetup(): { self: CurrentSelf; branch: Branch } | null {
       default:
         return "";
     }
-  };
+  }
+}
+
+// ここまでの答え(seed)をそのまま使い、のこりの質問は、ランダムに決める。seed がなければ、すべてランダム。
+function randomSetup(seed: { id: keyof Values; value: string }[] = []): { self: CurrentSelf; branch: Branch } | null {
+  const rawFor = rawForStep;
   for (let attempt = 0; attempt < 20; attempt++) {
-    const answers: { id: keyof Values; value: string }[] = [];
+    const answers: { id: keyof Values; value: string }[] = [...seed];
     let ok = true;
     for (let i = 0; i < 80; i++) {
       const v = valuesOf(answers);
@@ -735,6 +741,24 @@ export function TreeWizard({ t, onSubmit, onRandom, auth, prefill }: Props) {
         sfxRewind(n - i);
       }, FADE + (i - 1) * step);
     later(() => onSubmit(self, branch), FADE + n * step + 1100);
+  };
+
+  // 「わからない・その他」: この質問の答えを、ランダムに決めて、先へ進む。選択肢に、すでに「わからない」などがあるときは、出さない。
+  const canUnsure =
+    !!step &&
+    (step.input === "chips" || step.input === "select" || step.input === "multi") &&
+    !(step.options ?? []).some((o) => o.value === "" || /わからない|その他|答えない|決めていない|とくになし/.test(o.label)) &&
+    !(step.groups ?? []).some((g) => g.options.some((o) => o.value === "" || /わからない|その他|答えない/.test(o.label)));
+  const unsure = () => {
+    if (!step) return;
+    const raw = rawForStep(step, values);
+    if (raw !== null) commit(raw);
+  };
+  // 「ここまでの条件ではじめる」: 答えた分はそのまま使い、のこりは、ランダムに決めて、はじめる。
+  const startHere = () => {
+    if (rewinding) return;
+    const r = randomSetup(answers.map((a) => ({ id: a.id as keyof Values, value: a.value })));
+    if (r) onSubmit(r.self, r.branch);
   };
 
   const startRandom = () => {
@@ -1049,6 +1073,20 @@ export function TreeWizard({ t, onSubmit, onRandom, auth, prefill }: Props) {
         </AnimatePresence>
         )}
 
+        {!choosing && step && !rewinding && (
+          <div className="font-gothic mt-8 flex flex-col items-center gap-3">
+            {canUnsure && (
+              <button type="button" onClick={unsure} className="border border-line bg-panel/90 px-5 py-2 text-sm tracking-[0.15em] text-haze hover:border-haze hover:text-mist">
+                わからない・その他(おまかせで決める)
+              </button>
+            )}
+            {answers.length > 0 && (
+              <button type="button" onClick={startHere} className="border border-warm/70 bg-panel/90 px-5 py-2 text-sm tracking-[0.15em] text-mist hover:border-warm">
+                ここまでの条件ではじめる(のこりはおまかせ)
+              </button>
+            )}
+          </div>
+        )}
         {answers.length > 0 && (
           <button type="button" onClick={back} className="mt-8 text-sm tracking-[0.3em] text-haze underline-offset-8 hover:text-mist hover:underline">
             {t.back}

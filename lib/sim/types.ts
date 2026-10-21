@@ -88,6 +88,7 @@ export type CurrentSelf = {
   yearsLeft?: number; // 在学中なら、卒業まであと何年か
   kidBirthAges?: number[]; // 子どもが生まれたときの、自分の年齢(子どもごと)
   kidSexes?: ("boy" | "girl" | "unknown")[]; // 子どもの性別(子どもごと)
+  kidNames?: string[]; // 子どもの名前(子どもごと。ランダムで始めたときに決まる。書かなければ、分岐前に生まれた子どもは、名前がまだない)
   partnerName?: string; // 配偶者の名前(書かなければ、ランダム)
   marital?: Marital; // 婚姻の状況。married は、marital が married のときだけ true
   retired?: boolean; // 仕事を退いて、年金などで暮らしている(occ は none)

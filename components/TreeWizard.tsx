@@ -586,7 +586,20 @@ function randomSetup(): { self: CurrentSelf; branch: Branch } | null {
     if (!ok) continue;
     const v = valuesOf(answers);
     const self = selfFrom(v);
-    if (self && v.kind && v.branchAge !== undefined && v.option) return { self, branch: { kind: v.kind, option: v.option, age: v.branchAge } };
+    if (self && v.kind && v.branchAge !== undefined && v.option) {
+      // すでに子どもがいるときは、性別にあった名前を、ランダムにつける(きょうだいで、同じ名前にならないように)。
+      if (self.kids > 0 && self.kidSexes) {
+        const used = new Set<string>();
+        self.kidNames = self.kidSexes.map((sx) => {
+          const pool = sx === "boy" ? jpData.names.boy : sx === "girl" ? jpData.names.girl : jpData.names.neutral;
+          const free = pool.filter((n) => !used.has(n));
+          const name = pickOne(free) ?? "";
+          used.add(name);
+          return name;
+        });
+      }
+      return { self, branch: { kind: v.kind, option: v.option, age: v.branchAge } };
+    }
   }
   return null;
 }

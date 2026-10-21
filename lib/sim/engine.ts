@@ -134,18 +134,23 @@ function personAt(self: CurrentSelf, seed: number, age: number, data: CountryDat
   // 子どもが生まれた年齢がわかっていれば、それを使う。分岐する前に生まれていた子どもは、分岐した人生にも、いる(名前も性別もまだない)。
   const birthAges = self.kidBirthAges && self.kidBirthAges.length ? self.kidBirthAges.slice(0, self.kids) : null;
   const kidSexAt = (i: number): "boy" | "girl" | "unknown" => self.kidSexes?.[i] ?? "unknown";
-  const earlyKids = birthAges ? birthAges.map((b, i) => ({ b, sex: kidSexAt(i) })).filter((x) => x.b < age) : [];
+  const earlyKids = birthAges ? birthAges.map((b, i) => ({ b, sex: kidSexAt(i), idx: i })).filter((x) => x.b < age) : [];
   const bornBefore = earlyKids.length;
   const marital: Marital = self.marital ?? (self.married ? "married" : "single");
   const everMarried = self.married || marital === "divorced" || marital === "widowed";
   const married = real ? self.married : everMarried && (age >= 30 || bornBefore > 0);
   const nKids = real ? self.kids : birthAges ? bornBefore : married && age >= 32 ? self.kids : 0;
   const kidList: KidInfo[] = Array.from({ length: nKids }, (_, i) => {
-    if (!real && birthAges) return { name: "", sex: earlyKids[i].sex, anon: true, bornAge: earlyKids[i].b };
+    // 名前が決まっている子ども(ランダムで始めたとき)は、分岐した人生でも、その名前でいる。
+    if (!real && birthAges) {
+      const given = self.kidNames?.[earlyKids[i].idx];
+      return given ? { name: given, sex: earlyKids[i].sex, bornAge: earlyKids[i].b } : { name: "", sex: earlyKids[i].sex, anon: true, bornAge: earlyKids[i].b };
+    }
     const given = kidSexAt(i);
     const rolled: "boy" | "girl" = rng() < 0.5 ? "boy" : "girl";
     const sex: "boy" | "girl" = given === "unknown" ? rolled : given;
-    return { name: pick(rng, kidNamePool(data, sex)), sex, bornAge: birthAges?.[i] ?? Math.max(20, age - 7 - i * 3) };
+    const rolledName = pick(rng, kidNamePool(data, sex));
+    return { name: self.kidNames?.[i] || rolledName, sex, bornAge: birthAges?.[i] ?? Math.max(20, age - 7 - i * 3) };
   });
   // ひとり親家庭(育ててくれた親は、母がほとんど)。ほかの乱数に影響しないよう、別の乱数で決める。
   const soloParent: "mother" | "father" | undefined = createRng(seed ^ 0x51dec0de)() < SOLO_RATE[background] ? (createRng(seed ^ 0x7a11)() < 0.85 ? "mother" : "father") : undefined;

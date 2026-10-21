@@ -47,7 +47,7 @@ export function SiteFooter() {
         </nav>
         {/* リンクと、注意書きの境目 */}
         <span aria-hidden className="h-4 w-px shrink-0 bg-line" />
-        <p className="min-w-0 flex-1 text-left leading-4">※ 入力した情報はこのサービス以外には絶対に使いません。数字は統計と設計上の仮定にもとづき占い・予言ではなく株価は架空です。</p>
+        <p className="min-w-0 flex-1 text-left leading-4">※ 入力した情報はこのサービス以外には絶対に使用しません。数字は統計と設計上の仮定にもとづき占い・予言ではなく株価は架空です。</p>
         <p className="hidden shrink-0 whitespace-nowrap tracking-[0.2em] xl:block">© {t.footer.copy}</p>
       </div>
       <div className="footer-full mx-auto max-w-6xl px-[2.5vw] pb-6 pt-12 sm:px-8">
@@ -110,7 +110,7 @@ export function SiteFooter() {
         </div>
 
         {/* 入力した情報は、このサービス以外には、絶対に使わない */}
-        <p className="mt-10 rounded-sm border border-warm/50 bg-warm/5 px-4 py-4 text-left text-[15px] leading-8 tracking-[0.08em] text-mist sm:px-5 sm:text-base sm:leading-9">入力していただいた情報はこのサービスの中だけで使います。ほかのサービスやほかの目的には絶対に使いません。</p>
+        <p className="mt-10 rounded-sm border border-warm/50 bg-warm/5 px-4 py-4 text-left text-[15px] leading-8 tracking-[0.08em] text-mist sm:px-5 sm:text-base sm:leading-9">入力していただいた情報はこのサービスの中だけで使用します。ほかのサービスやほかの目的には絶対に使用しません。</p>
 
         {/* データの扱い */}
         <div className="font-gothic mt-10 border-t border-line/60 pt-6">

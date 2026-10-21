@@ -663,7 +663,7 @@ export function pending(state: GameState, data: CountryData = jpData, month = 11
   const def = state.queue.length ? data.eventQuestions.find((e) => e.id === state.queue[0]) : undefined;
   if (def && hasChoice(def, p, state.wallet.cash)) {
     const q = def.question(p);
-    best = { tp: { id: `ev:${def.id}`, age: p.age, title: q.title, prompt: q.prompt, options: q.options }, when: def.id.startsWith("meet_") ? 0 : choiceMonth(state.seed, p.age, def.id) };
+    best = { tp: { id: `ev:${def.id}`, age: p.age, title: q.title, prompt: q.prompt, why: def.intro(p), options: q.options }, when: def.id.startsWith("meet_") ? 0 : choiceMonth(state.seed, p.age, def.id) };
   }
   for (const tp of data.turningPoints) {
     if (state.done.includes(tp.id)) continue;

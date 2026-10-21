@@ -416,6 +416,8 @@ export type TurningPoint = {
   age: number | ((p: Person) => number);
   title: string;
   prompt: string;
+  // この場面が来た、きっかけ(出来事から来る選択のとき)。
+  why?: string;
   // 状況で変わる本文(あれば prompt より優先)。
   promptFn?: (p: Person) => string;
   when?: (p: Person) => boolean;

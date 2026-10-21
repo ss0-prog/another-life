@@ -1516,6 +1516,39 @@ export const eventQuestions: EventQuestionDef[] = [
     }),
   },
   {
+    id: "divorce_ask",
+    // 夫婦の関係が冷えているほど、起きやすい(相性・つながり・年数)。一度聞かれたら、5年はあける。
+    weight: (p) => (p.married && p.partner && inAge(p, 24, 66) && !(p.history.divorceAsk !== undefined && p.age - p.history.divorceAsk < 5) ? 0.35 * clash(partnerCompat(p)) * (p.stats.bonds < 35 ? 2.4 : p.stats.bonds < 55 ? 1.2 : 0.3) : 0),
+    intro: (p) => `${p.partner ? p.partner.given + "さん" : "パートナー"}との関係を、見つめ直す日が増えた`,
+    question: (p) => ({
+      title: "離婚するか？",
+      prompt: `${p.partner ? p.partner.family + p.partner.given + "さん" : "パートナー"}との暮らしが、すれ違いの多いものになっていきました。${p.kids > 0 ? `子ども(${p.kids}人)のことも、頭をよぎります。` : ""}これから先を、どう考えるだろう。`,
+      options: [
+        opt("stay", "話し合って、やり直す", (p, r) => {
+          mark(p, "divorceAsk");
+          if (r() < 0.6) return (bump(p, { bonds: 6, joy: 3 }), "時間をかけて話し合い、夫婦の関係を立て直した");
+          bump(p, { bonds: -2, joy: -3 });
+          return "話し合いを重ねたが、溝は、すぐには埋まらなかった";
+        }, { auto: true, detail: () => "うまくいけば、絆は深まる。うまくいかないと、気まずさが続く。" }),
+        opt("apart", "しばらく、距離を置く", (p) => {
+          mark(p, "divorceAsk");
+          bump(p, { bonds: -3, joy: -1, money: -1 });
+          return "しばらく、距離を置いて、気持ちを整理することにした";
+        }, { detail: () => "冷静に考える時間が持てる。そのあいだ、関係は宙に浮いたままになる。" }),
+        opt("divorce", "離婚する", (p) => {
+          mark(p, "divorceAsk");
+          const who = p.partner ? `${p.partner.given}さんと` : "";
+          p.married = false;
+          p.marriageBias = 0.4;
+          if (p.partner) p.partner.status = "ex";
+          addCash(p, -60);
+          bump(p, { bonds: -7, joy: -6, money: -4, health: -2 });
+          return `${who}離婚した${p.kids > 0 ? "。子どものことは、話し合って決めた" : ""}`;
+        }, { detail: (p) => `財産分与や手続きで、約60万円がかかる${p.kids > 0 ? "(子どもがいる場合は、養育費の取り決めも必要)" : ""}。気持ちは重くなるが、新しい暮らしを始められる。` }),
+      ],
+    }),
+  },
+  {
     id: "have_child",
     weight: () => 0,
     intro: () => "子どものことを考えた",

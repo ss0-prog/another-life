@@ -561,6 +561,10 @@ export function PlayScreen({ t, initial, birthYear, selfAge, ghost, dev = false,
               </button>
             </div>
             <h3 className="text-center text-xl font-bold tracking-[0.2em] text-warm sm:text-2xl">{soften(question?.title ?? "")}</h3>
+            <p className="mt-2 flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-xs tracking-wider text-haze sm:text-sm">
+              <span className="rounded-sm border border-warm/50 px-2 py-0.5 font-bold tabular-nums text-warm">{p.age}歳</span>
+              {tp.why && <span>きっかけ: {soften(tp.why)}</span>}
+            </p>
             {trail.length > 0 && (
               <p className="mx-auto mt-2 text-center text-xs leading-6 tracking-wider text-dim sm:w-fit sm:text-left">
                 {t.picked}: {trail.map((x) => x.label).join(" › ")}
@@ -589,12 +593,18 @@ export function PlayScreen({ t, initial, birthYear, selfAge, ghost, dev = false,
                 )}
               </p>
             )}
-            <div className="mt-4 flex flex-col gap-2.5 sm:mt-6 sm:gap-3">
-              {options.map((o) => (
-                <button key={o.id} type="button" disabled={Boolean(lockReason(o))} onClick={() => pick(o)} className={`${chipClass(false)} text-center sm:text-left ${lockReason(o) ? "!cursor-not-allowed opacity-45" : ""}`}>
-                  <span className="font-bold">{soften(o.label)}</span>
-                  {lockReason(o) && <span className="mt-1 block text-xs font-bold leading-6 tracking-wider" style={{ color: "var(--color-down)" }}>{lockReason(o)}</span>}
-                  {o.detail && <span className="mt-1 block text-xs leading-6 tracking-wider text-dim">{soften(o.detail(p, env, jpData))}</span>}
+            <p className="mt-5 text-center text-sm font-bold tracking-[0.25em] text-warm sm:mt-6">選択してください</p>
+            <div className="mt-3 flex flex-col gap-2.5 sm:gap-3">
+              {options.map((o, i) => (
+                <button key={o.id} type="button" disabled={Boolean(lockReason(o))} onClick={() => pick(o)} className={`${chipClass(false)} !px-3.5 !py-3 text-left sm:!px-4 ${lockReason(o) ? "!cursor-not-allowed opacity-45" : ""}`}>
+                  <span className="flex items-start gap-3">
+                    <span aria-hidden className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-warm/60 text-xs font-bold tabular-nums text-warm">{i + 1}</span>
+                    <span className="min-w-0 flex-1">
+                      <span className="block text-base font-bold leading-7 text-mist">{soften(o.label)}</span>
+                      {lockReason(o) && <span className="mt-1 block text-xs font-bold leading-6 tracking-wider" style={{ color: "var(--color-down)" }}>{lockReason(o)}</span>}
+                      {o.detail && <span className="mt-1 block text-[13px] leading-6 tracking-wider text-haze">{soften(o.detail(p, env, jpData))}</span>}
+                    </span>
+                  </span>
                 </button>
               ))}
             </div>

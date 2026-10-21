@@ -1,3 +1,6 @@
+import { SINCE, yearOf } from "@/lib/sim/era";
+import { manText as moneyText } from "@/lib/money";
+import { isStudent, moveAftermath } from "@/lib/sim/data/jp-move";
 import { jobById, JOBS as allJobs, OCC_LABEL } from "@/lib/sim/data/jp-jobs";
 import { LOTTERY_PRIZES, drawLottery } from "@/lib/sim/data/jp-lottery";
 import { industryQuestion } from "@/lib/sim/data/jp-industry";
@@ -9,14 +12,14 @@ import { addDebt, assignJob, bump, chargeWithDebt, fullName, kidCall, moveAbroad
 import { WAITLIST, parentsAround, partnerWorks } from "@/lib/sim/childcare";
 import { compat, compatMark, idealChance, isE, isJ, isN, isT, IDEAL, typeCall } from "@/lib/sim/mbti";
 import { interpolate, weighted } from "@/lib/sim/rng";
-import type { AutoEvent, CountryData, EventQuestionDef, GameState, Occ, Person, TurningOption } from "@/lib/sim/types";
+import type { AutoEvent, CountryData, EventQuestionDef, GameState, Occ, Person, Region, TurningOption } from "@/lib/sim/types";
 
 // 選択を求めない出来事(風邪で寝込んだ、いじめにあった、事故、昇格・降格…)と、選択を求める出来事(不倫・裁判・ペットなど)。
 // どれも「あなたの年齢・仕事・家族・地域・景気・健康」で、起きやすさが変わる。確率は設計上の仮定。
 
 const working = (p: Person) => p.occ !== null && p.occ !== "retired";
 const inAge = (p: Person, a: number, b: number) => p.age >= a && p.age <= b;
-const man = (n: number) => `${Math.round(n).toLocaleString("ja-JP")}万円`;
+const man = (n: number) => moneyText(n);
 const money = (s: GameState, manYen: number) => {
   // 18歳未満は、まとまったお金の出入りは、親が負担する(お小遣いには、影響しない)。
   if (s.person.age < 18) return;
@@ -127,11 +130,11 @@ export const lifeEvents: AutoEvent[] = [
     if (!s.queue.includes("bully_help")) s.queue.push("bully_help");
     // きっかけ(理由)も、あわせて残す。
     const trigger = p.history.transfer !== undefined && recent(p, "transfer", 1) ? "転校してきたばかりで、なじめないまま" : pickOne(r, ["ささいな言い争いがきっかけで", "目立つことをしたのを、ねたまれて", "はっきりした理由のないまま、空気が変わって", "グループの仲たがいに巻き込まれて", "いつも一緒だった友だちに、突然、距離を置かれて"]);
-    const form = pickOne(r, ["クラスで無視されるようになり", "持ち物を隠されたり、からかわれたりして", "SNSで悪口を書かれ", "仲間はずれにされ"]);
+    const form = pickOne(r, ["クラスで無視されるようになり", "持ち物を隠されたり、からかわれたりして", ...(yearOf(p) >= SINCE.sns ? ["SNSで悪口を書かれ"] : ["黒板や机に、悪口を書かれ"]), "仲間はずれにされ"]);
     return `${trigger}、${form}、学校に行くのがつらくなった`;
   }, 64),
   ev("bystander", (p) => (inAge(p, 8, 17) ? 0.6 : 0), (s) => (bump(s.person, { bonds: -1, joy: -3 }), "同じクラスの子がいじめられているのを見て、胸が痛んだ"), 40),
-  ev("sns_attack", (p) => (inAge(p, 13, 45) ? 0.4 : 0), (s) => (bump(s.person, { bonds: -3, health: -2, joy: -8 }), "SNSで心ない言葉を浴び、しばらく画面を見るのが怖くなった"), 56),
+  ev("sns_attack", (p) => (inAge(p, 13, 45) && yearOf(p) >= SINCE.sns ? 0.4 : 0), (s) => (bump(s.person, { bonds: -3, health: -2, joy: -8 }), "SNSで心ない言葉を浴び、しばらく画面を見るのが怖くなった"), 56),
   ev("truancy", (p) => (inAge(p, 10, 17) ? 0.5 : 0), (s, r) => {
     const p = s.person;
     let reason: string;
@@ -158,7 +161,7 @@ export const lifeEvents: AutoEvent[] = [
     mark(s.person, "cram");
     return pickOne(r, ["志望校に届くかどうか不安で、受験勉強に追われる日々が続いた", "周りが次々に塾へ通い始めたのに焦り、受験勉強に追われた", "親の期待を重く感じながら、受験勉強に追われた"]);
   }, 38),
-  ev("transfer_school", (p) => (inAge(p, 6, 15) ? 0.5 : 0), (s) => (bump(s.person, { bonds: -4 }), "親の転勤で、転校することになった"), 45),
+  ev("transfer_school", (p) => (inAge(p, 6, 15) ? 0.5 : 0), (s, r) => ["親の転勤で、転校することになった", ...moveAftermath(s.person, r)], 45),
   ev("contest", (p) => (inAge(p, 8, 18) ? 0.8 : 0), (s) => (bump(s.person, { learn: 3, bonds: 2 }), "作文や絵のコンクールで入賞した"), 42),
   ev("club_win", (p) => (inAge(p, 12, 17) ? 0.8 : 0), (s) => (bump(s.person, { health: 2, bonds: 4 }), "部活の大会で、県の舞台に立った"), 42),
 
@@ -640,6 +643,25 @@ const meetResult = (p: Person, r: () => number, d: CountryData, odds: MeetOdds, 
 };
 
 export const eventQuestions: EventQuestionDef[] = [
+  // ---- 引っ越し: 実家暮らし・18歳未満以外は、引っ越すかどうかを、かならず聞く ----
+  {
+    id: "move_ask",
+    weight: () => 0,
+    intro: () => "引っ越しの話が出た",
+    question: (p) => ({
+      title: "引っ越し",
+      prompt: isStudent(p) ? "新しい土地で暮らす話が出ました。いまの学校や友だちとは、はなれることになります。慣れない環境で、ストレスもかかります。" : "仕事や暮らしの事情で、新しい土地へ移る話が出ました。",
+      options: [
+        opt("move", "引っ越す", (q, r, d) => {
+          const student = isStudent(q);
+          const region = weighted<Region>(r, d.transition.region[q.region]);
+          const city = moveTo(q, r, d, region);
+          return [`${city}に引っ越した`, ...(student ? moveAftermath(q, r) : [])].join("。");
+        }),
+        opt("stay", "いまの場所で暮らし続ける", () => "引っ越しはせず、いまの暮らしを続けることにした", { auto: true }),
+      ],
+    }),
+  },
   // ---- 政治の世界から、声がかかる(ごくまれ) ----
   {
     id: "political_call",
@@ -948,7 +970,7 @@ export const eventQuestions: EventQuestionDef[] = [
           opt("save", "そのまま、貯金にする", (p) => (addCash(p, p.inheritMan), (p.inheritMan = 0), `受け継いだ${v}万円は、貯金にした`), { auto: true, detail: () => "いつでも使える。増えはしないが、減りもしない。" }),
           opt("stocks", "株・投資信託で運用する(日本株インデックス)", (p) => ((p.nisaYen += p.inheritMan * 10000), (p.inheritMan = 0), bump(p, { money: 3 }), `受け継いだ${v}万円を、株(日本株インデックス)で運用することにした`), { show: (p) => p.age >= 18, detail: () => "長い目では増えやすいが、値下がりすることもある(株価は架空)。運用は「資産」の株の欄から、続けられる。" }),
           opt("split", "半分は貯金、半分は株で運用する", (p) => (addCash(p, p.inheritMan / 2), (p.nisaYen += (p.inheritMan / 2) * 10000), (p.inheritMan = 0), bump(p, { money: 2 }), `受け継いだ${v}万円の半分を貯金、半分を株で運用することにした`), { show: (p) => p.age >= 18, detail: () => "値動きの影響を、半分におさえる。" }),
-          opt("kid", "子どもの将来のために積み立てる(こどもNISA)", (p) => ((p.kidFundYen += p.inheritMan * 10000), (p.inheritMan = 0), bump(p, { bonds: 4, joy: 2 }), `受け継いだ${v}万円を、子どもの将来のために、積み立てることにした`), { show: () => young, detail: () => "子どもが18歳になるとき、新しい道のために使われる。" }),
+          opt("kid", "子どもの将来のために積み立てる(こどもNISA)", (p) => ((p.kidFundYen += p.inheritMan * 10000), (p.inheritMan = 0), bump(p, { bonds: 4, joy: 2 }), `受け継いだ${v}万円を、子どもの将来のために、積み立てることにした`), { show: (q) => young && yearOf(q) >= SINCE.kidsNisa, detail: () => "子どもが18歳になるとき、新しい道のために使われる。" }),
           opt("loan", "借金やローンの返済にあてる", (p) => (addCash(p, p.inheritMan), (p.inheritMan = 0), bump(p, { money: 4, joy: 3 }), `受け継いだ${v}万円を、借金やローンの返済にあてることにした`), { show: () => p.owned || p.stats.money < 35, detail: () => "毎年の返済の負担が軽くなる。" }),
           opt("memorial", "供養やお墓に一部を使い、残りは貯金にする", (p) => (addCash(p, p.inheritMan * 0.9), (p.inheritMan = 0), bump(p, { bonds: 4, joy: 3 }), "親の供養やお墓に一部を使い、残りは貯金にした"), { detail: () => "約1割を、供養やお墓にあてる。心が落ち着く。" }),
           opt("self", "旅や学びなど、自分のために使う", (p) => (addCash(p, p.inheritMan * 0.4), (p.inheritMan = 0), bump(p, { joy: 8, learn: 3, health: 1 }), "受け継いだお金の一部で、旅や学びに出かけた"), { detail: () => "約6割を使い、残りは貯金にする。" }),
@@ -1134,7 +1156,7 @@ export const eventQuestions: EventQuestionDef[] = [
   // ---- NISAを始めるか(人生で一度) ----
   {
     id: "nisa_offer",
-    weight: (p) => (inAge(p, 22, 58) && !p.history.nisaOffer && p.occ !== null && p.occ !== "retired" ? 0.7 : 0),
+    weight: (p) => (inAge(p, 22, 58) && yearOf(p) >= SINCE.nisa && !p.history.nisaOffer && p.occ !== null && p.occ !== "retired" ? 0.7 : 0),
     intro: () => "職場や友人との話で、NISAのことが話題になった",
     question: () => ({
       title: "NISAを始めますか",

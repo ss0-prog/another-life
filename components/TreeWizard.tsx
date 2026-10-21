@@ -1,5 +1,6 @@
 "use client";
 
+import { jobAvailable } from "@/lib/sim/era";
 import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Dropdown, type DropdownItem } from "@/components/Dropdown";
@@ -345,7 +346,8 @@ function allStepsFor(v: Values, selfAge: number | undefined): Step[] {
     const selfLike = selfFrom(v);
     if (v.kind === "job") {
       // 仕事の分岐は、思いに合う職種から、具体的に選ぶ。
-      const jobs = jpData.jobs.filter((j) => (picked.length === 0 || picked.some((m) => !m.jobFilter || m.jobFilter(j, selfLike))) && (!selfLike || j.id !== selfLike.job));
+      const branchYear = new Date().getFullYear() - (selfAge ?? 30) + (v.branchAge ?? selfAge ?? 30);
+      const jobs = jpData.jobs.filter((j) => jobAvailable(j.id, branchYear) && (picked.length === 0 || picked.some((m) => !m.jobFilter || m.jobFilter(j, selfLike))) && (!selfLike || j.id !== selfLike.job));
       const occs = (Object.keys(OCC_LABEL) as Occ[]).filter((o) => jobs.some((j) => j.occ === o));
       steps.push({
         id: "option",

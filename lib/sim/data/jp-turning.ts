@@ -1,3 +1,4 @@
+import { SINCE, yearOf } from "@/lib/sim/era";
 import { incomeOf, round10 } from "@/lib/sim/salary";
 import { householdTax, netIncome, man as manText, pct as pctOf } from "@/lib/sim/tax";
 import { JOBS, OCC_LABEL, OCC_OFFICIAL, jobById } from "@/lib/sim/data/jp-jobs";
@@ -1174,8 +1175,9 @@ export const turningPoints: TurningPoint[] = [
           title: "どう出会う？",
           prompt: "出会いの方法を選びます。",
           options: [
-            opt("intro", "職場や友人の紹介", (p) => ((p.marriageBias = 2), bump(p, { bonds: 4 }), "友人や職場のつながりから、出会いを探し始めた"), { detail: () => "費用はほとんどかからない。出会う機会は、人間関係の広さしだい。" }),
-            opt("app", "マッチングアプリ", (p) => ((p.marriageBias = 2.6), bump(p, { bonds: 3, money: -1 }), "マッチングアプリで、出会いを探し始めた"), { auto: true, detail: () => "月に数千円。出会いの数は増えるが、見極めには時間がかかる。" }),
+            opt("intro", "職場や友人の紹介", (p) => ((p.marriageBias = 2), bump(p, { bonds: 4 }), "友人や職場のつながりから、出会いを探し始めた"), { show: (p) => yearOf(p) >= SINCE.matching, detail: () => "費用はほとんどかからない。出会う機会は、人間関係の広さしだい。" }),
+            opt("intro_old", "職場や友人の紹介", (p) => ((p.marriageBias = 2), bump(p, { bonds: 4 }), "友人や職場のつながりから、出会いを探し始めた"), { auto: true, show: (p) => yearOf(p) < SINCE.matching, detail: () => "費用はほとんどかからない。出会う機会は、人間関係の広さしだい。" }),
+            opt("app", "マッチングアプリ", (p) => ((p.marriageBias = 2.6), bump(p, { bonds: 3, money: -1 }), "マッチングアプリで、出会いを探し始めた"), { auto: true, show: (p) => yearOf(p) >= SINCE.matching, detail: () => "月に数千円。出会いの数は増えるが、見極めには時間がかかる。" }),
             opt("agency", "結婚相談所", (p) => ((p.marriageBias = 3.2), bump(p, { bonds: 3, money: -3 }), "結婚相談所に入会して、活動を始めた"), { detail: () => "入会金と年会費で、年に約30〜50万円。結婚を前提とした出会いになる。" }),
           ],
         }),

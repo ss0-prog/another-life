@@ -1,3 +1,4 @@
+import { eraSentence, yearOf } from "@/lib/sim/era";
 import { pick, type Rng } from "@/lib/sim/rng";
 import type { CountryData, Housing, Money, Occ, Person, Region } from "@/lib/sim/types";
 
@@ -132,7 +133,9 @@ export function compose(p: Person, money: Money, rng: Rng): string {
     );
   }
   sentences.push(pick(rng, MONEY[money]), pick(rng, DETAIL), pick(rng, CLOSING));
-  return sentences.join("");
+  // その時代にない物(スマートフォンやパソコンなど)の文は、出さない。
+  const year = yearOf(p);
+  return sentences.map((x) => eraSentence(x, year)).filter((x): x is string => Boolean(x)).join("");
 }
 
 export const smallEvents: Record<"child" | "teen" | "young" | "mid" | "senior", string[]> = {

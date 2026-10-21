@@ -1,5 +1,6 @@
 "use client";
 
+import { manParts, manText } from "@/lib/money";
 import { AchievementList } from "@/components/Achievements";
 import { ShareButtons } from "@/components/ShareButtons";
 import { motion } from "framer-motion";
@@ -221,13 +222,12 @@ export function LifeCard({ t, heading, life, delay, accent }: { t: Messages["res
         </div>
         <p className="mt-6 text-center text-base tracking-wider text-mist">
           <span className="text-sm text-haze">{t.assets}</span>{" "}
-          <span className="text-xl tabular-nums">{life.assets.total.toLocaleString("ja-JP")}</span>
-          <span className="text-sm text-haze"> {t.unit}</span>
+          <span className="text-xl tabular-nums">{manParts(life.assets.total).num}</span>
+          <span className="text-sm text-haze"> {manParts(life.assets.total).unit}</span>
         </p>
         <p className="mt-1 text-center text-sm tracking-wider text-haze">
           {t.pnl} {life.assets.pnl >= 0 ? "+" : ""}
-          {life.assets.pnl.toLocaleString("ja-JP")}
-          {t.unit}
+          {manText(Math.abs(life.assets.pnl)).replace(/^/, life.assets.pnl < 0 ? "-" : "")}
         </p>
         {life.achievements && (
           <div className="mx-auto w-full">
@@ -342,7 +342,7 @@ function SeriesChart({ real, alt, altLabel, others }: { real: LifeSummary; alt: 
   const H = 150;
   const x = (age: number) => ((age - minAge) / Math.max(1, maxAge - minAge)) * W;
   const charts: { title: string; note: string; pick: (p: { net: number; joy: number }) => number; fmt: (n: number) => string }[] = [
-    { title: "資産の移り変わり", note: "万円(借金は引いています)", pick: (p) => p.net, fmt: (n) => `${Math.round(n).toLocaleString("ja-JP")}万円` },
+    { title: "資産の移り変わり", note: "万円(借金は引いています)", pick: (p) => p.net, fmt: (n) => manText(n) },
     { title: "幸福度の移り変わり", note: "0〜100", pick: (p) => p.joy, fmt: (n) => `${Math.round(n)}` },
   ];
   return (

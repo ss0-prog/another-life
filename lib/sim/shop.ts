@@ -1,3 +1,4 @@
+import { SINCE, yearOf } from "@/lib/sim/era";
 import { lessonById } from "@/lib/sim/data/jp-lessons";
 import { drawLottery } from "@/lib/sim/data/jp-lottery";
 import { createRng } from "@/lib/sim/rng";
@@ -183,8 +184,14 @@ export const SHOP: ShopItem[] = [
   {
     id: "pc", group: "暮らしの買い物", label: "パソコン・スマートフォンを買い替える",
     note: "仕事や勉強がはかどる。",
-    costMan: () => 15, visible: (p) => adult(p),
+    costMan: () => 15, visible: (p) => adult(p) && yearOf(p) >= SINCE.smartphone,
     apply: (p) => (inc(p, { learn: 3, joy: 2 }), "パソコンとスマートフォンを買い替えた"), keep: false,
+  },
+  {
+    id: "pc_old", group: "暮らしの買い物", label: "パソコンを買い替える",
+    note: "仕事や勉強がはかどる。",
+    costMan: () => 20, visible: (p) => adult(p) && yearOf(p) >= SINCE.pc && yearOf(p) < SINCE.smartphone,
+    apply: (p) => (inc(p, { learn: 3, joy: 2 }), "パソコンを買い替えた"), keep: false,
   },
   {
     id: "clothes", group: "暮らしの買い物", label: "服や靴を新調する",

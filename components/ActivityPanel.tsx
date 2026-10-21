@@ -1,5 +1,6 @@
 "use client";
 
+import { partTimeAvailable, yearOf } from "@/lib/sim/era";
 import { useState } from "react";
 import { chipClass } from "@/components/controls";
 import { LessonPanel } from "@/components/LessonPanel";
@@ -47,7 +48,7 @@ export function ActivityPanel({ t, state, onStartLesson, onStopLesson, onStartPa
     { id: "shop", label: "売買", show: p.age >= 8 },
   ];
 
-  const parts = jpData.partTimes.filter((x) => p.age >= x.minAge);
+  const parts = jpData.partTimes.filter((x) => p.age >= x.minAge && partTimeAvailable(x.id, yearOf(p)));
   const offices = jpData.offices.filter((x) => p.age >= x.minAge);
   const affordable = offices.filter((o) => state.wallet.cash >= o.costMan * 10000);
 
@@ -78,7 +79,7 @@ export function ActivityPanel({ t, state, onStartLesson, onStopLesson, onStartPa
               {p.parttime ? (
                 <div className="mt-3 flex items-baseline justify-between gap-2 text-sm tracking-wider">
                   <span className="text-mist">{jpData.partTimes.find((x) => x.id === p.parttime!.id)?.label}<span className="ml-2 text-xs text-dim">{p.age - p.parttime.since + 1}年目</span></span>
-                  <button type="button" onClick={onStopPart} className="shrink-0 text-xs tracking-wider text-dim hover:text-mist">やめる</button>
+                  <button type="button" onClick={onStopPart} className="shrink-0 border border-line px-2.5 py-0.5 text-xs tracking-wider text-haze hover:border-haze hover:text-mist">やめる</button>
                 </div>
               ) : (
                 <div className="mt-3 grid grid-cols-1 gap-1.5">

@@ -1,3 +1,4 @@
+import { SINCE, lessonAvailable, partTimeAvailable, yearOf } from "@/lib/sim/era";
 import { jpData } from "@/lib/sim/data/jp";
 import { housingOf } from "@/lib/sim/data/jp-scene";
 import { pickMoment } from "@/lib/sim/data/jp-moments";
@@ -909,6 +910,7 @@ export function startLesson(state: GameState, id: string, data: CountryData = jp
   if (p.lessons.length >= MAX_LESSONS || p.lessons.some((l) => l.id === id)) return null;
   if (p.age < def.minAge || (def.maxAge !== undefined && p.age > def.maxAge)) return null;
   if (lessonBlock(p, def.costMan)) return null;
+  if (!lessonAvailable(id, yearOf(p))) return null;
   const next = clone(state);
   next.person.lessons.push({ id, since: p.age });
   next.events.push({ age: p.age, event: `習い事「${def.label}」を始めた`, weight: 52 });
@@ -920,6 +922,7 @@ export function startPartTime(state: GameState, id: string, data: CountryData = 
   const def = data.partTimes.find((x) => x.id === id);
   const p = state.person;
   if (!def || state.deathAge !== null || p.age < def.minAge || p.age >= 75) return null;
+  if (!partTimeAvailable(id, yearOf(p))) return null;
   // 仕事に就いている人は、アルバイトはできない。
   if (p.occ !== null && p.occ !== "retired") return null;
   if (p.age >= WORK_LIMIT) return null;
@@ -1400,10 +1403,10 @@ export function tick(state: GameState, data: CountryData = jpData): GameState {
       p.history.layoff = a;
     }
   }
-  if (a >= 20 && roll(seed, a, S.move) < interpolate(data.curves.moveRate, a)) {
-    const region = weighted<Region>(streamRng(seed, a, S.movePick), data.transition.region[p.region]);
-    const city = moveTo(p, streamRng(seed, a, S.movePick), data, region);
-    push(`${city}に引っ越した`, 45);
+  // 引っ越しは、勝手には起きない。実家暮らしと、18歳未満(子ども〜高校生)をのぞいて、引っ越すかどうかを、かならず聞く。
+  if (a >= 18 && !p.withParents && !next.queue.includes("move_ask") && roll(seed, a, S.move) < interpolate(data.curves.moveRate, a)) {
+    push("引っ越しの話が出た", 40);
+    next.queue.push("move_ask");
   }
   if (!p.owned && p.occ !== null && p.occ !== "retired" && roll(seed, a, S.buy) < interpolate(data.curves.purchaseRate, a) * data.regionFactor.purchase[p.region] * (p.married ? 1.6 : 0.5) * p.homeBias * mbtiHome) {
     p.owned = true;
@@ -1623,7 +1626,7 @@ export function tick(state: GameState, data: CountryData = jpData): GameState {
         p.housingKind = "homeless";
         p.history.homeless = a;
         bump(p, { health: -8, joy: -12, bonds: -5, money: -6 });
-        push("家賃が払えず、住まいを失った。ネットカフェや路上で、夜を過ごすようになった", 90);
+        push(`家賃が払えず、住まいを失った。${yearOf(p) >= SINCE.netCafe ? "ネットカフェや路上" : "駅や公園"}で、夜を過ごすようになった`, 90);
         if (!next.queue.includes("homeless_help")) next.queue.push("homeless_help");
       }
     }

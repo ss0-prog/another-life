@@ -1,5 +1,6 @@
 "use client";
 
+import { lessonAvailable, yearOf } from "@/lib/sim/era";
 import { lessonBlock } from "@/lib/sim/family";
 import { useState } from "react";
 import { chipClass } from "@/components/controls";
@@ -34,7 +35,7 @@ export function LessonPanel({ t, state, onStart, onStop, mode = "lesson", embedd
   // 年齢にあう習い事を、分野ごとに。
   const groups = [...new Set(jpData.lessons.filter((l) => inMode(l.id)).map((l) => l.group))].map((g) => ({
     group: g,
-    items: jpData.lessons.filter((l) => l.group === g && (!l.needs || (p.mbti ? new RegExp(l.needs).test(p.mbti) : false)) && p.age >= l.minAge && (l.maxAge === undefined || p.age <= l.maxAge) && !taken.has(l.id)),
+    items: jpData.lessons.filter((l) => l.group === g && lessonAvailable(l.id, yearOf(p)) && (!l.needs || (p.mbti ? new RegExp(l.needs).test(p.mbti) : false)) && p.age >= l.minAge && (l.maxAge === undefined || p.age <= l.maxAge) && !taken.has(l.id)),
   }));
 
   // この性格に向いている活動(向き不向きの点数が高いもの)。
@@ -71,7 +72,7 @@ export function LessonPanel({ t, state, onStart, onStop, mode = "lesson", embedd
                   </span>
                 </span>
                 {!dead && (
-                  <button type="button" onClick={() => onStop(l.id)} className="shrink-0 text-xs tracking-wider text-dim hover:text-mist">
+                  <button type="button" onClick={() => onStop(l.id)} className="shrink-0 border border-line px-2.5 py-0.5 text-xs tracking-wider text-haze hover:border-haze hover:text-mist">
                     {t.stop}
                   </button>
                 )}

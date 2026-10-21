@@ -1,5 +1,7 @@
 "use client";
 
+import { SINCE, assetAvailable, yearOf } from "@/lib/sim/era";
+import { manParts, manText } from "@/lib/money";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { chipClass } from "@/components/controls";
 import type { Messages } from "@/lib/i18n";
@@ -111,7 +113,7 @@ export function AssetPanel({ t, state, month, onTrade, onStartStocks, onPlan, on
   const spendYen = Math.round((Number(spendAmount) || 0) * (minor ? 1 : 10000));
   // 子どもは借りられないので、お小遣いで払えない使い道は、出さない。
   const hasKid = !minor && state.person.kidList.some((k) => state.person.age - k.bornAge < 18);
-  const visiblePresets = PRESETS.filter((pr) => (pr.key !== "kidNisa" || hasKid) && ((pr.key !== "petDog" && pr.key !== "petCat") || state.person.pets.filter((x) => !x.died).length < 3) && (!minor || state.wallet.cash >= pr.minYen));
+  const visiblePresets = PRESETS.filter((pr) => (pr.key !== "kidNisa" || (hasKid && yearOf(state.person) >= SINCE.kidsNisa)) && ((pr.key !== "petDog" && pr.key !== "petCat") || state.person.pets.filter((x) => !x.died).length < 3) && (!minor || state.wallet.cash >= pr.minYen));
   const amountChips = (minor ? [500, 1000, 3000, 5000, 10000, 30000] : [5, 10, 30, 50, 100, 300]).filter((v) => !minor || v <= state.wallet.cash);
   const readable = canInterpret(text);
   const submitSpend = () => {
@@ -158,8 +160,8 @@ export function AssetPanel({ t, state, month, onTrade, onStartStocks, onPlan, on
 
       <div className="mt-5 text-center">
         <p className="tabular-nums text-mist text-3xl sm:text-4xl">
-          {minor ? (Number.isFinite(state.wallet.cash) ? Math.round(state.wallet.cash) : 0).toLocaleString("ja-JP") : man(net)}
-          <span className="ml-1 text-xs text-haze">{minor ? t.unitYen : t.unit}</span>
+          {minor ? (Number.isFinite(state.wallet.cash) ? Math.round(state.wallet.cash) : 0).toLocaleString("ja-JP") : manParts(net / 10000).num}
+          <span className="ml-1 text-xs text-haze">{minor ? t.unitYen : manParts(net / 10000).unit}</span>
         </p>
         {!minor && <p className="text-xs tabular-nums text-dim">{yenText(net)}</p>}
         {state.wallet.kidFund && state.wallet.kidFund.units > 0 && (
@@ -234,8 +236,8 @@ export function AssetPanel({ t, state, month, onTrade, onStartStocks, onPlan, on
         {!minor && <p className="mt-2 text-[11px] leading-4 tracking-wider text-dim">普通預金の金利: 年{(savingsRate(state.person.econ) * 100).toFixed(3)}%(景気で上下する架空の水準)</p>}
         {stocks && (
           <p className="mt-2 text-xs tracking-wider text-haze">
-            うち {t.cash} {man(state.wallet.cash)}{t.unit}・{t.invested} {man(invested)}{t.unit}
-            {state.wallet.debts.length > 0 ? `・${t.debt} -${man(debtTotal(state.wallet.debts))}${t.unit}` : ""}
+            うち {t.cash} {manText(state.wallet.cash / 10000)}・{t.invested} {manText(invested / 10000)}
+            {state.wallet.debts.length > 0 ? `・${t.debt} -${manText(debtTotal(state.wallet.debts) / 10000)}` : ""}
           </p>
         )}
       </div>
@@ -271,7 +273,7 @@ export function AssetPanel({ t, state, month, onTrade, onStartStocks, onPlan, on
           <ul className="mt-2 space-y-0.5 text-xs leading-6 tracking-wider text-haze">
             {state.wallet.debts.map((d) => (
               <li key={d.lender}>
-                {{ family: "家族", friend: "友人", bank: "銀行", card: "カードローン", shark: "闇金" }[d.lender]} {man(d.amount)}{t.unit}
+                {{ family: "家族", friend: "友人", bank: "銀行", card: "カードローン", shark: "闇金" }[d.lender]} {manText(d.amount / 10000)}
                 {d.rate > 0 ? `(${t.interest} 年${Math.round(d.rate * 100)}%)` : ""}
               </li>
             ))}
@@ -415,7 +417,7 @@ export function AssetPanel({ t, state, month, onTrade, onStartStocks, onPlan, on
       {stocks && (
         <>
           <div className="mt-8 grid auto-rows-fr grid-cols-2 gap-2">
-            {jpData.assets.map((a) => (
+            {jpData.assets.filter((a) => assetAvailable(a.id, yearOf(state.person))).map((a) => (
               <button key={a.id} type="button" onClick={() => setSel(a.id)} className={`${chipClass(a.id === sel)} flex h-full items-center justify-center !px-2 !py-2 text-center !text-xs leading-5`}>
                 {a.label}
               </button>

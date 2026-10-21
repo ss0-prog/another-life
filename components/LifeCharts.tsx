@@ -1,5 +1,6 @@
 "use client";
 
+import { manShort } from "@/lib/money";
 import { useState } from "react";
 import { chipClass } from "@/components/controls";
 import type { SeriesPoint } from "@/lib/sim/types";
@@ -7,7 +8,7 @@ import type { SeriesPoint } from "@/lib/sim/types";
 type Line = { label: string; color: string; pick: (p: SeriesPoint) => number | undefined };
 type Metric = { id: string; label: string; note: string; unit: string; lines: Line[]; zero?: boolean; fmt?: (v: number) => string };
 
-const man = (v: number) => `${Math.round(v).toLocaleString("ja-JP")}万`;
+const man = (v: number) => manShort(v);
 
 const METRICS: Metric[] = [
   {

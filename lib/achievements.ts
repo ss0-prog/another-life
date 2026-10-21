@@ -87,6 +87,7 @@ export const ACHIEVEMENTS: Achievement[] = [
   { id: "money5o", name: "資産5億円", desc: "資産が、5億円を超えた。", mark: "財", rarity: "legend", check: (s) => maxNet(s) >= 50000 },
   { id: "money10o", name: "大富豪", desc: "資産が、10億円を超えた。", mark: "富", rarity: "legend", check: (s) => maxNet(s) >= 100000 },
   { id: "money100o", name: "桁ちがいの資産家", desc: "資産が、100億円を超えた。", mark: "覇", rarity: "legend", check: (s) => maxNet(s) >= 1000000 },
+  { id: "money1cho", name: "一兆円", desc: "資産が、1兆円を超えた。", mark: "兆", rarity: "legend", secret: true, check: (s) => maxNet(s) >= 100000000 },
   { id: "lottery", name: "宝くじ当せん", desc: "宝くじで、まとまったお金が当たった。", mark: "当", rarity: "rare", check: (s) => hasEvent(s, /宝くじで、.+が当たった/) },
   { id: "debtfree", name: "借金を返しきった", desc: "借金を、すべて返した。", mark: "返", rarity: "common", check: (s) => s.person.history.debtCleared !== undefined },
   { id: "backfromzero", name: "どん底からの再起", desc: "住まいを失ったあと、もう一度、暮らしを立て直した。", mark: "立", rarity: "rare", check: (s) => s.person.history.homelessEnd !== undefined },

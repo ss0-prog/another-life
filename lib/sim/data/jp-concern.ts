@@ -1,3 +1,4 @@
+import { SINCE, yearOf } from "@/lib/sim/era";
 import { randomPartner } from "@/lib/sim/helpers";
 import type { ConcernKind, CountryData, Person, Stats } from "@/lib/sim/types";
 import type { Rng } from "@/lib/sim/rng";
@@ -13,7 +14,7 @@ const EVENTS: Record<ConcernKind, Ev[]> = {
   romance: [
     { text: () => "友人に誘われた飲み会で、気になる人に出会った", delta: { joy: 3, bonds: 2 }, when: noPartner, effect: (p, r, d) => ((p.partner = randomPartner(r, d, p.age, "crush", p.mbti, p)), null) },
     { text: (p) => `${pn(p)}と、連絡を取り合うようになった`, delta: { joy: 4, bonds: 3 }, when: (p) => p.partner?.status === "crush" },
-    { text: () => "マッチングアプリで何人かとやりとりしたが、ピンとくる人はいなかった", delta: { joy: -2, bonds: 1 }, when: noPartner },
+    { text: () => "マッチングアプリで何人かとやりとりしたが、ピンとくる人はいなかった", delta: { joy: -2, bonds: 1 }, when: (p) => noPartner(p) && yearOf(p) >= SINCE.matching },
     { text: () => "気になる人に声をかけられず、後悔した", delta: { joy: -3 }, when: noPartner },
     { text: (p) => `${pn(p)}と、はじめて二人で出かけた`, delta: { joy: 5, bonds: 3 }, when: (p) => p.partner?.status === "crush" || p.partner?.status === "dating" },
     { text: () => "恋愛と、仕事や勉強の時間の使い方で、迷った", delta: { joy: -1, health: -1 }, when: (p) => p.occ !== null },

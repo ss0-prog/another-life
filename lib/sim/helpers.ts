@@ -1,3 +1,4 @@
+import { jobAvailable, yearOf } from "@/lib/sim/era";
 import { pickPartnerMbti, randomMbti } from "@/lib/sim/mbti";
 import { pick, type Rng } from "@/lib/sim/rng";
 import type { CountryData, Debt, GameState, LenderId, Occ, Partner, PartnerGender, Person, Region, Stats } from "@/lib/sim/types";
@@ -45,7 +46,7 @@ export function moveTo(p: Person, rng: Rng, data: CountryData, region: Region): 
 
 // 大分類の中から、職種を決めて、状態に反映する(資格が必要な職種は、選ばれにくくする)。
 export function assignJob(p: Person, occ: Occ, rng: Rng, data: CountryData, jobId?: string): string {
-  const pool = data.jobs.filter((j) => j.occ === occ && !j.qual);
+  const pool = data.jobs.filter((j) => j.occ === occ && !j.qual && jobAvailable(j.id, yearOf(p)));
   const chosen = jobById(jobId) ?? (pool.length ? pool[Math.floor(rng() * pool.length)] : jobById(DEFAULT_JOB[occ])!);
   if (p.parttime) {
     p.leftNote = `仕事に就いたため、アルバイト(${data.partTimes.find((x) => x.id === p.parttime!.id)?.label ?? ""})はやめた`;

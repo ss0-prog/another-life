@@ -40,7 +40,7 @@ export function SiteFooter() {
       <div className="footer-compact hidden h-10 shrink-0 items-center gap-5 px-8 text-[11px] tracking-wider text-dim">
         <nav aria-label="フッター(簡易)" className="flex shrink-0 items-center gap-x-5 whitespace-nowrap">
           {ABOUT.map((l) => (
-            <Link key={l.href} href={l.href} className="transition-colors hover:text-mist">
+            <Link key={l.href} href={l.href} className="hover:text-mist">
               {l.label}
             </Link>
           ))}
@@ -72,7 +72,7 @@ export function SiteFooter() {
             <ul className="mt-3 space-y-2 text-sm tracking-[0.12em] text-haze">
               {PLAY.map((l) => (
                 <li key={l.href}>
-                  <Link href={l.href} className="transition-colors hover:text-mist">
+                  <Link href={l.href} className="hover:text-mist">
                     {l.label}
                   </Link>
                 </li>
@@ -86,7 +86,7 @@ export function SiteFooter() {
             <ul className="mt-3 space-y-2 text-sm tracking-[0.12em] text-haze">
               {ABOUT.map((l) => (
                 <li key={l.href}>
-                  <Link href={l.href} className="transition-colors hover:text-mist">
+                  <Link href={l.href} className="hover:text-mist">
                     {l.label}
                   </Link>
                 </li>
@@ -132,7 +132,7 @@ export function SiteFooter() {
           <ul className="mt-3 flex flex-wrap gap-2">
             {SOURCES.map((s) => (
               <li key={s}>
-                <Link href="/sources" className="inline-block rounded-full border border-line px-3 py-1 text-[11px] tracking-wider text-haze transition-colors hover:border-warm hover:text-mist">
+                <Link href="/sources" className="inline-block rounded-full border border-line px-3 py-1 text-[11px] tracking-wider text-haze hover:border-warm hover:text-mist">
                   {s}
                 </Link>
               </li>

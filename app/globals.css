@@ -246,7 +246,7 @@ html[data-tod="day"] {
   --color-line: #a4b5c8;
   --color-glow: #1f3a5f;
   --color-cool: #1d5db0;
-  --color-warm: #a85a10;
+  --color-warm: #e55a00;
   --color-s-health: #178556;
   --color-s-money: #a8620c;
   --color-s-bonds: #bd3d68;
@@ -631,7 +631,7 @@ html[data-tod="day"] footer {
   --color-haze: #1b2a3c;
   --color-dim: #36495f;
   --color-line: #a4b5c8;
-  --color-warm: #a85a10;
+  --color-warm: #e55a00;
   --color-glow: #1f3a5f;
   --color-void: #ffffff;
   --color-panel: #f6f9fc;

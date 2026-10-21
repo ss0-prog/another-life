@@ -110,7 +110,7 @@ export function SiteFooter() {
         </div>
 
         {/* 入力した情報は、このサービス以外には、絶対に使わない */}
-        <p className="font-gothic mt-10 text-left text-sm leading-7 tracking-wider text-mist">入力していただいた情報は、このサービスの中だけで使います。ほかのサービスや、ほかの目的には、絶対に使いません。</p>
+        <p className="mt-10 text-left text-[15px] leading-8 tracking-[0.08em] text-mist sm:text-base sm:leading-9"><span className="inline-block">入力していただいた情報は、</span><span className="inline-block">このサービスの中だけで使います。</span><br /><span className="inline-block">ほかのサービスや、</span><span className="inline-block">ほかの目的には、</span><span className="inline-block">絶対に使いません。</span></p>
 
         {/* データの扱い */}
         <div className="font-gothic mt-10 border-t border-line/60 pt-6">

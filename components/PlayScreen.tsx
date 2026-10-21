@@ -608,6 +608,7 @@ export function PlayScreen({ t, initial, birthYear, selfAge, ghost, dev = false,
 function LifeRibbon({ age, dead, startAge, events }: { age: number; dead: boolean; startAge: number; events: GameState["events"] }) {
   const [open, setOpen] = useState(false); // スマホでは、閉じておき、タップで、ひらく(PC では、いつも表示)
   const [list, setList] = useState(false); // 節目の一覧
+  const [mList, setMList] = useState(false); // スマホ: 節目の一覧(アコーディオン)
   useEffect(() => {
     if (!list) return;
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && setList(false);
@@ -670,8 +671,11 @@ function LifeRibbon({ age, dead, startAge, events }: { age: number; dead: boolea
       </p>
       {/* スマホ: これまでの節目の一覧は、この枠の中に、はじめから入れておく */}
       <div className="mt-3 border-t border-line/60 pt-3 lg:hidden">
-        <p className="text-xs tracking-[0.2em] text-warm">これまでの節目({dots.length}個)</p>
-        {dots.length === 0 ? (
+        <button type="button" onClick={() => setMList((o) => !o)} aria-expanded={mList} className="flex w-full items-center justify-between gap-2 text-left text-xs tracking-[0.2em] text-warm">
+          <span>人生の節目({dots.length}個)</span>
+          <span aria-hidden className={`text-[10px] text-warm transition-transform ${mList ? "rotate-180" : ""}`}>▼</span>
+        </button>
+        {!mList ? null : dots.length === 0 ? (
           <p className="mt-2 text-xs leading-6 tracking-wider text-dim">まだ、節目はありません。</p>
         ) : (
           <ol className="mt-2 max-h-[40dvh] space-y-2.5 overflow-y-auto pr-1">

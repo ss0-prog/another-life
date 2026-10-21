@@ -4,6 +4,7 @@ import { Ambient } from "@/components/Ambient";
 import { Analytics } from "@/components/Analytics";
 import { OrphanGuard } from "@/components/OrphanGuard";
 import { PresenceBeacon } from "@/components/PresenceBeacon";
+import { ScrollTopButton } from "@/components/ScrollTopButton";
 import { SiteFooter } from "@/components/SiteFooter";
 import { SiteHeader } from "@/components/SiteHeader";
 import { getMessages } from "@/lib/i18n";
@@ -94,6 +95,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <Analytics />
         <OrphanGuard />
         <PresenceBeacon />
+        <ScrollTopButton />
       </body>
     </html>
   );

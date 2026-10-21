@@ -220,6 +220,25 @@ export function PlayScreen({ t, initial, birthYear, selfAge, ghost, dev = false,
   const popupKey = tp ? `${tp.id}-${p.age}` : "";
   const popupWanted = Boolean(tp) && !dead && !naming && revealed;
   const showPopup = popupWanted && closedKey !== popupKey;
+  // 「選択をひらく」の帯が、画面の下に出ているあいだ、「一番上へもどる」ボタンを、その帯の上に出す(帯の高さを、伝える)。
+  const barShown = popupWanted && !showPopup && Boolean(tp);
+  useEffect(() => {
+    const root = document.documentElement;
+    if (!barShown) {
+      root.style.removeProperty("--bottom-bar-h");
+      return;
+    }
+    const el = document.querySelector<HTMLElement>("[data-choice-bar]");
+    if (!el) return;
+    const set = () => root.style.setProperty("--bottom-bar-h", `${el.offsetHeight}px`);
+    set();
+    const ro = new ResizeObserver(set);
+    ro.observe(el);
+    return () => {
+      ro.disconnect();
+      root.style.removeProperty("--bottom-bar-h");
+    };
+  }, [barShown]);
   const question = tp ? (last?.children ? last.children(p) : { title: tp.title, prompt: tp.prompt, options: tp.options }) : null;
   // 選択の場面(出来事の質問をのぞく)では、選べない道を、うすく表示して、理由を赤字で出す。
   const lockable = Boolean(tp) && !tp!.id.startsWith("ev:");
@@ -511,7 +530,7 @@ export function PlayScreen({ t, initial, birthYear, selfAge, ghost, dev = false,
       {dev && <DevPanel state={state} act={act} setSpeed={setSpeed} />}
       {dead && revealed && <DeathOverlay age={state.deathAge ?? p.age} cause={state.deathCause ?? ""} why={state.deathNote?.reasons.join("。")} quote={pickEpitaph({ seed: state.seed, age: state.deathAge ?? p.age, cause: state.deathCause ?? "", joy: p.stats.joy, bonds: p.stats.bonds, money: p.stats.money })} label={t.compare} line={t.dead} onCompare={() => onFinish(state)} />}
       {popupWanted && !showPopup && tp && (
-        <div className="fixed inset-x-[2.5vw] bottom-4 z-50 flex items-center justify-between gap-3 rounded-sm border border-warm/70 bg-panel px-4 py-3 shadow-xl lg:inset-x-auto lg:left-1/2 lg:-translate-x-1/2 lg:gap-4 lg:px-5">
+        <div data-choice-bar className="fixed inset-x-[2.5vw] bottom-4 z-50 flex items-center justify-between gap-3 rounded-sm border border-warm/70 bg-panel px-4 py-3 shadow-xl lg:inset-x-auto lg:left-1/2 lg:-translate-x-1/2 lg:gap-4 lg:px-5">
           <p className="min-w-0 text-xs leading-5 tracking-wider text-mist sm:text-sm">選択の場面で時間を止めています。<span className="block font-bold text-warm sm:ml-2 sm:inline">{soften(question?.title ?? "")}</span></p>
           <button type="button" onClick={() => setClosedKey(null)} className="keep shrink-0 border border-warm/70 bg-warm/10 px-4 py-1.5 text-sm font-bold text-mist hover:border-warm">
             選択をひらく

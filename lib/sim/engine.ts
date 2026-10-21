@@ -1,3 +1,4 @@
+import { happinessOf, minWageFactor, mortalityOf, prefOf } from "@/lib/sim/regional";
 import { SINCE, lessonAvailable, partTimeAvailable, yearOf } from "@/lib/sim/era";
 import { jpData } from "@/lib/sim/data/jp";
 import { housingOf } from "@/lib/sim/data/jp-scene";
@@ -928,7 +929,7 @@ export function startPartTime(state: GameState, id: string, data: CountryData = 
   if (p.age >= WORK_LIMIT) return null;
   const next = clone(state);
   next.person.parttime = { id, since: p.age };
-  next.events.push({ age: p.age, event: `アルバイトを始めた。「${def.label}」(年に約${Math.round(def.yearlyMan * (p.occ !== null && p.occ !== "retired" ? 0.6 : p.age < 18 ? 0.5 : 1))}万円)`, weight: 52 });
+  next.events.push({ age: p.age, event: `アルバイトを始めた。「${def.label}」(年に約${Math.round(def.yearlyMan * minWageFactor(yearOf(p), prefOf(p)) * (p.occ !== null && p.occ !== "retired" ? 0.6 : p.age < 18 ? 0.5 : 1))}万円)`, weight: 52 });
   return next;
 }
 
@@ -1165,7 +1166,8 @@ export function tick(state: GameState, data: CountryData = jpData): GameState {
   // 幸福度は、つながり・健康・お金などの暮らしの目標に、少しずつ近づく。うつ状態のあいだは、さらに下がる。
   {
     const st = p.stats;
-    const target = Math.min(100, Math.max(0, 0.35 * st.bonds + 0.3 * st.health + 0.25 * st.money + 0.1 * st.learn + 8));
+    // 都道府県による、幸福度(調査の点数)のちがいを、目標に足す(「幸福度調査2024」)。
+    const target = Math.min(100, Math.max(0, 0.35 * st.bonds + 0.3 * st.health + 0.25 * st.money + 0.1 * st.learn + 8 + happinessOf(p)));
     st.joy = clamp(st.joy + (target - st.joy) * 0.3 - (p.mood === "depressed" ? 4 : 0));
     if (p.sick) st.health = clamp(st.health - 2);
     if (p.mood === "depressed") p.moodYears += 1;
@@ -1194,7 +1196,8 @@ export function tick(state: GameState, data: CountryData = jpData): GameState {
   const healthMult = Math.min(2.2, Math.max(0.6, 1 + (expected - p.stats.health) / 80));
   // 亡くなる確率の土台(生命表)。事故・急病など「出来事によるもの」は、健康や心の状態に左右されない。
   // 病気によるものは、健康・持病・うつ状態・深刻な病気で、増減する。二つの人生で、乱数は別々。
-  const base = interpolateLog(data.curves.mortality[p.sex], a) * Math.sqrt(c.illness);
+  // 都道府県による、平均寿命のちがい(2020年の都道府県別生命表)を、死亡率に反映する。
+  const base = interpolateLog(data.curves.mortality[p.sex], a) * Math.sqrt(c.illness) * mortalityOf(p);
   const share = Math.min(0.9, Math.max(0, interpolate(data.curves.suddenShare, a)));
   const qSudden = Math.min(1, base * share);
   // 病気による死は、病気・うつなどで死期が早まる設計の影響を、全体の平均寿命が公表値に合うよう、係数でならす。
@@ -1808,7 +1811,7 @@ export function tick(state: GameState, data: CountryData = jpData): GameState {
       p.parttime = null;
     } else {
       // 社会人の副業は、収入が少なく、体への負担が大きい。18歳未満は、働ける時間が短い。
-      const pay = def.yearlyMan * (full ? 0.6 : a < 18 ? 0.5 : 1) * (1 + p.econ * 0.03) * 10000;
+      const pay = def.yearlyMan * minWageFactor(yearOf(p), prefOf(p)) * (full ? 0.6 : a < 18 ? 0.5 : 1) * (1 + p.econ * 0.03) * 10000;
       // 税: 働いていない人は年に約103万円まで引かれない。働いている人の副業は、20万円をこえると税がかかる。
       const sideMan = pay / 10000;
       const sideT = sideTax(p, data, econ, sideMan);

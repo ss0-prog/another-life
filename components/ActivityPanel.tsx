@@ -1,5 +1,6 @@
 "use client";
 
+import { minWageFactor, prefOf } from "@/lib/sim/regional";
 import { partTimeAvailable, yearOf } from "@/lib/sim/era";
 import { useEffect, useRef, useState } from "react";
 import { chipClass } from "@/components/controls";
@@ -86,6 +87,7 @@ export function ActivityPanel({ t, state, onStartLesson, onStopLesson, onStartPa
             <div className="mt-4 rounded-sm border border-line bg-panel/60 px-4 py-3">
               <p className="text-xs tracking-[0.3em] text-warm">アルバイト</p>
               <p className="mt-1 text-[11px] leading-4 tracking-wider text-dim">★はあなたの性格に向いている仕事、△は苦手な仕事です。同時にひとつ。収入が増える一方勉強や体力に影響します。仕事に就くとアルバイトはやめることになります。</p>
+              <p className="mt-1 text-[11px] leading-4 tracking-wider text-dim">収入は、その年・その地域の最低賃金にあわせて変わります。</p>
               {p.parttime ? (
                 <div className="mt-3 flex items-baseline justify-between gap-2 text-sm tracking-wider">
                   <span className="text-mist">{jpData.partTimes.find((x) => x.id === p.parttime!.id)?.label}<span className="ml-2 text-xs text-dim">{p.age - p.parttime.since + 1}年目</span></span>
@@ -96,7 +98,7 @@ export function ActivityPanel({ t, state, onStartLesson, onStopLesson, onStartPa
                   {parts.map((x) => (
                     <button key={x.id} type="button" title={x.note} onClick={() => onStartPart(x.id)} className={`${chipClass(false)} flex w-full items-center justify-between gap-3 !px-3 !py-2 !text-left !text-xs leading-5`}>
                       <span className="block">{fitScore(p.mbti, x.tags) >= 2 ? "★ " : fitScore(p.mbti, x.tags) <= -1 ? "△ " : ""}{x.label}</span>
-                      <span className="block shrink-0 text-dim">年に約{Math.round(x.yearlyMan * (working ? 0.6 : p.age < 18 ? 0.5 : 1))}万円</span>
+                      <span className="block shrink-0 text-dim">年に約{Math.round(x.yearlyMan * minWageFactor(yearOf(p), prefOf(p)) * (working ? 0.6 : p.age < 18 ? 0.5 : 1))}万円</span>
                     </button>
                   ))}
                   {parts.length === 0 && <p className="text-xs text-dim">この年齢で始められるアルバイトはありません。</p>}

@@ -1,5 +1,6 @@
 "use client";
 
+import { prefKey, univRate } from "@/lib/sim/regional";
 import { jobAvailable } from "@/lib/sim/era";
 import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -552,7 +553,18 @@ function answersFromSelf(self: CurrentSelf): Answer[] {
 function randomSetup(): { self: CurrentSelf; branch: Branch } | null {
   const int = (a: number, b: number) => a + Math.floor(Math.random() * (b - a + 1));
   const pickOne = <T,>(xs: T[]): T | undefined => xs[Math.floor(Math.random() * xs.length)];
-  const rawFor = (step: Step): string | null => {
+  const rawFor = (step: Step, v: Values): string | null => {
+    // 最終学歴は、生まれた都道府県の、大学等への現役進学率(文部科学省・2024年度)にあわせて、ランダムに決める。
+    if (step.id === "edu") {
+      const r = univRate(prefKey(v.prefecture));
+      const w: Record<string, number> = { grad: r * 0.12, univ: r * 0.88, vocational: (1 - r) * 0.45, hs_work: (1 - r) * 0.5, junior_high: 0.01, dropout: 0.03 };
+      const total = Object.values(w).reduce((a, b) => a + b, 0);
+      let x = Math.random() * total;
+      for (const [k, wt] of Object.entries(w)) {
+        x -= wt;
+        if (x < 0 && step.options?.some((o) => o.value === k)) return k;
+      }
+    }
     switch (step.input) {
       case "chips":
       case "select":
@@ -578,7 +590,7 @@ function randomSetup(): { self: CurrentSelf; branch: Branch } | null {
       const v = valuesOf(answers);
       const step = stepsFor(v, v.age, 3).find((x) => !answers.some((a) => a.id === x.id));
       if (!step) break;
-      const raw = rawFor(step);
+      const raw = rawFor(step, v);
       if (raw === null) {
         ok = false;
         break;

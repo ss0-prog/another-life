@@ -1,3 +1,4 @@
+import { prefKey, univRate, univRateNational } from "@/lib/sim/regional";
 import { bump } from "@/lib/sim/helpers";
 import { BG_RISK, absentWho, soloWho } from "@/lib/sim/family";
 import type { AutoEvent, Person } from "@/lib/sim/types";
@@ -27,6 +28,16 @@ const riskOf = (p: Person) => BG_RISK[p.background] * (p.soloParent ? 1.6 : 1) *
 const delinquent = (p: Person) => p.history.delinquent !== undefined || p.history.badCompany !== undefined;
 
 export const familyEvents: AutoEvent[] = [
+  // ---- 暮らす地域(実際の統計) ----
+  ev("reg_peers", (p) => (inAge(p, 17, 18) && p.history.regPeers === undefined ? 2 : 0), (s) => {
+    const p = s.person;
+    mark(p, "regPeers");
+    const rate = univRate(prefKey(p.birthPlace));
+    const pct = Math.round(rate * 100);
+    const nat = Math.round(univRateNational() * 100);
+    if (rate >= univRateNational() + 0.08 && (p.edu === "hs_work" || p.edu === "vocational")) bump(p, { bonds: -1, joy: -1 });
+    return `同じ高校の卒業生の${pct}%ほどが、大学や短大などへ進む地域だった(全国は約${nat}%)`;
+  }, 36),
   // ---- 経済的に苦しい家庭 ----
   ev("fam_lunch_fee", (p) => (inAge(p, 6, 15) ? 0.9 * need(p) : 0), (s) => (bump(s.person, { bonds: -3, joy: -5 }), "給食費や教材費の支払いが遅れ、先生に声をかけられて、肩身の狭い思いをした"), 40),
   ev("fam_no_trip", (p) => (inAge(p, 11, 16) ? 0.6 * need(p) : 0), (s) => (bump(s.person, { bonds: -4, joy: -8 }), "修学旅行の積立金が払えず、みんなが出かけるなか、行けなかった"), 46),

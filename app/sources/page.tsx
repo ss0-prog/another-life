@@ -37,6 +37,22 @@ export default function SourcesPage() {
             : 転職したときの賃金の変化の割合。
           </li>
           <li>内閣府「長期経済統計」: 景気(実質GDP)・物価・失業率。統計のある年だけ使っています。</li>
+          <li>
+            <A href="https://www.ipss.go.jp/syoushika/tohkei/Data/Popular2025/T12-40.files/sheet001.htm">厚生労働省「令和2年都道府県別生命表」(国立社会保障・人口問題研究所「人口統計資料集」に収録)</A>
+            : 都道府県ごとの平均寿命。亡くなる確率に、生まれた県(7割)といま暮らす県(3割)の差を反映しています。
+          </li>
+          <li>
+            <A href="https://eic.obunsha.co.jp/file/educational_info/202501/02.pdf">文部科学省「令和6年度 学校基本調査(確定値)」(旺文社 教育情報センターの集計)</A>
+            : 都道府県ごとの、大学等への現役進学率。ランダムで始めたときの学歴と、同級生の進学の話に使っています。
+          </li>
+          <li>
+            <A href="https://www.mhlw.go.jp/stf/seisakunitsuite/bunya/koyou_roudou/roudoukijun/minimumichiran/index.html">厚生労働省「地域別最低賃金の全国一覧」</A>
+            : アルバイトの収入。全国加重平均額の推移(1978年度〜)と、都道府県ごとの水準を使っています。
+          </li>
+          <li>
+            <A href="https://news.tiiki.jp/articles/4897">株式会社ブランド総合研究所「幸福度調査2024」</A>
+            : 都道府県ごとの幸福度。インターネット調査(各県の回答は500人あまり)で、県ごとの差は、あまり大きくありません。暮らしの幸福度に、ごくわずかに反映しています。
+          </li>
           <li>厚生労働省「人口動態統計」: 結婚と子どもの図、死因の割合。</li>
           <li>国税庁「民間給与実態統計調査」: 年収の図。</li>
           <li>総務省統計局「家計調査(貯蓄・負債編)」: 貯蓄・資産の図。</li>

@@ -206,6 +206,14 @@ html {
   transition: --halo 5s ease-in-out, --wa 5s ease-in-out, --surf-btn 5s ease-in-out, --surf-btnh 5s ease-in-out, --surf-btnsh 5s ease-in-out, --surf-hdr 5s ease-in-out, --surf-ftr 5s ease-in-out, --surf-p60 5s ease-in-out, --surf-p80 5s ease-in-out, --surf-v35 5s ease-in-out, background-color 5s ease-in-out, --color-void 5s ease-in-out, --color-ink 5s ease-in-out, --color-panel 5s ease-in-out, --color-mist 5s ease-in-out, --color-haze 5s ease-in-out, --color-dim 5s ease-in-out, --color-line 5s ease-in-out, --color-glow 5s ease-in-out, --color-cool 5s ease-in-out, --color-warm 5s ease-in-out, --color-s-health 5s ease-in-out, --color-s-money 5s ease-in-out, --color-s-bonds 5s ease-in-out, --color-s-learn 5s ease-in-out, --color-s-joy 5s ease-in-out, --color-up 5s ease-in-out, --color-down 5s ease-in-out;
 }
 
+/* 昼 → 夕方: 太陽が沈むのに合わせて(10秒)、ヘッダーやフッターなど、画面の色を、ゆっくり暗くする(少し待ってから、長くかけて、ちょうど日没のころに、暗くなりきる) */
+html[data-phase="dusk"],
+html[data-phase="dusk"] header,
+html[data-phase="dusk"] footer {
+  transition-duration: 7.5s;
+  transition-delay: 2.5s;
+}
+
 /* 昼のあいだは、明るい配色に切り替える(色の変数を入れ替える) */
 html[data-tod="day"] {
   color-scheme: light;

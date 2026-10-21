@@ -38,9 +38,8 @@ export default function ContactPage() {
     }
   };
 
-  const field = "mt-3 w-full rounded-sm border border-line bg-void/30 px-3 py-2 text-base tracking-wider text-mist outline-none placeholder:text-dim focus:border-haze sm:mt-0 sm:flex-1";
-  const label = "text-xs leading-6 tracking-[0.2em] text-haze sm:w-52 sm:shrink-0 sm:pt-2";
-  const row = "block sm:flex sm:items-start sm:gap-6";
+  const field = "mt-3 w-full rounded-sm border border-line bg-void/30 px-3 py-2 text-base tracking-wider text-mist outline-none placeholder:text-dim focus:border-haze";
+  const label = "text-xs tracking-[0.3em] text-haze";
 
   return (
     <PageShell title="お問い合わせ" lead="ご意見、ご感想、不具合のご報告など、お気軽にお寄せください。">
@@ -48,11 +47,11 @@ export default function ContactPage() {
         <p className="rounded-sm border border-warm/50 bg-panel/70 px-5 py-8 text-left text-base leading-9 tracking-wider text-haze sm:px-10 sm:py-12">現在、お問い合わせの受け付けを準備しています。しばらくお待ちください。</p>
       ) : (
         <form onSubmit={submit} className="space-y-8 rounded-sm border border-warm/50 bg-panel/70 px-5 py-8 sm:px-10 sm:py-12">
-          <label className={row}>
+          <label className="block">
             <span className={label}>お名前(任意)</span>
             <input value={name} maxLength={80} onChange={(e) => setName(e.target.value)} className={field} />
           </label>
-          <label className={row}>
+          <label className="block">
             <span className={label}>返信先のメールアドレス(お返事が必要なとき)</span>
             <input type="email" value={reply} maxLength={200} onChange={(e) => setReply(e.target.value)} className={field} />
           </label>
@@ -61,11 +60,11 @@ export default function ContactPage() {
             <span>この欄は、空のままにしてください</span>
             <input type="checkbox" name="botcheck" tabIndex={-1} autoComplete="off" checked={botcheck} onChange={(e) => setBotcheck(e.target.checked)} />
           </label>
-          <label className={row}>
+          <label className="block">
             <span className={label}>お問い合わせ内容</span>
             <textarea value={message} rows={6} maxLength={2000} required onChange={(e) => setMessage(e.target.value)} className={`${field} resize-y leading-8`} />
           </label>
-          <p className="text-xs leading-6 tracking-wider text-dim sm:pl-[calc(13rem+1.5rem)]">入力した内容は、お返事のためにのみ使用します。<br />くわしくは<Link href="/privacy" className="whitespace-nowrap underline underline-offset-4 hover:text-warm">プライバシーポリシー</Link>をご覧ください。</p>
+          <p className="text-xs leading-6 tracking-wider text-dim">入力した内容は、お返事のためにのみ使用します。<br />くわしくは<Link href="/privacy" className="whitespace-nowrap underline underline-offset-4 hover:text-warm">プライバシーポリシー</Link>をご覧ください。</p>
           <div className="flex flex-col items-center gap-4">
             <button type="submit" disabled={!message.trim() || status === "sending"} className={primaryButtonClass}>
               <span className="absolute inset-0 border border-warm/60 bg-warm/5 transition-colors group-hover:border-warm group-hover:bg-warm/10" />

@@ -169,12 +169,12 @@ export function AssetPanel({ t, state, month, onTrade, onStartStocks, onPlan, on
       <h3 className="text-sm tracking-[0.3em] text-warm max-lg:hidden">{minor ? t.allowance : t.title}</h3>
       <p className="mt-1 text-[11px] leading-4 tracking-wider text-dim max-lg:hidden">{minor ? "親からもらうお金。使い道は自分で決められます" : "貯金・運用資産・借金をまとめたお金の状況です。「合計」は借金を引いた実質の資産"}</p>
 
-      <div className="mt-5 text-center">
+      <div className="mt-5 text-center max-lg:mt-0">
         <p className="tabular-nums text-mist text-3xl max-lg:hidden sm:text-4xl">
           {minor ? (Number.isFinite(state.wallet.cash) ? Math.round(state.wallet.cash) : 0).toLocaleString("ja-JP") : manParts(net / 10000).num}
           <span className="ml-1 text-xs text-haze">{minor ? t.unitYen : manParts(net / 10000).unit}</span>
         </p>
-        {!minor && <p className="text-xs tabular-nums text-dim">{yenText(net)}</p>}
+        {!minor && <p className="text-xs tabular-nums text-dim max-lg:hidden">{yenText(net)}</p>}
         {state.wallet.kidFund && state.wallet.kidFund.units > 0 && (
           <p className="mt-2 text-xs tracking-wider text-haze">
             こどもNISA(子どもの将来の積立) 約{man(state.wallet.kidFund.units * market.index[now])}万円
@@ -244,7 +244,7 @@ export function AssetPanel({ t, state, month, onTrade, onStartStocks, onPlan, on
             )}
           </div>
         )}
-        {!minor && <p className="mt-2 text-[11px] leading-4 tracking-wider text-dim">普通預金の金利: 年{(savingsRate(state.person.econ) * 100).toFixed(3)}%(景気で上下する架空の水準)</p>}
+        {!minor && <p className="mt-2 text-[11px] leading-4 tracking-wider text-dim max-lg:hidden">普通預金の金利: 年{(savingsRate(state.person.econ) * 100).toFixed(3)}%(景気で上下する架空の水準)</p>}
         {stocks && (
           <p className="mt-2 text-xs tracking-wider text-haze">
             うち {t.cash} {manText(state.wallet.cash / 10000)}・{t.invested} {manText(invested / 10000)}
@@ -253,7 +253,7 @@ export function AssetPanel({ t, state, month, onTrade, onStartStocks, onPlan, on
         )}
       </div>
 
-      <div className="mt-5">
+      <div className="mt-5 max-lg:mt-3">
         <div className="flex items-baseline justify-between">
           <span className="text-xs tracking-[0.2em] text-haze">{t.swing}</span>
           {swings.length > 0 && (

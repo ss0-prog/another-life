@@ -207,9 +207,13 @@ html {
 }
 
 /* 昼 → 夕方: 太陽が沈むのに合わせて(10秒)、ヘッダーやフッターなど、画面の色を、ゆっくり暗くする(少し待ってから、長くかけて、ちょうど日没のころに、暗くなりきる) */
+/* 夜 → 昼(朝焼け → 昼): 太陽がのぼって空が明るくなるのに合わせて(10秒)、画面の色も、ゆっくり白くする */
 html[data-phase="dusk"],
 html[data-phase="dusk"] header,
-html[data-phase="dusk"] footer {
+html[data-phase="dusk"] footer,
+html[data-phase="dawn"],
+html[data-phase="dawn"] header,
+html[data-phase="dawn"] footer {
   transition-duration: 7.5s;
   transition-delay: 2.5s;
 }

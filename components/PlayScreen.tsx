@@ -1,5 +1,6 @@
 "use client";
 
+import { savingsRate } from "@/lib/sim/economy";
 import { manParts } from "@/lib/money";
 import { BG_LABEL, absentWho, soloWho } from "@/lib/sim/family";
 import { AchievementToaster } from "@/components/Achievements";
@@ -286,10 +287,16 @@ export function PlayScreen({ t, initial, birthYear, selfAge, ghost, dev = false,
                 {p.age < 6 ? "—" : p.age < 18 ? Math.round(state.wallet.cash).toLocaleString("ja-JP") : manParts((state.wallet.cash + holdingsValue(state, month) - debtTotal(state.wallet.debts)) / 10000).num}
                 <span className="ml-0.5 text-xs font-medium text-haze">{p.age < 6 ? "" : p.age < 18 ? "円" : manParts((state.wallet.cash + holdingsValue(state, month) - debtTotal(state.wallet.debts)) / 10000).unit}</span>
               </p>
+              {p.age >= 18 && (
+                <>
+                  <p className="text-xs tabular-nums text-dim">={Math.round(state.wallet.cash + holdingsValue(state, month) - debtTotal(state.wallet.debts)).toLocaleString("ja-JP")}円</p>
+                  <p className="mt-1 text-[11px] leading-4 tracking-wider text-dim"><span className="block">普通預金の金利: 年{(savingsRate(state.person.econ) * 100).toFixed(3)}%</span><span className="block">(景気で上下する架空の水準)</span></p>
+                </>
+              )}
             </div>
           )}
         </div>
-        {narrow && <div className="mt-5">{assetPanel}</div>}
+        {narrow && <div className="mt-2">{assetPanel}</div>}
 
         <div className="mt-6 grid grid-cols-2 gap-x-6 gap-y-4">
           <NoteBlock label={t.econ} note={t.notes.econ}>

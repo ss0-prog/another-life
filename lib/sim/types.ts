@@ -31,7 +31,7 @@ export type CareKind = "daycare" | "kodomoen" | "kindergarten" | "grandparents" 
 export type Condition = "none" | "heart" | "diabetes" | "asthma" | "sensory" | "other";
 export type Ailment = "none" | "hypertension" | "diabetes2" | "mental" | "cancer" | "heart_acq" | "intractable" | "chronic_pain" | "other";
 export type School = "none" | "hs" | "vocational" | "univ" | "grad";
-export type Background = "tight" | "modest" | "comfortable";
+export type Background = "poverty" | "tight" | "modest" | "comfortable" | "rich";
 export type Employment = "regular" | "nonregular" | "self";
 export type Firm = "large" | "mid" | "small";
 export type Major = "humanities" | "science" | "medical" | "education" | "art";
@@ -156,6 +156,8 @@ export type Person = {
   condition: Condition;
   mbti: string | null;
   background: Background;
+  // ひとり親家庭のとき、育ててくれた親(もう一方の親とは、離れて暮らしている)。
+  soloParent?: "mother" | "father";
   birthPlace: string;
   birthRegion: Region;
   edu: Edu;

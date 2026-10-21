@@ -1,6 +1,8 @@
 import { branches, turningPoints } from "@/lib/sim/data/jp-turning";
 import { intents } from "@/lib/sim/data/jp-intent";
+import { BG_FACTOR, BG_PRIOR } from "@/lib/sim/family";
 import { eventQuestions, lifeEvents } from "@/lib/sim/data/jp-events";
+import { familyEvents } from "@/lib/sim/data/jp-family-events";
 import { COUNTRIES } from "@/lib/sim/data/jp-countries";
 import { LESSONS } from "@/lib/sim/data/jp-lessons";
 import { OFFICES, PART_TIMES } from "@/lib/sim/data/jp-parttime";
@@ -57,7 +59,7 @@ export const jpData: CountryData = {
   workStartAge: { univ: 22, grad: 24, vocational: 20, hs_work: 18 },
   retireAge: 65,
 
-  prior: { background: { tight: 18, modest: 55, comfortable: 27 } },
+  prior: { background: BG_PRIOR },
 
   transition: {
     occ: { tech: 14, office: 20, sales: 14, service: 20, production: 10, transport: 6, construction: 5, logistics: 8, security: 2, agri: 1, mgmt: 0 },
@@ -123,7 +125,7 @@ export const jpData: CountryData = {
   lessons: LESSONS,
   partTimes: PART_TIMES,
   offices: OFFICES,
-  lifeEvents,
+  lifeEvents: [...lifeEvents, ...familyEvents],
   eventQuestions,
   names: {
     surname: ["佐藤", "鈴木", "高橋", "田中", "伊藤", "渡辺", "山本", "中村", "小林", "加藤", "吉田", "山田", "佐々木", "山口", "松本", "井上", "木村", "林", "斎藤", "清水", "山崎", "森", "池田", "橋本", "阿部", "石川", "山下", "中島", "石井", "小川", "前田", "岡田", "長谷川", "藤田", "後藤", "近藤", "村上", "遠藤", "青木", "坂本", "斉藤", "福田", "太田", "西村", "藤井", "金子", "岡本", "藤原", "三浦", "中野", "原田", "松田", "竹内", "小野", "田村", "中山", "和田", "石田", "上田", "森田"],
@@ -155,7 +157,7 @@ export const jpData: CountryData = {
     pension: 200,
     retiredNeed: 230,
     startSavings: [[15, 5], [18, 10], [22, 40], [28, 200], [35, 450], [45, 800], [60, 1200]],
-    backgroundFactor: { tight: 0.5, modest: 1, comfortable: 1.6 },
+    backgroundFactor: BG_FACTOR,
   },
 
   tags: [

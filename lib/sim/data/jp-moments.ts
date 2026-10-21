@@ -9,7 +9,9 @@ import type { Person } from "@/lib/sim/types";
 export type Moment = { id: string; text: string; joy?: number; bonds?: number };
 type Def = { id: string; w?: number; cd?: number; ok: (p: Person) => boolean; text: (p: Person, r: Rng) => string; joy?: number; bonds?: number };
 
-const alive = (p: Person, who: "mother" | "father") => p.age < p.parentDeath[who];
+// ひとり親家庭で、離れて暮らす親は、子どもの頃の場面には出てこない。
+const away = (p: Person, who: "mother" | "father") => Boolean(p.soloParent) && p.soloParent !== who && p.age < 18;
+const alive = (p: Person, who: "mother" | "father") => p.age < p.parentDeath[who] && !away(p, who);
 const passed = (p: Person, who: "mother" | "father") => p.age - p.parentDeath[who];
 const partnerName = (p: Person) => `${p.partner?.given ?? ""}さん`;
 const inLove = (p: Person) => !!p.partner && (p.partner.status === "dating" || p.partner.status === "married");

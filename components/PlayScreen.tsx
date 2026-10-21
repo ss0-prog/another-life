@@ -1,5 +1,6 @@
 "use client";
 
+import { BG_LABEL, absentWho, soloWho } from "@/lib/sim/family";
 import { AchievementToaster } from "@/components/Achievements";
 import { JapanMap } from "@/components/JapanMap";
 import { DeltaItem } from "@/components/Delta";
@@ -740,13 +741,22 @@ function RelationPanel({ p }: { p: GameState["person"] }) {
 }
 
 function FamilyStatus({ t, p }: { t: Messages["play"]["family"]; p: GameState["person"] }) {
-  const mother = p.age >= p.parentDeath.mother ? t.gone : p.age >= p.parentDeath.mother - 2 ? t.ill : `${t.alive}(${p.age + p.parentOffset.mother}歳)`;
-  const father = p.age >= p.parentDeath.father ? t.gone : p.age >= p.parentDeath.father - 2 ? t.ill : `${t.alive}(${p.age + p.parentOffset.father}歳)`;
+  // ひとり親家庭で、離れて暮らしているほうの親。
+  const apartOf = (who: "母" | "父") => Boolean(p.soloParent) && absentWho(p) === who;
+  const mother = p.age >= p.parentDeath.mother ? t.gone : p.age >= p.parentDeath.mother - 2 ? t.ill : `${apartOf("母") ? "離れて暮らしている" : t.alive}(${p.age + p.parentOffset.mother}歳)`;
+  const father = p.age >= p.parentDeath.father ? t.gone : p.age >= p.parentDeath.father - 2 ? t.ill : `${apartOf("父") ? "離れて暮らしている" : t.alive}(${p.age + p.parentOffset.father}歳)`;
   const row = "flex items-baseline justify-between gap-3 text-sm leading-7 tracking-wider";
   return (
     <div className="mt-6 rounded-sm border border-line bg-panel/60 px-4 py-3">
       <p className="text-xs tracking-[0.3em] text-warm">{t.title}</p>
       <dl className="mt-2">
+        <div className={row}>
+          <dt className="shrink-0 text-haze">生まれた家庭</dt>
+          <dd className="text-right text-mist">
+            {BG_LABEL[p.background]}
+            {p.soloParent && <span className="block text-xs text-dim">ひとり親家庭({soloWho(p)}に育てられた)</span>}
+          </dd>
+        </div>
         <div className={row}>
           <dt className="text-haze">{t.spouse}</dt>
           <dd className="text-right text-mist">

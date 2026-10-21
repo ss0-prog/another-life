@@ -30,7 +30,7 @@ function setEdu(p: Person, rng: () => number, data: CountryData, edu: Edu, away 
   p.major = edu === "univ" || edu === "grad" ? pickMajor(rng) : null;
   // 卒業しても、職場は、勝手には決まらない。卒業のあとの、進路を問う場面で、自分で選ぶ。
   p.occ = null;
-  if (p.background === "tight" && edu !== "hs_work") bump(p, { money: -6 });
+  if ((p.background === "tight" || p.background === "poverty") && edu !== "hs_work") bump(p, { money: p.background === "poverty" ? -9 : -6 });
   if (edu === "hs_work") bump(p, { money: 4 });
   if (edu === "univ" || edu === "grad") bump(p, { learn: 6 });
   if (away) {
@@ -130,6 +130,22 @@ function enterJob(p: Person, rng: Rng, data: CountryData, j: JobDef, w: Workplac
     p.employment = "nonregular";
     text += "(採用が絞られた時期で、非正規からのスタートになった)";
   }
+  // 就職活動: 家庭の力(学歴にかけられたお金・人脈・身なりや交通費)と、非行歴・前科が、結果を左右する。
+  if (w.employment === "regular" && w.sector === "private" && p.employment === "regular") {
+    const record = p.history.record !== undefined ? 0.3 : p.history.delinquent !== undefined ? 0.1 : 0;
+    const nonreg = { poverty: 0.28, tight: 0.16, modest: 0.07, comfortable: 0.03, rich: 0.01 }[p.background] + record;
+    const reject = { poverty: 0.4, tight: 0.28, modest: 0.15, comfortable: 0.08, rich: 0.03 }[p.background];
+    if (rng() < nonreg) {
+      p.employment = "nonregular";
+      text += record >= 0.3 ? "(前科が知られ、正社員の道は閉ざされた。非正規からのスタートになった)" : "(就職活動がうまくいかず、非正規からのスタートになった)";
+    } else if (w.firm === "large" && rng() < reject) {
+      p.firm = "mid";
+      text += "(第一志望の大企業は不採用で、中堅の会社に決まった)";
+    } else if (w.firm !== "large" && p.background === "rich" && rng() < 0.12) {
+      p.firm = "large";
+      text += "(親のつてで、大きな会社に入ることができた)";
+    }
+  }
   return text;
 }
 
@@ -208,10 +224,12 @@ const hashOf = (s: string, seed: number) => {
 };
 const pickStable = <T extends { id: string }>(list: T[], n: number, seed: number): T[] => [...list].sort((x, y) => hashOf(x.id, seed) - hashOf(y.id, seed)).slice(0, n);
 
+// 家族の支えで、まかなえる額(万円)。
+const STUDY_SUPPORT = { poverty: 0, tight: 100, modest: 400, comfortable: 900, rich: 2500 } as const;
 // 留学の費用(万円)のうち、家族の支えと、奨学金でまかなえない分。これが、手持ちの貯金より多いと、その選択肢は出さない。
-const studyHide = (p: Person, totalMan: number) => Math.max(0, totalMan - { tight: 100, modest: 400, comfortable: 900 }[p.background] - 300);
+const studyHide = (p: Person, totalMan: number) => Math.max(0, totalMan - STUDY_SUPPORT[p.background] - 300);
 // 実際に、自分の貯金から出る分(万円)。足りなければ、借金(奨学金など)になる。
-const studyPocket = (p: Person, totalMan: number) => Math.max(0, totalMan - { tight: 100, modest: 400, comfortable: 900 }[p.background]);
+const studyPocket = (p: Person, totalMan: number) => Math.max(0, totalMan - STUDY_SUPPORT[p.background]);
 
 const STUDY_KIND = { lang: { label: "語学留学", years: 1, total: 150 }, college: { label: "大学・専門学校への留学", years: 3, total: 600 }, grad: { label: "大学院への留学", years: 2, total: 500 } } as const;
 
@@ -703,7 +721,7 @@ const univQuestion = (): TurningQuestion => ({
       p.occ = null;
       return `${u.priv ? "私立" : "国公立"}の${text}`;
     },
-    detail: (p) => `${u.cost}${p.background === "tight" ? " あなたの家計では、奨学金が必要になりそう。" : p.background === "comfortable" ? " あなたの家計なら、無理なく通えそう。" : ""}`,
+    detail: (p) => `${u.cost}${p.background === "poverty" || p.background === "tight" ? " あなたの家計では、奨学金が必要になりそう。" : p.background === "comfortable" || p.background === "rich" ? " あなたの家計なら、無理なく通えそう。" : ""}`,
     children: univChildren(u),
   })),
 });
@@ -892,7 +910,18 @@ export const turningPoints: TurningPoint[] = [
       opt("sports", "運動部に入る", (p) => (bump(p, { health: 6, bonds: 5 }), "運動部に打ち込んだ"), { auto: true }),
       opt("culture", "文化部に入る", (p) => (bump(p, { learn: 4, bonds: 3 }), "文化部で、好きなことに時間を使った")),
       opt("free", "部活に入らず自由に過ごす", (p) => (bump(p, { health: 2 }), "部活には入らず、自由に過ごした")),
-      opt("exam", "受験に向けて塾に通う", (p) => (bump(p, { learn: 8, health: -2 }), "受験に向けて、塾に通う日々が始まった"), { detail: (p) => `塾代は年に数十万円かかる。${p.background === "tight" ? "家計には重い負担になりそう。" : ""}` }),
+      opt("exam", "受験に向けて塾に通う", (p) => {
+        if (p.background === "poverty") {
+          bump(p, { learn: 2, joy: -3 });
+          return "塾に通いたかったが、家計に余裕がなく、あきらめた。図書館で、ひとりで受験勉強を続けた";
+        }
+        if (p.background === "tight") {
+          bump(p, { learn: 4, health: -2, money: -3 });
+          return "家計を切りつめて、短い期間だけ、塾に通わせてもらえた";
+        }
+        bump(p, { learn: p.background === "rich" ? 10 : 8, health: -2 });
+        return "受験に向けて、塾に通う日々が始まった";
+      }, { detail: (p) => `塾代は年に数十万円かかる。${p.background === "poverty" ? "あなたの家計では、通うのは難しそう。" : p.background === "tight" ? "家計には重い負担になりそう。" : ""}` }),
     ],
   },
   {

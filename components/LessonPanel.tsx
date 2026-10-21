@@ -1,5 +1,6 @@
 "use client";
 
+import { lessonBlock } from "@/lib/sim/family";
 import { useState } from "react";
 import { chipClass } from "@/components/controls";
 import type { Messages } from "@/lib/i18n";
@@ -90,7 +91,7 @@ export function LessonPanel({ t, state, onStart, onStop, mode = "lesson", embedd
               <p className="text-xs tracking-[0.2em] text-warm">★ {p.mbti}タイプに向いている活動</p>
               <div className="mt-1 grid grid-cols-1 gap-1.5">
                 {recommended.map((l) => (
-                  <button key={l.id} type="button" disabled={full} title={l.note} onClick={() => setMsg(onStart(l.id) ? null : t.full)} className={`${chipClass(false)} flex w-full items-center justify-between gap-3 !border-warm/50 !px-3 !py-2 !text-left !text-xs leading-5 disabled:opacity-40`}>
+                  <button key={l.id} type="button" disabled={full} title={l.note} onClick={() => setMsg(onStart(l.id) ? null : lessonBlock(p, l.costMan) ?? t.full)} className={`${chipClass(false)} flex w-full items-center justify-between gap-3 !border-warm/50 !px-3 !py-2 !text-left !text-xs leading-5 disabled:opacity-40`}>
                     <span className="block">★ {l.label}</span>
                     <span className="block shrink-0 text-dim">{kid ? "親が払う" : `${t.yearly}${l.costMan}${t.man}`}</span>
                   </button>
@@ -112,7 +113,7 @@ export function LessonPanel({ t, state, onStart, onStop, mode = "lesson", embedd
                           type="button"
                           disabled={full}
                           title={l.note}
-                          onClick={() => setMsg(onStart(l.id) ? null : t.full)}
+                          onClick={() => setMsg(onStart(l.id) ? null : lessonBlock(p, l.costMan) ?? t.full)}
                           className={`${chipClass(false)} flex w-full items-center justify-between gap-3 !px-3 !py-2 !text-left !text-xs leading-5 disabled:opacity-40`}
                         >
                           <span className="block">{fitScore(p.mbti, l.tags) >= 2 ? "★ " : fitScore(p.mbti, l.tags) <= -1 ? "△ " : ""}{l.label}</span>

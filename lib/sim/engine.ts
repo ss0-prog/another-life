@@ -14,6 +14,7 @@ import { buildDeathNote } from "@/lib/sim/data/jp-death";
 import { breakupChance, breakupText, coupleEvent } from "@/lib/sim/data/jp-couple";
 import { CARE_LABEL, careYear } from "@/lib/sim/childcare";
 import { intelChance } from "@/lib/sim/intel";
+import { BG_INTEL, BG_LEARN, BG_MONEY, BG_RISK, SOLO_RATE, absentWho, lessonBlock, monthlyAllowance, newYearGift } from "@/lib/sim/family";
 import { concernEvent, concernResolved } from "@/lib/sim/data/jp-concern";
 import { SUMMIT_BY_JOB, SUMMIT_BY_OCC, summitChance } from "@/lib/sim/data/jp-summit";
 import { savingsRate } from "@/lib/sim/economy";
@@ -146,6 +147,8 @@ function personAt(self: CurrentSelf, seed: number, age: number, data: CountryDat
     const sex: "boy" | "girl" = given === "unknown" ? rolled : given;
     return { name: pick(rng, kidNamePool(data, sex)), sex, bornAge: birthAges?.[i] ?? Math.max(20, age - 7 - i * 3) };
   });
+  // ひとり親家庭(育ててくれた親は、母がほとんど)。ほかの乱数に影響しないよう、別の乱数で決める。
+  const soloParent: "mother" | "father" | undefined = createRng(seed ^ 0x51dec0de)() < SOLO_RATE[background] ? (createRng(seed ^ 0x7a11)() < 0.85 ? "mother" : "father") : undefined;
   const mOff = 24 + rng() * 10;
   const fOff = 26 + rng() * 10;
   const parentDeath = { mother: Math.round(parentDeathAge(data, "female", mOff, rng()) - mOff), father: Math.round(parentDeathAge(data, "male", fOff, rng()) - fOff) };
@@ -183,6 +186,7 @@ function personAt(self: CurrentSelf, seed: number, age: number, data: CountryDat
     condition: self.condition,
     mbti: self.mbti,
     background,
+    soloParent,
     birthPlace: pref.name,
     birthRegion: pref.region,
     edu: self.edu,
@@ -191,7 +195,7 @@ function personAt(self: CurrentSelf, seed: number, age: number, data: CountryDat
     occ: real ? (self.retired && !enrolled ? "retired" : self.occ === "none" || enrolled ? null : self.occ) : age >= data.workStartAge[self.edu] && self.occ !== "none" ? self.occ : null,
     job: self.occ === "none" ? null : (jobById(self.job)?.id ?? DEFAULT_JOB[self.occ]),
     sector: self.workStyle === "public" ? "public" : "private",
-    intel: clamp(Math.round(50 + Math.sqrt(-2 * Math.log(Math.max(rng(), 1e-9))) * Math.cos(2 * Math.PI * rng()) * 15 + { tight: -3, modest: 0, comfortable: 3 }[background]), 5, 98),
+    intel: clamp(Math.round(50 + Math.sqrt(-2 * Math.log(Math.max(rng(), 1e-9))) * Math.cos(2 * Math.PI * rng()) * 15 + BG_INTEL[background]), 5, 98),
     prev: null,
     cashDelta: 0,
     // 高校生の年(18歳以下)から始めた人生だけ、大学や大学院の「レベル」を選べる・表示される。
@@ -235,7 +239,7 @@ function personAt(self: CurrentSelf, seed: number, age: number, data: CountryDat
     homeBias: 1,
     stats: {
       health: healthAt(c.healthBase, age),
-      money: { tight: 35, modest: 50, comfortable: 65 }[background],
+      money: BG_MONEY[background],
       joy: 62,
       bonds: 50,
       learn: 50 + { univ: 8, grad: 16, vocational: 3, hs_work: 0 }[self.edu],
@@ -285,8 +289,8 @@ const toYen = (man: number) => Math.round(man * 10000);
 function startWallet(p: Person, data: CountryData, savingsMan: number | null): Wallet {
   // 18歳未満は、お小遣い(円)。年齢と家計で、持っている額が違う。
   if (p.age < 18) {
-    // 6歳になるまでは、自分のお金は持たない(家族が管理する)。
-    const pocket = p.age < 6 ? 0 : Math.min(20000, Math.round((1500 + Math.max(0, p.age - 6) * 1100) * data.cashflow.backgroundFactor[p.background] / 100) * 100);
+    // 6歳になるまでは、自分のお金は持たない(家族が管理する)。困窮した家庭では、お小遣いはない。
+    const pocket = p.age < 6 || p.background === "poverty" ? 0 : Math.min(30000, Math.round((1500 + Math.max(0, p.age - 6) * 1100) * data.cashflow.backgroundFactor[p.background] / 100) * 100);
     return { cash: pocket, units: { index: 0, world: 0, balanced: 0, reit: 0, gold: 0, growth: 0, crypto: 0, bond: 0 }, contributed: 0, stocks: false, debts: [] };
   }
   const guess = interpolate(data.cashflow.startSavings, p.age) * data.cashflow.backgroundFactor[p.background];
@@ -899,6 +903,7 @@ export function startLesson(state: GameState, id: string, data: CountryData = jp
   if (!def || state.deathAge !== null) return null;
   if (p.lessons.length >= MAX_LESSONS || p.lessons.some((l) => l.id === id)) return null;
   if (p.age < def.minAge || (def.maxAge !== undefined && p.age > def.maxAge)) return null;
+  if (lessonBlock(p, def.costMan)) return null;
   const next = clone(state);
   next.person.lessons.push({ id, since: p.age });
   next.events.push({ age: p.age, event: `習い事「${def.label}」を始めた`, weight: 52 });
@@ -1480,6 +1485,19 @@ export function tick(state: GameState, data: CountryData = jpData): GameState {
 
   // 親と子の節目、友人や家族の出来事。
   for (const [who, deathAge] of [["母", p.parentDeath.mother], ["父", p.parentDeath.father]] as const) {
+    // ひとり親家庭で、離れて暮らしていたほうの親は、知らせを受けるかたちになる。
+    const apart = p.soloParent && absentWho(p) === who;
+    if (apart && a === deathAge - 2) {
+      push(`離れて暮らしていた${who}が、病気で入院したと知らせが届いた`, 50);
+      bump(p, { bonds: -1 });
+      continue;
+    }
+    if (apart && a === deathAge) {
+      push(`離れて暮らしていた${who}が亡くなったと、知らせが届いた`, 62);
+      p.history.parentDied = a;
+      bump(p, { bonds: -3, joy: -6 });
+      continue;
+    }
     if (a === deathAge - 2) {
       push(`${who}が病気で入院した`, 55);
       p.history.parentIll = a;
@@ -1609,17 +1627,21 @@ export function tick(state: GameState, data: CountryData = jpData): GameState {
   // 子どもは、毎年、お年玉とお小遣いをもらう。使い道は、自動では決めない(節目の場面で、自分で選ぶ)。
   // お年玉は、多くても3万円まで。お小遣いは、月に5千円ほどで、上限は1万円。
   if (a < 18) {
-    // 家計の差は、小さくとどめる(お小遣いやお年玉は、家庭が違っても、そこまで大きくは違わない)。
-    const bg = 1 + (data.cashflow.backgroundFactor[p.background] - 1) * 0.35;
-    const monthly = Math.min(10000, Math.round(((a < 9 ? 500 : a < 12 ? 1000 : a < 15 ? 3000 : 5000) * bg) / 100) * 100);
+    // 家庭の暮らし向きで、お小遣いもお年玉も大きく違う(困窮した家庭では、高校生になっても、お小遣いはない)。
+    const monthly = monthlyAllowance(p.background, a);
     const allow = monthly * 12;
-    const otoshidama = Math.min(30000, Math.round(((a < 6 ? 3000 : a < 9 ? 5000 : a < 12 ? 10000 : a < 15 ? 15000 : 20000) * bg) / 1000) * 1000);
+    const otoshidama = newYearGift(p.background, a);
     // ふだんのお菓子や遊びで、お金の多くは、気づかないうちに、なくなっていく(出来事としては、書かない)。
     const gain = allow + otoshidama;
     const everyday = Math.round((gain * (0.82 + 0.14 * roll(seed, a, S.allow))) / 100) * 100;
     if (a >= 6) {
       next.wallet.cash += gain - everyday;
-      push(`お正月に、お年玉を${otoshidama.toLocaleString("ja-JP")}円もらった。お小遣いは、月に${monthly.toLocaleString("ja-JP")}円`, 18);
+      push(
+        monthly > 0
+          ? `お正月に、お年玉を${otoshidama.toLocaleString("ja-JP")}円もらった。お小遣いは、月に${monthly.toLocaleString("ja-JP")}円`
+          : `お正月に、お年玉を${otoshidama.toLocaleString("ja-JP")}円もらった。家計に余裕がなく、お小遣いはない`,
+        18,
+      );
     } else if (a >= 3) {
       // 3〜5歳: お年玉はもらうが、お金は親が預かる。お小遣いは、まだない。
       push("お正月に、親戚からお年玉をもらった。お金は、親が預かってくれた", 18);
@@ -1679,6 +1701,8 @@ export function tick(state: GameState, data: CountryData = jpData): GameState {
 
   // 頭の良さ: 幼いころから、塾や、音楽・芸術などにふれるほど、伸びやすい(画面には、数字を出さない)。
   {
+    // 家庭の余裕の差(塾・本・親の関わり)で、6〜17歳の「学び」は、年々、開いていく。
+    if (a >= 6 && a < 18) bump(p, { learn: BG_LEARN[p.background] });
     const ic = intelChance(p, a);
     if (ic > 0 && roll(seed, a, S.ev + 93) < ic) {
       p.intel = Math.min(100, p.intel + (ic >= 0.3 && roll(seed, a, S.ev + 94) < 0.25 ? 2 : 1));

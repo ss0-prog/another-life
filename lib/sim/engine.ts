@@ -889,6 +889,7 @@ export function answer(state: GameState, tp: TurningPoint, choice: Choice, data:
   } else {
     next = freeAction(next, { text: choice.text, tag: choice.tag, yen: null, month: 0 }, data) ?? next;
   }
+  next.lastQ = tp.id;
   if (tp.id.startsWith("ev:")) next.queue.shift();
   else if (!tp.repeatWhile?.(next.person)) next.done.push(tp.id);
   else next.person.history[`asked_${tp.id}`] = next.person.age;
@@ -1595,7 +1596,7 @@ export function tick(state: GameState, data: CountryData = jpData): GameState {
     }
     // 選択を求める出来事(不倫・裁判・ペットなど)。
     if (a >= 14 && next.queue.length === 0 && next.naming.length === 0) {
-      const pool = data.eventQuestions.map((d) => ({ d, w: d.weight(p, econ) })).filter((x) => x.w > 0 && hasChoice(x.d, p, next.wallet.cash));
+      const pool = data.eventQuestions.map((d) => ({ d, w: d.weight(p, econ) })).filter((x) => x.w > 0 && `ev:${x.d.id}` !== next.lastQ && hasChoice(x.d, p, next.wallet.cash));
       const total = pool.reduce((sum, x) => sum + x.w, 0);
       // 起きうる出来事が少ない年齢では、選択の場面も、ほとんど起きない(相対的な重みだけで決めない)。
       if (total && roll(seed, a, S.q) < 0.12 * Math.min(1, total / 2.5)) {

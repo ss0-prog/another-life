@@ -309,6 +309,8 @@ export type GameState = {
   later: Later[];
   // 選択を求める出来事の順番待ち(EventQuestionDef の id)と、名づけの待ち。
   queue: string[];
+  // 直前に答えた選択の場面の id(同じ質問が、続けて出ないようにするため)。
+  lastQ?: string;
   naming: NamingRequest[];
   deathAge: number | null;
   // 亡くなった原因(画面に出す短い言葉)。

@@ -37,7 +37,7 @@ export default function PrivacyPage() {
           </li>
           <li>
             <strong className="font-bold text-mist">お問い合わせの内容</strong>
-            : お名前・返信先のメールアドレス・お問い合わせ内容を、確認と返信のためにのみ使用します。
+            : お名前(任意)とお問い合わせ内容を、内容の確認のためにのみ使用します。メールアドレスは、お預かりしません。
           </li>
         </ul>
       </Section>
@@ -78,9 +78,9 @@ export default function PrivacyPage() {
 
       <Section title="8. 情報の開示・訂正・削除">
         <p>
-          ご自身の情報について、開示・訂正・削除をご希望の場合は、
+          公開した結果は、ご本人がログインして、いつでも取り下げることができます。ほかに、ご自身の情報の削除などをご希望の場合は、
           <Link href="/contact" className={link}>お問い合わせ</Link>
-          からご連絡ください。ご本人であることを確認したうえで、合理的な範囲で対応します。
+          からお寄せください。個別のお返事は、できない場合があります。
         </p>
       </Section>
 

@@ -10,7 +10,6 @@ type Status = "idle" | "sending" | "sent" | "mailto" | "failed" | "wait";
 
 export default function ContactPage() {
   const [name, setName] = useState("");
-  const [reply, setReply] = useState("");
   const [message, setMessage] = useState("");
   const [botcheck, setBotcheck] = useState(false);
   const [status, setStatus] = useState<Status>("idle");
@@ -28,12 +27,11 @@ export default function ContactPage() {
     e.preventDefault();
     if (!message.trim() || status === "sending") return;
     setStatus("sending");
-    const r = await sendContact({ name, reply, message, botcheck });
+    const r = await sendContact({ name, message, botcheck });
     setStatus(r);
     setPopup(r);
     if (r === "sent") {
       setName("");
-      setReply("");
       setMessage("");
     }
   };
@@ -51,10 +49,6 @@ export default function ContactPage() {
             <span className={label}>お名前(任意)</span>
             <input value={name} maxLength={80} onChange={(e) => setName(e.target.value)} className={field} />
           </label>
-          <label className="block">
-            <span className={label}>返信先のメールアドレス(お返事が必要なとき)</span>
-            <input type="email" value={reply} maxLength={200} onChange={(e) => setReply(e.target.value)} className={field} />
-          </label>
           {/* ボット対策の欄(人には見えない。何かが入っていたら、送らない) */}
           <label aria-hidden className="absolute -left-[9999px] h-0 w-0 overflow-hidden" tabIndex={-1}>
             <span>この欄は、空のままにしてください</span>
@@ -64,7 +58,7 @@ export default function ContactPage() {
             <span className={label}>お問い合わせ内容</span>
             <textarea value={message} rows={6} maxLength={2000} required onChange={(e) => setMessage(e.target.value)} className={`${field} resize-y leading-8`} />
           </label>
-          <p className="text-xs leading-6 tracking-wider text-dim">入力した内容は、お返事のためにのみ使用します。<br />くわしくは<Link href="/privacy" className="whitespace-nowrap underline underline-offset-4 hover:text-warm">プライバシーポリシー</Link>をご覧ください。</p>
+          <p className="text-xs leading-6 tracking-wider text-dim">入力した内容は、お問い合わせの確認のためにのみ使用します。<br />個別のお返事は、できない場合があります。<br />くわしくは<Link href="/privacy" className="whitespace-nowrap underline underline-offset-4 hover:text-warm">プライバシーポリシー</Link>をご覧ください。</p>
           <div className="flex flex-col items-center gap-4">
             <button type="submit" disabled={!message.trim() || status === "sending"} className={primaryButtonClass}>
               <span className="absolute inset-0 border border-warm/60 bg-warm/5 transition-colors group-hover:border-warm group-hover:bg-warm/10" />
@@ -81,7 +75,7 @@ export default function ContactPage() {
             </h2>
             <p className="mt-5 text-left text-base leading-8 tracking-wider text-mist">
               {popup === "sent"
-                ? "ありがとうございます。お問い合わせは、運営者に届きました。お返事が必要なときは、入力いただいた返信先に、ご連絡します。"
+                ? "ありがとうございます。お問い合わせは、運営者に届きました。内容は、今後の改善の参考にさせていただきます。"
                 : popup === "mailto"
                   ? "メールソフトの画面から、内容を確認して、送信してください。"
                   : popup === "wait"

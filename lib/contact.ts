@@ -9,7 +9,7 @@ export const contactEmail = process.env.NEXT_PUBLIC_CONTACT_EMAIL ?? "";
 export const web3formsKey = process.env.NEXT_PUBLIC_WEB3FORMS_KEY ?? "";
 export const contactAvailable = web3formsKey !== "" || firebaseEnabled || contactEmail !== "";
 
-export type ContactInput = { name: string; reply: string; message: string; botcheck?: boolean };
+export type ContactInput = { name: string; message: string; botcheck?: boolean };
 
 // Firebase が使えるときは、受け付け用のコレクションに保存する(読めるのは運営だけ)。
 // 使えず、メールアドレスが設定されているときは、メールソフトを開く。
@@ -31,7 +31,6 @@ export async function sendContact(input: ContactInput): Promise<"sent" | "mailto
           subject: "お問い合わせ(別の宇宙のあなた)",
           from_name: "別の宇宙のあなた お問い合わせ",
           name: input.name.slice(0, 80) || "(お名前なし)",
-          email: input.reply.slice(0, 200) || undefined,
           message: input.message.slice(0, 2000),
         }),
       });
@@ -49,7 +48,6 @@ export async function sendContact(input: ContactInput): Promise<"sent" | "mailto
     try {
       await addDoc(collection(getDb(), "contacts"), {
         name: input.name.slice(0, 80),
-        reply: input.reply.slice(0, 200),
         message: input.message.slice(0, 2000),
         createdAt: serverTimestamp(),
       });
@@ -59,7 +57,7 @@ export async function sendContact(input: ContactInput): Promise<"sent" | "mailto
     }
   }
   if (contactEmail) {
-    const body = encodeURIComponent(`${input.message}\n\n---\nお名前: ${input.name}\n返信先: ${input.reply}`);
+    const body = encodeURIComponent(`${input.message}\n\n---\nお名前: ${input.name}`);
     window.location.href = `mailto:${contactEmail}?subject=${encodeURIComponent("お問い合わせ")}&body=${body}`;
     return "mailto";
   }

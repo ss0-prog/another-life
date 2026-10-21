@@ -43,9 +43,9 @@ export default function ContactPage() {
   return (
     <PageShell title="お問い合わせ" lead="ご意見、ご感想、不具合のご報告など、お気軽にお寄せください。">
       {!contactAvailable ? (
-        <p className="mx-auto w-fit text-left text-base leading-9 tracking-wider text-haze">現在、お問い合わせの受け付けを準備しています。しばらくお待ちください。</p>
+        <p className="rounded-sm border border-warm/50 bg-panel/70 px-5 py-8 text-left text-base leading-9 tracking-wider text-haze sm:px-10 sm:py-12">現在、お問い合わせの受け付けを準備しています。しばらくお待ちください。</p>
       ) : (
-        <form onSubmit={submit} className="space-y-8">
+        <form onSubmit={submit} className="space-y-8 rounded-sm border border-warm/50 bg-panel/70 px-5 py-8 sm:px-10 sm:py-12">
           <label className="block">
             <span className={label}>お名前(任意)</span>
             <input value={name} maxLength={80} onChange={(e) => setName(e.target.value)} className={field} />

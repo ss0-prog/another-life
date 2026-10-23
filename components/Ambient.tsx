@@ -166,13 +166,14 @@ function makeCity(seed: number, minH: number, maxH: number, windowRate: number, 
     const signColors = ["#ff6fa5", "#6fe3ff", "#ffd35a", "#9bff9b"];
     out.push({
       x, w, h,
-      antenna: lm >= 0 ? 0 : tall && rng() < 0.7 ? 18 + rng() * 22 : shapeRng() < 0.22 ? 7 + shapeRng() * 11 : 0,
+      // 高いビルの屋上には、赤いランプだけ置く(アンテナ・屋上の設備・ひっこんだ上の階は、つけない)。
+      antenna: tall ? 0 : shapeRng() < 0.22 ? 7 + shapeRng() * 11 : 0,
       windows,
       beacon: tall,
       delay: rng() * 3,
       // 屋上の設備(給水タンク・室外機・階段室)と、上の階が少しひっこんだ形、ネオンの看板
-      roof: roofPick < 0.18 ? 1 : roofPick < 0.4 ? 2 : roofPick < 0.55 ? 3 : 0,
-      setback: h > minH + (maxH - minH) * 0.55 && rng() < 0.55,
+      roof: tall ? 0 : roofPick < 0.18 ? 1 : roofPick < 0.4 ? 2 : roofPick < 0.55 ? 3 : 0,
+      setback: !tall && h > minH + (maxH - minH) * 0.55 && rng() < 0.55,
       sign: h > minH + (maxH - minH) * 0.25 && rng() < 0.16 ? signColors[Math.floor(rng() * signColors.length)] : null,
       signY: 20 + rng() * (h * 0.5),
     });
@@ -434,7 +435,7 @@ function FerrisWheel({ cx, base, night }: { cx: number; base: number; night: boo
 
 function SkylineSvg({ phase, mode = "all" }: { phase: Phase; mode?: "all" | "city" | "glow" }) {
   const far = useMemo(() => makeCity(11, 52, 136, 0.22), []);
-  const near = useMemo(() => makeCity(23, 74, 186, 0.3, 920, [250, 560, 1290]), []);
+  const near = useMemo(() => makeCity(23, 74, 186, 0.3, 920, [250, 400, 1290]), []);
   const nearBack = useMemo(() => near.filter((_, i) => i % 2 !== 0), [near]);
   const nearFg = useMemo(() => near.filter((_, i) => i % 2 === 0), [near]);
   // 手前の列から、3軒に1軒を、低くして、もう一度かさねる(電車の前に立つ)。

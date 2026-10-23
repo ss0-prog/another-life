@@ -121,16 +121,21 @@ function Stars({ dim }: { dim: boolean }) {
 }
 
 // ---- 街のシルエット: 高さの違うビルが二重に並び、夜は窓に灯りがともり、高いビルの屋上には赤いランプがまたたく ----
-type Building = { x: number; w: number; h: number; antenna: number; windows: { x: number; y: number; lit: boolean; warm: boolean; flicker: boolean; delay: number }[]; beacon: boolean; delay: number; roof: 0 | 1 | 2 | 3; setback: boolean; sign: string | null; signY: number };
+type Building = { x: number; w: number; h: number; antenna: number; windows: { x: number; y: number; lit: boolean; warm: boolean; flicker: boolean; delay: number }[]; beacon: boolean; delay: number; roof: 0 | 1 | 2 | 3; setback: boolean; sign: string | null; signY: number; shape: 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 };
 
 function makeCity(seed: number, minH: number, maxH: number, windowRate: number): Building[] {
   const rng = createRng(seed);
+  // 屋根の形は、別の乱数で決める(ほかの建物の並びを、変えないため)。
+  const shapeRng = createRng(seed ^ 0x5bd1e995);
   const out: Building[] = [];
   let x = -20;
   while (x < 1640) {
-    const w = 38 + rng() * 78;
+    let w = 38 + rng() * 78;
     const h = minH + rng() * (maxH - minH);
     const tall = h > maxH * 0.78;
+    // 高いビルの一部は、細く、すらりとした塔にする。
+    const slender = tall && shapeRng() < 0.35;
+    if (slender) w = 30 + shapeRng() * 16;
     const cols = Math.max(2, Math.floor((w - 10) / 12));
     const rows = Math.max(2, Math.floor((h - 16) / 17));
     const windows: Building["windows"] = [];
@@ -143,22 +148,68 @@ function makeCity(seed: number, minH: number, maxH: number, windowRate: number):
         windows.push({ x: 7 + c * 12 + (lit ? jx : 0), y: 12 + r * 17 + (lit ? jy : 0), lit, warm: rng() < 0.72, flicker: rng() < 0.1, delay: rng() * 8 });
       }
     const roofPick = rng();
+    // 高いビルの一部は、てっぺんが、階段のように細くなる塔や、針のような尖塔になる(先に、赤いランプ)。
+    const crown = tall && shapeRng() < 0.55;
     const signColors = ["#ff6fa5", "#6fe3ff", "#ffd35a", "#9bff9b"];
     out.push({
       x, w, h,
       antenna: tall && rng() < 0.7 ? 18 + rng() * 34 : 0,
       windows,
-      beacon: tall,
+      beacon: tall && !crown,
       delay: rng() * 3,
       // 屋上の設備(給水タンク・室外機・階段室)と、上の階が少しひっこんだ形、ネオンの看板
       roof: roofPick < 0.18 ? 1 : roofPick < 0.4 ? 2 : roofPick < 0.55 ? 3 : 0,
       setback: h > minH + (maxH - minH) * 0.55 && rng() < 0.55,
       sign: h > minH + (maxH - minH) * 0.25 && rng() < 0.16 ? signColors[Math.floor(rng() * signColors.length)] : null,
       signY: 20 + rng() * (h * 0.5),
+      // 赤いランプのある高い建物は、四角い屋上のまま。ほかは、半分ほどが、ななめ・三角・まる・台形・双子の尖塔の屋根になる。
+      shape: (() => {
+        const q = shapeRng();
+        const pick = Math.floor(shapeRng() * 5) + 1;
+        if (crown) return (slender || shapeRng() < 0.5 ? 7 : 6) as 6 | 7;
+        return tall || q > 0.62 ? 0 : (pick as 1 | 2 | 3 | 4 | 5);
+      })(),
     });
     x += w + (rng() < 0.25 ? 6 + rng() * 14 : 1 + rng() * 5);
   }
   return out;
+}
+
+function RoofShape({ shape, w, style, night, delay }: { shape: 1 | 2 | 3 | 4 | 5 | 6 | 7; w: number; style: { fill: string; transition: string }; night: boolean; delay: number }) {
+  const s = Math.min(20, w * 0.34);
+  const y = 0.6; // 屋上と、すきまができないように、少しかぶせる
+  if (shape === 6 || shape === 7) {
+    const tipY = shape === 7 ? -44 : -50;
+    return (
+      <g>
+        <g style={style}>
+          {shape === 7 ? (
+            <polygon points={`${w * 0.28},${y} ${w * 0.72},${y} ${w / 2 + 0.8},${tipY} ${w / 2 - 0.8},${tipY}`} />
+          ) : (
+            <>
+              <rect x={w * 0.14} y={-13} width={w * 0.72} height={14} />
+              <rect x={w * 0.3} y={-25} width={w * 0.4} height={13} />
+              <rect x={w / 2 - 0.8} y={tipY} width={1.6} height={26} />
+            </>
+          )}
+        </g>
+        <g style={{ opacity: night ? 1 : 0, transition: "opacity 4.5s ease" }}>
+          <circle cx={w / 2} cy={tipY} r={3} fill="#ff2d2d" opacity={0.22} className="beacon-slow" style={{ animationDelay: `${delay * 1.7}s` }} />
+          <circle cx={w / 2} cy={tipY} r={1.3} fill="#ff4545" className="beacon-slow" style={{ animationDelay: `${delay * 1.7}s` }} />
+        </g>
+      </g>
+    );
+  }
+  if (shape === 1) return <polygon points={`0,${y} ${w},${y} ${w},${-s}`} style={style} />;
+  if (shape === 2) return <polygon points={`0,${y} ${w},${y} ${w / 2},${-s * 1.2}`} style={style} />;
+  if (shape === 3) return <path d={`M0 ${y} A ${w / 2} ${s} 0 0 1 ${w} ${y} Z`} style={style} />;
+  if (shape === 4) return <polygon points={`0,${y} ${w},${y} ${w - s * 0.7},${-s * 0.7} ${s * 0.7},${-s * 0.7}`} style={style} />;
+  return (
+    <g style={style}>
+      <polygon points={`${w * 0.12},${y} ${w * 0.38},${y} ${w * 0.25},${-s * 1.5}`} />
+      <polygon points={`${w * 0.62},${y} ${w * 0.88},${y} ${w * 0.75},${-s * 1.5}`} />
+    </g>
+  );
 }
 
 function CityLayer({ buildings, color, base, night, near }: { buildings: Building[]; color: string; base: number; night: boolean; near?: boolean }) {
@@ -170,23 +221,25 @@ function CityLayer({ buildings, color, base, night, near }: { buildings: Buildin
         return (
           <g key={i} transform={`translate(${b.x} ${top})`}>
             <rect width={b.w} height={b.h + 40} style={fillStyle} />
+            {/* 屋根の形 */}
+            {b.shape !== 0 && <RoofShape shape={b.shape} w={b.w} style={fillStyle} night={night} delay={b.delay} />}
             {/* 上の階が、少しひっこんだ形 */}
-            {b.setback && <rect x={b.w * 0.18} y={-b.h * 0.14} width={b.w * 0.64} height={b.h * 0.14 + 1} style={fillStyle} />}
+            {b.setback && b.shape === 0 && <rect x={b.w * 0.18} y={-b.h * 0.14} width={b.w * 0.64} height={b.h * 0.14 + 1} style={fillStyle} />}
             {/* 屋上の設備 */}
-            {b.roof === 1 && (
+            {b.shape === 0 && b.roof === 1 && (
               <g style={fillStyle}>
                 <rect x={b.w * 0.3} y={-9} width={b.w * 0.26} height={9} />
                 <rect x={b.w * 0.3 + 2} y={-12} width={b.w * 0.26 - 4} height={3} />
               </g>
             )}
-            {b.roof === 2 && (
+            {b.shape === 0 && b.roof === 2 && (
               <g style={fillStyle}>
                 {[0.14, 0.4, 0.66].map((f) => (
                   <rect key={f} x={b.w * f} y={-5} width={b.w * 0.16} height={5} />
                 ))}
               </g>
             )}
-            {b.roof === 3 && <rect x={b.w * 0.55} y={-11} width={b.w * 0.22} height={11} style={fillStyle} />}
+            {b.shape === 0 && b.roof === 3 && <rect x={b.w * 0.55} y={-11} width={b.w * 0.22} height={11} style={fillStyle} />}
             {/* 光と影: 上は、ほんのり明るく、下に向かって、しずむ。左のふちに光、右のふちに影 */}
             <rect width={b.w} height={b.h + 40} fill="url(#bShade)" style={{ opacity: night ? 0.3 : 1, transition: "opacity 4.5s ease" }} />
             <rect width={1.4} height={b.h + 40} fill="#ffffff" opacity={night ? 0.06 : 0.16} />
@@ -313,14 +366,14 @@ const wheelFront: Building[] = (() => {
   const h = 112;
   const windows: Building["windows"] = [];
   for (let c = 0; c < 4; c++) for (let r = 0; r < 6; r++) windows.push({ x: 7 + c * 12, y: 12 + r * 17, lit: (c * 3 + r) % 4 !== 0, warm: (c + r) % 3 !== 0, flicker: c === 2 && r === 3, delay: 0.9 });
-  return [{ x: 566, w, h, antenna: 0, windows, beacon: false, delay: 0, roof: 2, setback: false, sign: null, signY: 0 }];
+  return [{ x: 566, w, h, antenna: 0, windows, beacon: false, delay: 0, roof: 2, setback: false, sign: null, signY: 0, shape: 0 }];
 })();
 
 const frontBuilding: Building[] = (() => {
   const make = (x: number, w: number, h: number, cols: number, rows: number, roof: 0 | 1 | 2 | 3, sign: string | null, shift: number): Building => {
     const windows: Building["windows"] = [];
     for (let c = 0; c < cols; c++) for (let r = 0; r < rows; r++) windows.push({ x: 8 + c * 12, y: 8 + r * 17, lit: (c + r + shift) % 3 !== 1, warm: (c + shift) % 4 !== 3, flicker: c === 1 && r === 0, delay: 1.3 + shift * 0.4 });
-    return { x, w, h, antenna: 0, windows, beacon: false, delay: 0, roof, setback: false, sign, signY: 14 };
+    return { x, w, h, antenna: 0, windows, beacon: false, delay: 0, roof, setback: false, sign, signY: 14, shape: 0 };
   };
   // タワーの足もとの、低い建物(3つ)
   return [make(897, 46, 44, 3, 2, 2, "#ffd35a", 0), make(858, 60, 104, 4, 4, 3, null, 1), make(922, 62, 92, 4, 3, 1, "#ff9fb6", 2)];

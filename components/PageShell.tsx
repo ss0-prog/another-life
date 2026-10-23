@@ -14,8 +14,9 @@ function softenNode(node: React.ReactNode): React.ReactNode {
 // 本文ページの共通の枠。枠線では囲まず、画面いっぱいに広げて読みやすい幅の本文を置く。
 export function PageShell({ title, lead, children }: { title: string; lead?: string; children: React.ReactNode }) {
   return (
-    <div className="mx-auto w-full max-w-5xl px-[2.5vw] pb-24 pt-10 sm:px-12">
-      <div className="page-card rounded-sm px-4 py-8 sm:px-10 sm:py-10">
+    <div className="mx-auto w-full max-w-5xl pb-24 pt-10 sm:px-12">
+      {/* スマホでは、枠の左右の余白と、本文の左右の余白を、フッターと同じ幅(画面の2.5%)にそろえる */}
+      <div className="page-card rounded-sm px-[2.5vw] py-8 sm:px-10 sm:py-10">
       <h1 className="text-center text-2xl tracking-[0.2em] text-mist sm:text-3xl sm:tracking-[0.3em]">{title}</h1>
       {lead && <p className="mx-auto mt-6 max-w-2xl w-fit text-left text-sm leading-7 tracking-wide text-haze sm:text-base sm:leading-9 sm:tracking-wider">{soften(lead, 16)}</p>}
       <div className="mt-10 space-y-10 sm:mt-14 sm:space-y-14">{children}</div>

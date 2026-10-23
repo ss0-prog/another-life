@@ -25,6 +25,7 @@ import { SUMMIT_BY_JOB, SUMMIT_BY_OCC, summitChance } from "@/lib/sim/data/jp-su
 import { savingsRate } from "@/lib/sim/economy";
 import { LENDERS, LENDER_ORDER, lenderAvailable } from "@/lib/sim/data/jp-debt";
 import { fitMult, fitScore } from "@/lib/sim/mbti";
+import { initialRank, ladderOf } from "@/lib/sim/data/jp-ranks";
 import { isResponsible, jobLabel, leaveLocal, moveHome, kidCall, kidTitle, condOf, addDebt, assignJob, bump, chargeWithDebt, clamp, debtTotal, fullName, lifeLabel, moveTo, newCity, noBearer, randomPartner } from "@/lib/sim/helpers";
 import { birthYearOf, cpiAt, economyAt, unemploymentAt } from "@/lib/sim/economy";
 import { WEATHER_EVENT, weatherAt } from "@/lib/sim/weather";
@@ -761,6 +762,7 @@ export function parseAmountMan(raw: string): number | null {
 
 // 手入力の文章を、辞書で読み取る。AI は使わない。
 // 議員の職にあるあいだは、できないこと(副業・転職・独立・退職)。
+const jobHash = (j: string | null) => [...(j ?? "")].reduce((h, c) => (h * 31 + c.charCodeAt(0)) % 100003, 7);
 const OFFICE_BLOCKED = new Set(["side_job", "job_change", "go_self", "retire", "reduce_work", "business"]);
 
 export function interpret(text: string, data: CountryData = jpData): Interpretation {
@@ -1220,6 +1222,44 @@ export function tick(state: GameState, data: CountryData = jpData): GameState {
   const c = cond(data, p);
   p.age = a;
   p.econ = economyAt(seed, a, p.birthYear);
+
+  // 職種のはしご(階級・役職): はじめて働くときや、仕事が変わったときに、段を決める。働いていて条件がそろえば、年に一度、昇任の判定がある。
+  {
+    const lad = ladderOf(p);
+    const rk = `rk:${p.job ?? ""}`;
+    if (!lad) {
+      // 正規でなくなった(失職・転職・独立など)あいだは、はしごから外れる。その職種の最後の段は、おぼえておく。
+      p.rank = null;
+    } else {
+      const firstTime = p.history.rankInit === undefined;
+      // 段の持ち主の職種(p.rank.job の代わりに、職種ごとの記録で見る)。
+      if (!p.rank || p.history.rankJob !== jobHash(p.job)) {
+        const saved = p.history[rk];
+        p.rank = { idx: Math.min(lad.steps.length - 1, saved !== undefined ? Math.max(0, saved - (firstTime ? 0 : 1)) : firstTime ? initialRank(lad, a) : 0), since: a - 1 };
+      }
+      p.history.rankInit = a;
+      p.history.rankJob = jobHash(p.job);
+      p.history[rk] = p.rank!.idx;
+      const cur = lad.steps[Math.min(p.rank!.idx, lad.steps.length - 1)];
+      const nxt = lad.steps[p.rank!.idx + 1];
+      if (nxt && a - p.rank!.since >= nxt.minYears && a >= nxt.typ - 8 && a <= 68 && !p.prison) {
+        const drive = p.history.rankDrive !== undefined && a - p.history.rankDrive <= 6 ? 1.35 : 1;
+        const perf = 0.55 + p.stats.learn / 180 + p.extra.career / 260 + (p.intel - 50) / 300;
+        const timing = a < nxt.typ - 3 ? 0.5 : a < nxt.typ ? 0.8 : 1;
+        const econ = p.sector === "private" && p.econ < -0.5 ? 0.6 : 1;
+        const rr = streamRng(seed, a, S.job + 90);
+        if (rr() < Math.min(0.9, nxt.chance * perf * drive * timing * econ)) {
+          p.rank = { idx: p.rank!.idx + 1, since: a };
+          p.history[rk] = p.rank.idx;
+          p.payMult *= nxt.mult / cur.mult;
+          p.extra.career = Math.min(100, p.extra.career + 5);
+          bump(p, { money: 3, joy: 4, bonds: 1 });
+          p.extra.stress = Math.min(100, p.extra.stress + 3);
+          push(lad.publicStyle && p.sector === "public" ? `昇任の試験と人事を経て、${nxt.label}になった` : nxt.exec ? `${nxt.label}に就いた。組織の中で、大きな責任を担うことになった` : `昇進して、${nxt.label}になった`, 58 + p.rank.idx * 3);
+        }
+      }
+    }
+  }
 
   // 実際に日本で起きた、大きな出来事(災害・経済・社会)。生まれた年と年齢から決まる、その年だけ、年表にはさむ。
   if (p.birthYear !== undefined && a >= 3) {

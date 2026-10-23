@@ -13,6 +13,7 @@ import { WAITLIST, parentsAround, partnerWorks } from "@/lib/sim/childcare";
 import { compat, compatMark, idealChance, isE, isJ, isN, isT, IDEAL, typeCall } from "@/lib/sim/mbti";
 import { interpolate, weighted } from "@/lib/sim/rng";
 import { MAX_LESSONS } from "@/lib/sim/types";
+import { ladderOf } from "@/lib/sim/data/jp-ranks";
 import { CRIMES, yearsToArrest, type CrimeId } from "@/lib/sim/data/jp-crime";
 import { MEETS, SPORTS, athleteScore, meetWinChance, olympicResult, sportById } from "@/lib/sim/data/jp-sports";
 import type { AutoEvent, CountryData, EventQuestionDef, GameState, Occ, Person, Region, TurningOption } from "@/lib/sim/types";
@@ -174,7 +175,7 @@ export const lifeEvents: AutoEvent[] = [
   ev("club_win", (p) => (inAge(p, 12, 17) ? 0.8 : 0), (s) => (bump(s.person, { health: 2, bonds: 4 }), "部活の大会で、県の舞台に立った"), 42),
 
   // ---- 仕事 ----
-  ev("promotion", (p, e) => (hasBoss(p) && p.employment === "regular" && inAge(p, 27, 58) && p.occ !== "mgmt" ? (0.9 * (p.stats.learn + 30)) / 80 * (e < -0.5 ? 0.5 : 1) * (bossCompat(p) >= 80 ? 1.25 : bossCompat(p) < 48 ? 0.8 : 1) : 0), (s, r, d) => {
+  ev("promotion", (p, e) => (hasBoss(p) && !ladderOf(p) && p.employment === "regular" && inAge(p, 27, 58) && p.occ !== "mgmt" ? (0.9 * (p.stats.learn + 30)) / 80 * (e < -0.5 ? 0.5 : 1) * (bossCompat(p) >= 80 ? 1.25 : bossCompat(p) < 48 ? 0.8 : 1) : 0), (s, r, d) => {
     const p = s.person;
     p.payMult *= 1.04;
     p.extra.career = Math.min(100, p.extra.career + 6);
@@ -193,7 +194,7 @@ export const lifeEvents: AutoEvent[] = [
     void d;
     return "昇格して、役職がついた";
   }, 62),
-  ev("demotion", (p, e) => (hasBoss(p) && p.employment === "regular" && p.age >= 35 ? 0.35 + (e < -0.4 ? 0.5 : 0) + (p.stats.health < 45 ? 0.3 : 0) : 0), (s) => {
+  ev("demotion", (p, e) => (hasBoss(p) && !ladderOf(p) && p.employment === "regular" && p.age >= 35 ? 0.35 + (e < -0.4 ? 0.5 : 0) + (p.stats.health < 45 ? 0.3 : 0) : 0), (s) => {
     const p = s.person;
     bump(p, { money: -3, bonds: -2, joy: -7 });
     const reason = p.econ < -0.4 ? "不況で会社の業績が悪化し" : p.stats.health < 45 ? "体調不良で、思うように成果が出せず" : recent(p, "conflict", 3) ? "職場でのいざこざが評価に響き" : "ミスが重なり、評価が下がって";

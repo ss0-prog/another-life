@@ -29,6 +29,14 @@ export const JOB_SINCE: Record<string, number> = {
   it_infra: 1995,
   it_support: 1995,
   game_creator: 1983,
+  cloud_eng: 2010,
+  security_eng: 1998,
+  product_manager: 2005,
+  robot_eng: 1985,
+  energy_eng: 2000,
+  video_editor: 2000,
+  broadcast_writer: 1960,
+  analyst: 1985,
 };
 export const jobAvailable = (id: string, year: number) => (JOB_SINCE[id] ?? 0) <= year;
 

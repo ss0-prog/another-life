@@ -2,6 +2,7 @@ import { SINCE, yearOf } from "@/lib/sim/era";
 import { incomeOf, round10 } from "@/lib/sim/salary";
 import { householdTax, netIncome, man as manText, pct as pctOf } from "@/lib/sim/tax";
 import { JOBS, OCC_LABEL, OCC_OFFICIAL, jobById } from "@/lib/sim/data/jp-jobs";
+import { ladderOf, rankStep } from "@/lib/sim/data/jp-ranks";
 import { assignJob, bump, fullName, isResponsible, moveAbroad, moveTo, randomPartner } from "@/lib/sim/helpers";
 import { compat, typeCall } from "@/lib/sim/mbti";
 import { STUDY_MAIN, STUDY_OTHERS, countryById } from "@/lib/sim/data/jp-countries";
@@ -97,6 +98,7 @@ const publicAllowed = (j: JobDef) => (PUBLIC_OCC.includes(j.occ) && !NOT_PUBLIC.
 // 各項目は、[区分の id, この職種での呼び名, 説明] 。id は WORKPLACES の id(large / mid / small / nonreg / public / self)。
 type WpRef = readonly [string, string?, string?];
 const PUBLIC_NOTE = "採用試験に合格して、採用される。身分が安定していて、景気の影響を受けにくい。";
+const TECHCO: WpRef[] = [["large"], ["mid"], ["small"], ["nonreg"]]; // 民間のIT・技術職の会社勤め(公務員の道はない)
 const CORP: WpRef[] = [["large"], ["mid"], ["small"], ["nonreg"]]; // 民間の会社勤めだけ(公務員・自営の道はない)
 const JOB_WP: Record<string, WpRef[]> = {
   // ---- 公務員・公的な職(民間の企業という区分はない) ----
@@ -179,6 +181,40 @@ const JOB_WP: Record<string, WpRef[]> = {
   sales_clerk: CORP,
   ad_sales: [["large", "大手の広告代理店"], ["mid", "中堅の広告会社"], ["small", "小さな広告会社"], ["nonreg"]],
   trading_co: [["large", "大手の総合商社"], ["mid", "中堅の専門商社"], ["small", "小さな商社"], ["nonreg"]],
+  // ---- 追加した職種 ----
+  cloud_eng: TECHCO,
+  security_eng: [...TECHCO, ["self", "フリーランス・自分の会社で活動する"]],
+  product_manager: TECHCO,
+  robot_eng: TECHCO,
+  energy_eng: [...TECHCO, ["public", "国・自治体・公的機関の技術職", PUBLIC_NOTE]],
+  space_eng: [["large", "大手の重工・航空宇宙メーカー"], ["mid", "中堅の部品・宇宙ベンチャー"], ["public", "公的機関(JAXAなど)の研究開発職", PUBLIC_NOTE], ["nonreg"]],
+  weather: [["public", "国家公務員(気象庁)", PUBLIC_NOTE], ["mid", "民間の気象会社(気象予報士)"], ["nonreg", "契約・フリーの気象予報士"]],
+  bank_clerk: [["large", "メガバンク・大手銀行"], ["mid", "地方銀行"], ["small", "信用金庫・信用組合"], ["nonreg", "契約・パート"]],
+  analyst: [["large", "大手証券会社・投資銀行"], ["mid", "運用会社・ファンド"], ["self", "独立して、活動する"]],
+  actuary: [["large", "大手保険会社・信託銀行"], ["mid", "保険会社・コンサルティング会社"]],
+  consultant: [["large", "大手コンサルティングファーム"], ["mid", "中堅の経営コンサル会社"], ["small", "小さなコンサル会社"], ["self", "独立して、コンサルタントになる"]],
+  speech_therapist: [["large", "大きな病院に勤める"], ["mid", "リハビリ病院・施設に勤める"], ["small", "クリニック・小さな施設に勤める"], ["public", "公立病院(公務員)", PUBLIC_NOTE], ["nonreg", "非常勤"]],
+  school_nurse: [["public", "公立学校の養護教諭(公務員)", PUBLIC_NOTE], ["mid", "私立学校の養護教諭"], ["nonreg", "非常勤・臨時の養護教諭"]],
+  special_teacher: [["public", "公立の特別支援学校(公務員)", PUBLIC_NOTE], ["mid", "私立の特別支援学校"], ["nonreg", "非常勤・臨時の講師"]],
+  school_counselor: [["public", "公立学校のスクールカウンセラー(非常勤の公務員)"], ["nonreg", "非常勤・委託"], ["self", "独立して、相談室を開く"]],
+  school_clerk: [["public", "公立学校・教育委員会の事務職員(公務員)", PUBLIC_NOTE], ["mid", "私立学校の事務職員"], ["nonreg", "非常勤"]],
+  tax_officer: [["public", "国家公務員(国税庁・税務署)", PUBLIC_NOTE]],
+  labor_inspector: [["public", "国家公務員(労働基準監督官)", PUBLIC_NOTE]],
+  immigration: [["public", "国家公務員(出入国在留管理庁・税関)", PUBLIC_NOTE]],
+  court_clerk: [["public", "国家公務員(裁判所・検察庁の職員)", PUBLIC_NOTE]],
+  secretary: [["public", "国会議員の公設秘書(特別職の国家公務員)", PUBLIC_NOTE], ["nonreg", "議員事務所の私設秘書(契約)"]],
+  ja_staff: [["mid", "農協(JA)に勤める(正社員)"], ["nonreg", "契約・パート"]],
+  air_traffic: [["public", "国家公務員(国土交通省の航空管制官)", PUBLIC_NOTE]],
+  ground_staff: [["large", "大手航空会社・空港会社"], ["mid", "地方の空港会社"], ["nonreg", "契約・派遣"]],
+  tour_conductor: [["mid", "旅行会社の添乗員"], ["nonreg", "派遣の添乗員"], ["self", "フリーの添乗員"]],
+  sommelier: [["mid", "レストラン・ホテルに勤める"], ["small", "ワインバー・個人店に勤める"], ["nonreg", "パート・アルバイト"], ["self", "独立して、店を開く"]],
+  sushi_chef: [["small", "店に勤める(見習い)"], ["mid", "大手の料理店・チェーンに勤める"], ["nonreg", "パート・アルバイト"], ["self", "独立して、店を持つ"]],
+  wagashi: [["small", "工房・和菓子店に勤める(見習い)"], ["mid", "老舗・大手の和菓子店に勤める"], ["nonreg", "パート・アルバイト"], ["self", "独立して、店を持つ"]],
+  welder: [["large", "大手メーカー・造船所"], ["mid", "中堅の工場"], ["small", "地域の町工場"], ["nonreg", "派遣・契約"], ["self", "独立して、工房を持つ(一人親方)"]],
+  dancer: [["nonreg", "カンパニー・事務所に所属する(契約)"], ["self", "フリーで活動する"]],
+  stage_dir: [["mid", "劇団・制作会社に勤める"], ["nonreg", "契約・委託"], ["self", "フリーで活動する"]],
+  video_editor: [["small", "制作会社に勤める"], ["mid", "大手の制作会社・メディアに勤める"], ["nonreg", "契約・派遣"], ["self", "フリーランスで活動する"]],
+  broadcast_writer: [["nonreg", "制作会社と契約する"], ["self", "フリーで活動する"]],
   // ---- 経営者・起業家(勤め先の規模ではなく、自分の会社) ----
   ceo: [["large", "大企業の役員(取締役)"], ["mid", "中堅企業の役員(取締役)"], ["small", "中小企業の経営者(社長)"]],
   founder: [["self", "スタートアップを創業する"]],
@@ -1233,7 +1269,7 @@ export const turningPoints: TurningPoint[] = [
           title: "どう続ける？",
           prompt: "同じ仕事でも、向き合い方で道が分かれます。",
           options: [
-            opt("rise", "昇進をめざして、成果を出す", (p) => ((p.payMult *= 1.05), bump(p, { money: 4, health: -2, bonds: -1 }), "昇進をめざして、成果を出すことに力を注いだ"), { show: (p) => p.employment === "regular", detail: () => "責任と収入は増えるが、休みと時間は減りやすい。" }),
+            opt("rise", "昇進をめざして、成果を出す", (p) => ((p.history.rankDrive = p.age), (p.payMult *= 1.05), bump(p, { money: 4, health: -2, bonds: -1 }), "昇進をめざして、成果を出すことに力を注いだ"), { show: (p) => p.employment === "regular", detail: () => "責任と収入は増えるが、休みと時間は減りやすい。" }),
             opt("steady", "無理せず、自分のペースで続ける", (p) => (bump(p, { health: 3, bonds: 2 }), "無理せず、自分のペースで働き続けることにした"), { auto: true, detail: () => "収入の伸びは緩やか。そのぶん、暮らしの時間と健康を保てる。" }),
           ],
         }),
@@ -1374,7 +1410,7 @@ export const turningPoints: TurningPoint[] = [
     options: [
       {
         id: "lead",
-        show: (p) => p.employment === "regular" && p.occ !== "mgmt",
+        show: (p) => p.employment === "regular" && p.occ !== "mgmt" && !ladderOf(p),
         label: "責任ある立場を目指す",
         apply: () => "",
         detail: (p, env, data) => `いまの年収は約${round10(incomeOf(p, data, env.econ))}万円。管理職になると、1〜2割上がることが多い。`,
@@ -1382,11 +1418,12 @@ export const turningPoints: TurningPoint[] = [
           title: "どんな立場を目指す？",
           prompt: "同じ昇進でも、道が分かれます。",
           options: [
-            opt("manager", "管理職として、組織を率いる", (p) => ((p.payMult *= 1.15), bump(p, { money: 4, health: -4, bonds: -2 }), "管理職として、組織を率いるようになった"), { show: (p) => p.occ !== "mgmt" && p.job !== "manager", detail: () => "収入と責任が増え、人の問題に時間を取られる。" }),
+            opt("manager", "管理職として、組織を率いる", (p) => ((p.history.rankDrive = p.age), (p.payMult *= 1.15), bump(p, { money: 4, health: -4, bonds: -2 }), "管理職として、組織を率いるようになった"), { show: (p) => p.occ !== "mgmt" && p.job !== "manager", detail: () => "収入と責任が増え、人の問題に時間を取られる。" }),
             opt("expert", "専門職として、第一人者を目指す", (p) => ((p.payMult *= 1.07), bump(p, { learn: 6, money: 2 }), "専門を極めて、頼られる存在になっていった"), { auto: true, detail: () => "収入の伸びは緩やかだが、仕事の満足度は高い。" }),
           ],
         }),
       },
+      opt("drive", "階級・役職を上げることをめざす", (p) => ((p.history.rankDrive = p.age), bump(p, { money: 3, health: -3, bonds: -1 }), "階級や役職を上げることをめざして、仕事に力を注ぐことにした"), { show: (p) => !!ladderOf(p), detail: (p) => `昇任・昇進の可能性が高まる(いまの階級: ${rankStep(p)?.label ?? "—"})。責任と忙しさが増える。` }),
       opt("side", "副業や独立に踏み出す", (p, r) => (bump(p, { money: Math.round((r() - 0.4) * 20), learn: 3 }), "副業を始め、働き方を広げた"), { show: (p) => p.employment !== "self", detail: (p, env) => `景気しだいで収入は大きく変わる。いまは${env.econLabel}。` }),
       opt("slow", "仕事を減らして、暮らしを大切にする", (p) => ((p.payMult *= 0.85), bump(p, { money: -5, health: 6, bonds: 5 }), "仕事を減らして、暮らしの時間を増やした"), { detail: (p, env, data) => `年収は約${round10(incomeOf(p, data, env.econ) * 0.85)}万円ほどに下がる。そのぶん、時間と健康に余裕が生まれる。` }),
     ],

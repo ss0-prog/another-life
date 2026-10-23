@@ -4,6 +4,7 @@ import { pick, type Rng } from "@/lib/sim/rng";
 import type { CountryData, Debt, GameState, LenderId, Occ, Partner, PartnerGender, Person, Region, Stats } from "@/lib/sim/types";
 import { LENDERS } from "@/lib/sim/data/jp-debt";
 import { DEFAULT_JOB, jobById } from "@/lib/sim/data/jp-jobs";
+import { atExecRank, ladderOf, rankIdx, rankStep } from "@/lib/sim/data/jp-ranks";
 
 export const clamp = (v: number, lo = 0, hi = 100) => Math.min(hi, Math.max(lo, v));
 
@@ -38,7 +39,7 @@ export function leaveLocal(p: Person, data: CountryData) {
 // (頂点に立った人のうち、組織のトップ・役職についた人もふくむ: 取締役・社長・院長・学長・校長・看護部長など)
 const SUMMIT_LEADERS = ["manager", "doctor", "prof", "school_teacher", "lawyer", "pilot", "nurse", "accountant"];
 export const isResponsible = (p: Person) =>
-  !!p.office || ["ceo", "founder", "owner", "politician"].includes(p.job ?? "") || (p.history.summit !== undefined && SUMMIT_LEADERS.includes(p.job ?? ""));
+  !!p.office || atExecRank(p) || ["ceo", "founder", "owner", "politician"].includes(p.job ?? "") || (p.history.summit !== undefined && SUMMIT_LEADERS.includes(p.job ?? ""));
 
 export function moveTo(p: Person, rng: Rng, data: CountryData, region: Region, city?: string): string {
   leaveLocal(p, data);
@@ -68,7 +69,11 @@ export function assignJob(p: Person, occ: Occ, rng: Rng, data: CountryData, jobI
 export function jobLabel(p: Person, data: CountryData): string {
   if (p.occ === null) return p.age < 23 ? data.occLabel.student : data.stageLabel(p.age, null);
   if (p.occ === "retired") return data.occLabel.retired;
-  return jobById(p.job)?.title ?? data.occLabel[p.occ];
+  const title = jobById(p.job)?.title ?? data.occLabel[p.occ];
+  // 階級・役職がある職種は、いまの階級を、かっこで添える。
+  const lad = ladderOf(p);
+  const st = lad ? rankStep(p) : null;
+  return st && lad && (rankIdx(p) > 0 || lad.publicStyle) ? `${title}(${st.label})` : title;
 }
 
 // 子ども・学生・退職後も含めた、その時点の暮らしの名前(働いていれば職種)。

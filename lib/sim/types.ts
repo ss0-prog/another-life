@@ -111,6 +111,8 @@ export type Person = {
   // いまの仕事に就いた年齢(仕事が変わるたびに更新。「同じ仕事を何年続けたか」の判定に使う)。
   jobKey?: string;
   jobSince?: number;
+  // 職種のはしご(階級・役職)の、いまの段。idx は 0 から。since は、その段になった年齢。
+  rank?: { idx: number; since: number } | null;
   // 犯罪に手を染めて、警察に追われているとき(kind は CrimeId)。arrestAt は、捕まる年齢(逃げきるなら null)。until は、公訴時効が切れる年齢。
   crime?: { kind: string; since: number; arrestAt: number | null; until: number } | null;
   // 刑務所で服役中のとき。until は、出所する年齢。

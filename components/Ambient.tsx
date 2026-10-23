@@ -321,11 +321,11 @@ function TokyoTower({ cx, base, color, night }: { cx: number; base: number; colo
 }
 
 // 街のシルエットの色と、窓の灯り。朝焼け・夕焼けの空では、少し紫がかった色になる。
-const CITY_COLORS: Record<Phase, { far: string; near: string; forest: string; lit: boolean }> = {
-  night: { far: "#080b11", near: "#040609", forest: "#04100c", lit: true },
-  dusk: { far: "#2a2540", near: "#1c1a30", forest: "#13271f", lit: true },
-  dawn: { far: "#2d2a46", near: "#1f1d34", forest: "#15291f", lit: true },
-  day: { far: "#8aa0b8", near: "#667d97", forest: "#4a6d5a", lit: false },
+const CITY_COLORS: Record<Phase, { far: string; near: string; lit: boolean }> = {
+  night: { far: "#080b11", near: "#040609", lit: true },
+  dusk: { far: "#2a2540", near: "#1c1a30", lit: true },
+  dawn: { far: "#2d2a46", near: "#1f1d34", lit: true },
+  day: { far: "#8aa0b8", near: "#667d97", lit: false },
 };
 
 // タワーの足もとに、ぽつんと建つ、小さな建物(窓の灯りは、決まった並び)。
@@ -483,7 +483,7 @@ function SkylineSvg({ phase, mode = "all" }: { phase: Phase; mode?: "all" | "cit
       {/* 観覧車の右下を、少しだけ隠す建物 */}
       <CityLayer buildings={wheelFront} color={c.near} base={290} night={c.lit} near />
       {/* 観覧車の下の3分の1を、かくす森 */}
-      <Forest color={c.forest} />
+      <Forest color={c.near} />
       <TokyoTower cx={920} base={290} color={c.near} night={c.lit} />
       {/* タワーの前に、ひとつ、小さな建物 */}
       <CityLayer buildings={frontBuilding} color={c.near} base={290} night={c.lit} near />

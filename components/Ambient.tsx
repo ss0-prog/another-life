@@ -435,7 +435,7 @@ function FerrisWheel({ cx, base, night, color }: { cx: number; base: number; nig
   // 光(縁のランプ・ゴンドラの灯り)いがいは、建物と同じ色にする。
   const frame = color;
   return (
-    <g transform={`translate(${cx} ${cy})`} aria-hidden>
+    <g transform={`translate(${cx} ${base}) scale(0.9) translate(0 ${cy - base})`} aria-hidden>
       {/* 支柱(A字) */}
       <g stroke={frame} strokeWidth={2.4} strokeLinecap="round" style={{ transition: "stroke 4.5s ease" }}>
         <line x1={0} y1={0} x2={-30} y2={base - cy} />

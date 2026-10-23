@@ -261,8 +261,8 @@ function CityLayer({ buildings, color, base, night, near }: { buildings: Buildin
               {b.windows.map((w, k) =>
                 w.lit ? (
                   <g key={k}>
-                    <rect x={w.x - 1.2} y={w.y - 1.2} width={(w.w ?? 3.4) + 2.4} height={(w.h ?? 5.6) + 2.4} rx={1.6} fill={WIN_TONES[w.tone ?? (w.warm ? 0 : 2)]} opacity={0.1} />
-                    <rect x={w.x} y={w.y} width={w.w ?? 3.4} height={w.h ?? 5.6} rx={0.5} fill={WIN_TONES[w.tone ?? (w.warm ? 0 : 2)]} opacity={0.72} className={w.flicker ? "win-flicker" : undefined} style={w.flicker ? { animationDelay: `${w.delay}s` } : undefined} />
+                    <rect x={w.x - 1.2} y={w.y - 1.2} width={(w.w ?? 3.4) + 2.4} height={(w.h ?? 5.6) + 2.4} rx={1.6} fill={WIN_TONES[w.tone ?? (w.warm ? 0 : 2)]} opacity={0.05} />
+                    <rect x={w.x} y={w.y} width={w.w ?? 3.4} height={w.h ?? 5.6} rx={0.5} fill={WIN_TONES[w.tone ?? (w.warm ? 0 : 2)]} opacity={0.4} className={w.flicker ? "win-flicker" : undefined} style={w.flicker ? { animationDelay: `${w.delay}s` } : undefined} />
                   </g>
                 ) : null,
               )}
@@ -549,7 +549,7 @@ function SkylineSvg({ phase, mode = "all" }: { phase: Phase; mode?: "all" | "cit
 }
 
 // 街の絵は、ふつうの画像(img)として表示する。ページの色の変数が、昼夜の切り替えで、毎フレーム変わっても、画像の中の何千もの要素は、スタイルの再計算を受けない。
-const WIN_TONES = ["#f6cf8c", "#ffeec2", "#d4e4ff"] as const; // 橙がかった黄 / 白っぽい黄 / 青白
+const WIN_TONES = ["#e6cc9c", "#efe4c6", "#c6d4ea"] as const; // 橙がかった黄 / 白っぽい黄 / 青白
 const SVG_CSS = `@keyframes beacon{0%,100%{opacity:1}50%{opacity:.12}}.beacon{animation:beacon 2.4s ease-in-out infinite}@keyframes win-flicker{0%,100%{opacity:.55}45%{opacity:.2}60%{opacity:.6}}.win-flicker{animation:win-flicker 7s ease-in-out infinite}@keyframes train-run{from{transform:translateX(-200px)}to{transform:translateX(1700px)}}.train{animation:train-run 46s linear infinite}@keyframes beacon-slow{0%,100%{opacity:1}50%{opacity:.1}}.beacon-slow{animation:beacon-slow 5.5s ease-in-out infinite}@keyframes ferris-turn{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}@keyframes ferris-counter{from{transform:rotate(0deg)}to{transform:rotate(-360deg)}}.ferris{transform-box:view-box;transform-origin:0 0;animation:ferris-turn 140s linear infinite}.ferris-gondola{transform-box:view-box;transform-origin:0 0;animation:ferris-counter 140s linear infinite}@media (prefers-reduced-motion:reduce){.beacon,.win-flicker,.train,.beacon-slow,.ferris,.ferris-gondola{animation:none}}`;
 function skylineUri(phase: Phase, mode: "all" | "city" | "glow") {
   const svg = renderToStaticMarkup(<SkylineSvg phase={phase} mode={mode} />).replace(/^(<svg[^>]*>)/, `$1<style>${SVG_CSS}</style>`);

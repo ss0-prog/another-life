@@ -435,6 +435,11 @@ function FerrisWheel({ cx, base, night }: { cx: number; base: number; night: boo
 function SkylineSvg({ phase, mode = "all" }: { phase: Phase; mode?: "all" | "city" | "glow" }) {
   const far = useMemo(() => makeCity(11, 52, 136, 0.22), []);
   const near = useMemo(() => makeCity(23, 74, 186, 0.3, 920, [250, 560, 1290]), []);
+  // 手前の列から、3軒に1軒を、低くして、もう一度かさねる(電車の前に立つ)。
+  const nearFront = useMemo(
+    () => near.filter((_, i) => i % 3 === 1).map((b, i) => { const h = 40 + (i % 4) * 9; return { ...b, h, beacon: false, antenna: 0, sign: null, setback: false, roof: 0 as const, windows: b.windows.filter((w) => w.y < h - 10) }; }),
+    [near],
+  );
   const c = CITY_COLORS[phase];
   return (
     <svg xmlns="http://www.w3.org/2000/svg" width="1600" height="270" viewBox="0 0 1600 270" preserveAspectRatio="xMidYMax slice" aria-hidden>
@@ -475,7 +480,7 @@ function SkylineSvg({ phase, mode = "all" }: { phase: Phase; mode?: "all" | "cit
       <CityLayer buildings={far} color={c.far} base={270} night={c.lit} />
       <CityLayer buildings={near} color={c.near} base={290} night={c.lit} near />
       {/* 高架を走る電車(手前の建物が、すき間なく並ぶので、建物の前を走らせる) */}
-      <g aria-hidden>
+      <g aria-hidden transform="translate(0 20)">
         <rect x={0} y={236} width={1600} height={2.4} style={{ fill: c.lit ? "#0d0f1a" : "#4a5d73", transition: "fill 5s ease" }} />
         <g className="train" style={{ opacity: 0.95 }}>
           {Array.from({ length: 5 }, (_, k) => (
@@ -489,6 +494,8 @@ function SkylineSvg({ phase, mode = "all" }: { phase: Phase; mode?: "all" | "cit
           ))}
         </g>
       </g>
+      {/* 電車の手前に立つ、低い建物(電車が、ところどころ、建物にかくれる) */}
+      <CityLayer buildings={nearFront} color={c.near} base={290} night={c.lit} near />
       <FerrisWheel cx={560} base={290} night={c.lit} />
       {/* 観覧車の下の3分の1を、かくす森 */}
       <Forest color={c.near} />

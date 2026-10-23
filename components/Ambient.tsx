@@ -348,6 +348,16 @@ const frontBuilding: Building[] = (() => {
   return [make(897, 46, 44, 3, 2, 2, "#ffd35a", 0), make(858, 60, 104, 4, 4, 3, null, 1), make(922, 62, 92, 4, 3, 1, "#ff9fb6", 2)];
 })();
 
+// 森の手前に建って、森の左はし・右はし・まんなかを、少しかくす、低い建物。
+const forestFront: Building[] = (() => {
+  const make = (x: number, w: number, h: number, cols: number, rows: number, shift: number): Building => {
+    const windows: Building["windows"] = [];
+    for (let c = 0; c < cols; c++) for (let r = 0; r < rows; r++) windows.push({ x: 8 + c * 12, y: 8 + r * 17, lit: (c + r + shift) % 3 !== 1, warm: (c + shift) % 4 !== 3, flicker: false, delay: 0 });
+    return { x, w, h, antenna: 0, windows, beacon: false, delay: 0, roof: 0, setback: false, sign: null, signY: 14 };
+  };
+  return [make(452, 46, 62, 3, 3, 1), make(512, 28, 38, 2, 2, 0), make(622, 48, 56, 3, 3, 2)];
+})();
+
 // 観覧車の下の3分の1を、手前でかくす、森。木を1本ずつ見せず、こんもりした樹冠(まるい葉のかたまり)を、びっしり重ねて、ひとつづきの森の影にする。
 const FOREST = (() => {
   const rng = createRng(77);
@@ -463,9 +473,10 @@ function SkylineSvg({ phase, mode = "all" }: { phase: Phase; mode?: "all" | "cit
       ) : (
       <>
       <CityLayer buildings={far} color={c.far} base={270} night={c.lit} />
-      {/* 高架を走る電車 */}
+      <CityLayer buildings={near} color={c.near} base={290} night={c.lit} near />
+      {/* 高架を走る電車(手前の建物が、すき間なく並ぶので、建物の前を走らせる) */}
       <g aria-hidden>
-        <rect x={0} y={236} width={1600} height={2.4} style={{ fill: c.far, transition: "fill 5s ease" }} />
+        <rect x={0} y={236} width={1600} height={2.4} style={{ fill: c.lit ? "#0d0f1a" : "#4a5d73", transition: "fill 5s ease" }} />
         <g className="train" style={{ opacity: 0.95 }}>
           {Array.from({ length: 5 }, (_, k) => (
             <g key={k} transform={`translate(${k * 31} 0)`}>
@@ -478,12 +489,13 @@ function SkylineSvg({ phase, mode = "all" }: { phase: Phase; mode?: "all" | "cit
           ))}
         </g>
       </g>
-      <CityLayer buildings={near} color={c.near} base={290} night={c.lit} near />
       <FerrisWheel cx={560} base={290} night={c.lit} />
-      {/* 観覧車の右下を、少しだけ隠す建物 */}
-      <CityLayer buildings={wheelFront} color={c.near} base={290} night={c.lit} near />
       {/* 観覧車の下の3分の1を、かくす森 */}
       <Forest color={c.near} />
+      {/* 観覧車の右下を、少しだけ隠す建物 */}
+      <CityLayer buildings={wheelFront} color={c.near} base={290} night={c.lit} near />
+      {/* 森の手前の、低い建物(森が、建物に、一部かくれる) */}
+      <CityLayer buildings={forestFront} color={c.near} base={290} night={c.lit} near />
       <TokyoTower cx={920} base={290} color={c.near} night={c.lit} />
       {/* タワーの前に、ひとつ、小さな建物 */}
       <CityLayer buildings={frontBuilding} color={c.near} base={290} night={c.lit} near />

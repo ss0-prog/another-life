@@ -594,7 +594,7 @@ function EdgeBuilding({ phase }: { phase: Phase }) {
   return (
     <svg viewBox="0 -14 100 314" preserveAspectRatio="xMinYMax meet" className="absolute bottom-0 left-0 h-[84%] w-auto max-sm:-translate-x-[38%]" aria-hidden>
       <defs>
-        <linearGradient id={`edgeShade-${phase}`} x1="0" y1="0" x2="0" y2="1">
+        <linearGradient id={`edgeShade-${phase}`} gradientUnits="userSpaceOnUse" x1="0" y1="8" x2="0" y2="304">
           <stop offset="0%" stopColor="#ffffff" stopOpacity="0.2" />
           <stop offset="45%" stopColor="#ffffff" stopOpacity="0.04" />
           <stop offset="100%" stopColor="#000000" stopOpacity="0.28" />
@@ -604,13 +604,15 @@ function EdgeBuilding({ phase }: { phase: Phase }) {
       <rect x={0} y={44} width={92} height={260} fill={c.near} />
       <rect x={10} y={22} width={64} height={26} fill={c.near} />
       <rect x={26} y={8} width={30} height={16} fill={c.near} />
-      {/* アンテナと、赤いランプ */}
-      <rect x={40} y={-6} width={2} height={16} fill={c.near} />
+      {/* 赤いランプ(棒はなく、いちばん上の屋根に、直接つける) */}
       <g style={{ opacity: c.lit ? 1 : 0 }}>
-        <circle cx={41} cy={-8} r={3.4} fill="#ff4545" className="beacon-slow" />
+        <circle cx={41} cy={8} r={3.2} fill="#ff4545" className="beacon-slow" />
       </g>
       {/* 光と影 */}
-      <rect x={0} y={44} width={92} height={260} fill={`url(#edgeShade-${phase})`} opacity={c.lit ? 0.3 : 1} />
+      {/* 屋根にも、本体と同じ、光と影を、重ねる(色を、本体とそろえる) */}
+      {[[0, 44, 92, 260], [10, 22, 64, 26], [26, 8, 30, 16]].map(([x, y, w, h]) => (
+        <rect key={y} x={x} y={y} width={w} height={h} fill={`url(#edgeShade-${phase})`} opacity={c.lit ? 0.3 : 1} />
+      ))}
       <rect x={0} y={44} width={1.6} height={260} fill="#ffffff" opacity={c.lit ? 0.06 : 0.16} />
       <rect x={88} y={44} width={4} height={260} fill="#000000" opacity={0.18} />
       {/* 窓: 夜は、灯りが、ランダムに散らばる。昼は、ガラスが、空を、うっすら映す */}
@@ -618,8 +620,8 @@ function EdgeBuilding({ phase }: { phase: Phase }) {
         c.lit ? (
           w.lit && (
             <g key={i}>
-              <rect x={w.x - 1.4} y={w.y - 1.4} width={8.8} height={11.8} rx={2} fill={w.warm ? "#f6cf8c" : "#cfe0ff"} opacity={0.09} />
-              <rect x={w.x} y={w.y} width={6} height={9} rx={0.8} fill={w.warm ? "#f6cf8c" : "#cfe0ff"} opacity={0.55} />
+              <rect x={w.x - 1.4} y={w.y - 1.4} width={8.8} height={11.8} rx={2} fill={w.warm ? WIN_TONES[0] : WIN_TONES[2]} opacity={0.05} />
+              <rect x={w.x} y={w.y} width={6} height={9} rx={0.8} fill={w.warm ? WIN_TONES[0] : WIN_TONES[2]} opacity={0.4} />
             </g>
           )
         ) : (

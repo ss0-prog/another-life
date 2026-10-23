@@ -123,12 +123,13 @@ function Stars({ dim }: { dim: boolean }) {
 // ---- 街のシルエット: 高さの違うビルが二重に並び、夜は窓に灯りがともり、高いビルの屋上には赤いランプがまたたく ----
 type Building = { x: number; w: number; h: number; antenna: number; windows: { x: number; y: number; lit: boolean; warm: boolean; flicker: boolean; delay: number }[]; beacon: boolean; delay: number; roof: 0 | 1 | 2 | 3; setback: boolean; sign: string | null; signY: number };
 
-function makeCity(seed: number, minH: number, maxH: number, windowRate: number, clearX?: number, landmarks: number[] = []): Building[] {
+function makeCity(seed: number, minH: number, maxH: number, windowRate: number, clearX?: number, landmarks: number[] = [], rightBoost = 0): Building[] {
   const rng = createRng(seed);
   // 屋根の形は、別の乱数で決める(ほかの建物の並びを、変えないため)。
   const shapeRng = createRng(seed ^ 0x5bd1e995);
   const out: Building[] = [];
   const usedLm = new Set<number>();
+  let boosted = false;
   let x = -20;
   while (x < 1640) {
     let w = (28 + rng() * (rng() < 0.5 ? 46 : 84)) * 1.11; // 建物の数を、1割へらす
@@ -139,6 +140,11 @@ function makeCity(seed: number, minH: number, maxH: number, windowRate: number, 
     if (clearX !== undefined) {
       const d = Math.abs(x + w / 2 - clearX);
       h = Math.min(h, minH + (maxH - minH) * (0.2 + 0.8 * Math.min(1, d / 230)));
+    }
+    // 画面の右はしの、奥のビルを、少し高くする。
+    if (rightBoost > 0 && !boosted && x + w / 2 >= 1600) {
+      boosted = true;
+      h += rightBoost;
     }
     // 目じるしになる、ひときわ高いビルを、横にばらして、3本ほど立てる(東京タワーよりは、低く)。
     const lm = landmarks.findIndex((c, i) => !usedLm.has(i) && x + w / 2 >= c);
@@ -434,7 +440,7 @@ function FerrisWheel({ cx, base, night }: { cx: number; base: number; night: boo
 }
 
 function SkylineSvg({ phase, mode = "all" }: { phase: Phase; mode?: "all" | "city" | "glow" }) {
-  const far = useMemo(() => makeCity(11, 52, 136, 0.22), []);
+  const far = useMemo(() => makeCity(11, 52, 136, 0.22, undefined, [], 72), []);
   const near = useMemo(() => makeCity(23, 74, 186, 0.3, 920, [250, 560, 1290]), []);
   const nearBack = useMemo(() => near.filter((_, i) => i % 2 !== 0), [near]);
   const nearFg = useMemo(() => near.filter((_, i) => i % 2 === 0), [near]);

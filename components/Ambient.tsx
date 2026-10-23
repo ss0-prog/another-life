@@ -121,7 +121,7 @@ function Stars({ dim }: { dim: boolean }) {
 }
 
 // ---- 街のシルエット: 高さの違うビルが二重に並び、夜は窓に灯りがともり、高いビルの屋上には赤いランプがまたたく ----
-type Building = { x: number; w: number; h: number; antenna: number; windows: { x: number; y: number; lit: boolean; warm: boolean; flicker: boolean; delay: number; w?: number; h?: number }[]; beacon: boolean; delay: number; roof: 0 | 1 | 2 | 3; setback: boolean; sign: string | null; signY: number };
+type Building = { x: number; w: number; h: number; antenna: number; windows: { x: number; y: number; lit: boolean; warm: boolean; flicker: boolean; delay: number; tone?: 0 | 1 | 2; w?: number; h?: number }[]; beacon: boolean; delay: number; roof: 0 | 1 | 2 | 3; setback: boolean; sign: string | null; signY: number };
 
 function makeCity(seed: number, minH: number, maxH: number, windowRate: number, clearX?: number, landmarks: number[] = [], rightBoost = 0): Building[] {
   const rng = createRng(seed);
@@ -172,13 +172,22 @@ function makeCity(seed: number, minH: number, maxH: number, windowRate: number, 
         windows.push({ x: 4, y: 9 + r * 9, lit, warm: winRng() < 0.72, flicker: false, delay: 0, w: w - 8, h: 3.2 });
       }
     } else {
-      // 灯りは、規則正しい格子にならないよう、1つずつ、ランダムに散らす。
+      // 灯りの配置と色は、実際の夜景(オフィスビルの窓)を参考にする。
+      //  ・ビルごとに、明るさがちがう(ほとんど消えているビル/階ごとに、まとまって点いているビル/全体が、明るいビル)
+      //  ・点いている階は、ひと続きで、白っぽい黄色。まれに、青白い灯りや、橙色の灯り
       const cols = Math.max(2, Math.floor((w - 8) / 7));
       const rows = Math.max(3, Math.floor((h - 14) / 10));
+      const kind = winRng(); // <0.38: まばら / <0.78: 階ごとに、まとまる / それ以外: 全体が明るい
+      const coolBuilding = winRng() < 0.22;
+      const rowOn = Array.from({ length: rows }, () => winRng() < (kind < 0.78 ? 0.45 : 0.8));
+      const colOff = Array.from({ length: cols }, () => winRng() < 0.18);
       for (let c = 0; c < cols; c++)
         for (let r = 0; r < rows; r++) {
-          const lit = winRng() < 0.3;
-          windows.push({ x: 5 + c * 7, y: 8 + r * 10, lit, warm: winRng() < 0.72, flicker: winRng() < 0.08, delay: winRng() * 8 });
+          const p = kind < 0.38 ? 0.2 : kind < 0.78 ? (rowOn[r] ? 0.82 : 0.04) : colOff[c] ? 0.12 : rowOn[r] ? 0.9 : 0.4;
+          const lit = winRng() < p;
+          const t = winRng();
+          const tone: 0 | 1 | 2 = coolBuilding ? (t < 0.75 ? 2 : 1) : t < 0.58 ? 1 : t < 0.93 ? 0 : 2;
+          windows.push({ x: 5 + c * 7, y: 8 + r * 10, lit, warm: tone !== 2, tone, flicker: winRng() < 0.05, delay: winRng() * 8 });
         }
     }
     const roofPick = rng();
@@ -252,8 +261,8 @@ function CityLayer({ buildings, color, base, night, near }: { buildings: Buildin
               {b.windows.map((w, k) =>
                 w.lit ? (
                   <g key={k}>
-                    <rect x={w.x - 1.2} y={w.y - 1.2} width={(w.w ?? 3.4) + 2.4} height={(w.h ?? 5.6) + 2.4} rx={1.6} fill={w.warm ? "#f6cf8c" : "#cfe0ff"} opacity={0.09} />
-                    <rect x={w.x} y={w.y} width={w.w ?? 3.4} height={w.h ?? 5.6} rx={0.5} fill={w.warm ? "#f6cf8c" : "#cfe0ff"} opacity={0.55} className={w.flicker ? "win-flicker" : undefined} style={w.flicker ? { animationDelay: `${w.delay}s` } : undefined} />
+                    <rect x={w.x - 1.2} y={w.y - 1.2} width={(w.w ?? 3.4) + 2.4} height={(w.h ?? 5.6) + 2.4} rx={1.6} fill={WIN_TONES[w.tone ?? (w.warm ? 0 : 2)]} opacity={0.1} />
+                    <rect x={w.x} y={w.y} width={w.w ?? 3.4} height={w.h ?? 5.6} rx={0.5} fill={WIN_TONES[w.tone ?? (w.warm ? 0 : 2)]} opacity={0.72} className={w.flicker ? "win-flicker" : undefined} style={w.flicker ? { animationDelay: `${w.delay}s` } : undefined} />
                   </g>
                 ) : null,
               )}
@@ -540,6 +549,7 @@ function SkylineSvg({ phase, mode = "all" }: { phase: Phase; mode?: "all" | "cit
 }
 
 // 街の絵は、ふつうの画像(img)として表示する。ページの色の変数が、昼夜の切り替えで、毎フレーム変わっても、画像の中の何千もの要素は、スタイルの再計算を受けない。
+const WIN_TONES = ["#f6cf8c", "#ffeec2", "#d4e4ff"] as const; // 橙がかった黄 / 白っぽい黄 / 青白
 const SVG_CSS = `@keyframes beacon{0%,100%{opacity:1}50%{opacity:.12}}.beacon{animation:beacon 2.4s ease-in-out infinite}@keyframes win-flicker{0%,100%{opacity:.55}45%{opacity:.2}60%{opacity:.6}}.win-flicker{animation:win-flicker 7s ease-in-out infinite}@keyframes train-run{from{transform:translateX(-200px)}to{transform:translateX(1700px)}}.train{animation:train-run 46s linear infinite}@keyframes beacon-slow{0%,100%{opacity:1}50%{opacity:.1}}.beacon-slow{animation:beacon-slow 5.5s ease-in-out infinite}@keyframes ferris-turn{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}@keyframes ferris-counter{from{transform:rotate(0deg)}to{transform:rotate(-360deg)}}.ferris{transform-box:view-box;transform-origin:0 0;animation:ferris-turn 140s linear infinite}.ferris-gondola{transform-box:view-box;transform-origin:0 0;animation:ferris-counter 140s linear infinite}@media (prefers-reduced-motion:reduce){.beacon,.win-flicker,.train,.beacon-slow,.ferris,.ferris-gondola{animation:none}}`;
 function skylineUri(phase: Phase, mode: "all" | "city" | "glow") {
   const svg = renderToStaticMarkup(<SkylineSvg phase={phase} mode={mode} />).replace(/^(<svg[^>]*>)/, `$1<style>${SVG_CSS}</style>`);

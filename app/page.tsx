@@ -186,7 +186,7 @@ export default function Home() {
             >
               {/* タイトルまわりの3行は、いちばん幅の広い行にそろえて、左右の頭をそろえる */}
               <div className="flex w-fit max-w-full flex-col items-stretch">
-              <motion.p className="flex items-center justify-between gap-2 whitespace-nowrap text-[15px] font-bold tracking-[0.18em] text-warm min-[360px]:text-base min-[360px]:tracking-[0.2em] min-[400px]:gap-3 min-[400px]:text-[19px] sm:gap-5 sm:text-2xl sm:tracking-[0.4em]" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3, duration: 1.6 }}>
+              <motion.p className="flex items-center justify-between gap-2 whitespace-nowrap text-[15px] font-bold tracking-[0.18em] text-warm min-[360px]:text-base min-[360px]:tracking-[0.2em] min-[400px]:gap-3 min-[400px]:text-[19px] sm:gap-5 sm:text-2xl sm:tracking-[0.4em]" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.1, duration: 0.8 }}>
                 <span aria-hidden className="h-px min-w-3 flex-1 bg-warm sm:w-9 sm:flex-none" />
                 <span className="-mr-[0.18em] min-[360px]:-mr-[0.2em] sm:-mr-[0.4em]">{t.home.eyebrow}</span>
                 <span aria-hidden className="h-px min-w-3 flex-1 bg-warm sm:w-9 sm:flex-none" />
@@ -196,7 +196,7 @@ export default function Home() {
                 className="mt-8 flex items-center justify-between gap-3 text-2xl sm:gap-5 sm:text-4xl"
                 initial={{ opacity: 0, filter: "blur(8px)" }}
                 animate={{ opacity: 1, filter: "blur(0px)" }}
-                transition={{ delay: 0.8, duration: 2.4, ease: "easeOut" }}
+                transition={{ delay: 0.25, duration: 1.0, ease: "easeOut" }}
               >
                 <IfMark className="h-[1.15em] w-auto shrink-0 text-mist" />
                 {/* コロン: ロゴとタイトルの、ちょうど真ん中に置く(左右の間隔が、同じになるように) */}
@@ -206,11 +206,11 @@ export default function Home() {
                 </svg>
                 <h1 className="-mr-[0.2em] min-w-0 flex-1 whitespace-nowrap text-center tracking-[0.2em] text-mist [text-align-last:justify] sm:-mr-[0.35em] sm:tracking-[0.35em]">{t.home.title}</h1>
               </motion.div>
-              <motion.p className="mt-4 whitespace-nowrap text-center text-sm tracking-[0.5em] text-haze sm:text-base" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1.6, duration: 1.8 }}>
+              <motion.p className="mt-4 whitespace-nowrap text-center text-sm tracking-[0.5em] text-haze sm:text-base" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.5, duration: 0.8 }}>
                 {t.home.subtitle}
               </motion.p>
               </div>
-              <motion.div className="mt-12 w-full space-y-6 text-center text-sm leading-8 tracking-[0.15em] text-haze" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 2, duration: 2 }}>
+              <motion.div className="mt-12 w-full space-y-6 text-center text-sm leading-8 tracking-[0.15em] text-haze" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.75, duration: 0.9 }}>
                 {/* 一行目の途中の改行は、スマホ(幅640px未満)だけ。PCでは、つづけて一行に出す。三行目(最後)の前は、いつも改行する */}
                 <p>
                   {(() => {
@@ -257,10 +257,10 @@ export default function Home() {
                   {t.home.start}
                 </button>
               </div>
-              <motion.p className="mt-20 text-xs tracking-[0.5em] text-haze" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 2.4, duration: 1.4 }}>
+              <motion.p className="mt-20 text-xs tracking-[0.5em] text-haze" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1.0, duration: 0.7 }}>
                 {t.home.howTo}
               </motion.p>
-              <motion.ol className="mt-4 grid w-full gap-4 lg:grid-cols-3" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 2.6, duration: 1.6 }}>
+              <motion.ol className="mt-4 grid w-full gap-4 lg:grid-cols-3" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1.1, duration: 0.8 }}>
                 {t.home.steps.map((step, i) => (
                   <li key={step} className="flex flex-col items-center rounded-sm border border-line bg-panel/70 px-5 py-6 text-center backdrop-blur-sm">
                     <span className="text-2xl text-warm">{i + 1}</span>
@@ -271,7 +271,7 @@ export default function Home() {
                 ))}
               </motion.ol>
               {/* このサイトでできること(魅力) */}
-              <motion.section aria-labelledby="home-features" className="mt-16 w-full" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 2.8, duration: 1.6 }}>
+              <motion.section aria-labelledby="home-features" className="mt-16 w-full" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1.3, duration: 0.8 }}>
                 <p id="home-features" className="text-center text-xs tracking-[0.5em] text-haze">このサイトでできること</p>
                 <ul className="mt-4 grid w-full gap-4 sm:grid-cols-2 lg:grid-cols-4">
                   {HOME_FEATURES.map((f) => (
@@ -291,7 +291,7 @@ export default function Home() {
                 </button>
               </div>
               {/* 無数の「if」の先へ(多元宇宙の考え方に触れる) */}
-              <motion.div className="mt-14 w-full max-w-2xl text-center" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 2.8, duration: 1.6 }}>
+              <motion.div className="mt-14 w-full max-w-2xl text-center" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1.5, duration: 0.8 }}>
                 <p className="text-xs tracking-[0.5em] text-haze">{t.home.ifTitle}</p>
                 <div className="mt-5 space-y-5 text-sm leading-8 tracking-[0.08em] text-haze">
                   {t.home.ifBody.map((line, i) => (

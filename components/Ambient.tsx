@@ -142,7 +142,7 @@ function makeCity(seed: number, minH: number, maxH: number, windowRate: number, 
       h = Math.min(h, minH + (maxH - minH) * (0.2 + 0.8 * Math.min(1, d / 230)));
     }
     // 画面の右はしの、奥のビルを、少し高くする。
-    if (rightBoost > 0 && !boosted && x + w / 2 >= 1600) {
+    if (rightBoost > 0 && !boosted && x >= 1555) {
       boosted = true;
       h += rightBoost;
     }

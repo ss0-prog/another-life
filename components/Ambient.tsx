@@ -354,11 +354,11 @@ const FOREST = (() => {
   const r1 = (v: number) => Math.round(v * 10) / 10;
   const out: { x: number; y: number; r: number }[] = [];
   // 奥(高い列)から、手前(低い列)へ。重ねるほど、こんもりする。
-  for (const [row, yBase, rMin, rMax] of [[0, 244, 9, 14], [1, 256, 8, 13], [2, 268, 8, 12]] as const) {
+  for (const [row, yBase, rMin, rMax] of [[0, 238, 9, 13], [1, 252, 8, 12], [2, 266, 8, 12]] as const) {
     for (let x = 468 + row * 4; x < 656; ) {
       const r = rMin + rng() * (rMax - rMin);
-      const edge = Math.min(x - 468, 656 - x) / 34; // 両はしは、低くなだらかに
-      out.push({ x: r1(x), y: r1(yBase + (1 - Math.min(1, 0.3 + edge)) * 22 + (rng() - 0.5) * 8), r: r1(r) });
+      const peak = Math.max(0, 1 - Math.abs(x - 562) / 94); // 中央が高く、両はしへ、なだらかに下がる、山の形
+      out.push({ x: r1(x), y: r1(yBase + (1 - peak) * 38 + (rng() - 0.5) * 4), r: r1(r) });
       x += r * (0.7 + rng() * 0.5);
     }
   }

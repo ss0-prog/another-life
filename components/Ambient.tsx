@@ -121,12 +121,13 @@ function Stars({ dim }: { dim: boolean }) {
 }
 
 // ---- 街のシルエット: 高さの違うビルが二重に並び、夜は窓に灯りがともり、高いビルの屋上には赤いランプがまたたく ----
-type Building = { x: number; w: number; h: number; antenna: number; windows: { x: number; y: number; lit: boolean; warm: boolean; flicker: boolean; delay: number }[]; beacon: boolean; delay: number; roof: 0 | 1 | 2 | 3; setback: boolean; sign: string | null; signY: number };
+type Building = { x: number; w: number; h: number; antenna: number; windows: { x: number; y: number; lit: boolean; warm: boolean; flicker: boolean; delay: number; w?: number; h?: number }[]; beacon: boolean; delay: number; roof: 0 | 1 | 2 | 3; setback: boolean; sign: string | null; signY: number };
 
 function makeCity(seed: number, minH: number, maxH: number, windowRate: number, clearX?: number, landmarks: number[] = [], rightBoost = 0): Building[] {
   const rng = createRng(seed);
   // 屋根の形は、別の乱数で決める(ほかの建物の並びを、変えないため)。
   const shapeRng = createRng(seed ^ 0x5bd1e995);
+  const stripRng = createRng(seed ^ 0x2545f491); // 縞の窓のビルを決める(ほかの乱数の並びを、変えないため、別にする)
   const out: Building[] = [];
   const usedLm = new Set<number>();
   let boosted = false;
@@ -157,17 +158,29 @@ function makeCity(seed: number, minH: number, maxH: number, windowRate: number, 
     // 高いビルの一部は、細く、すらりとした塔にする。
     const slender = tall && shapeRng() < 0.35;
     if (slender) w = 30 + shapeRng() * 16;
-    const cols = Math.max(2, Math.floor((w - 10) / 12));
-    const rows = Math.max(2, Math.floor((h - 16) / 17));
+    // 窓は、細かく並べる(以前の窓の数だけ、乱数を使い切って、街ぜんたいの並びは、変えない)。
+    const oldCols = Math.max(2, Math.floor((w - 10) / 12));
+    const oldRows = Math.max(2, Math.floor((h - 16) / 17));
+    for (let k = 0; k < oldCols * oldRows * 6; k++) rng();
+    const winRng = createRng(Math.floor(seed * 7919 + x * 13 + h));
     const windows: Building["windows"] = [];
-    // 灯りは、規則正しい格子にならないよう、1つずつ、ランダムに散らす(ついた窓は、位置も、少しずらす)。
-    for (let c = 0; c < cols; c++)
+    if (stripRng() < 0.16) {
+      // ときどき、横に長い、帯(縞)の窓のビル。階ごとに、横いっぱいの帯がならぶ。
+      const rows = Math.max(3, Math.floor((h - 14) / 9));
       for (let r = 0; r < rows; r++) {
-        const lit = rng() < 0.32;
-        const jx = (rng() - 0.5) * 5;
-        const jy = (rng() - 0.5) * 7;
-        windows.push({ x: 7 + c * 12 + (lit ? jx : 0), y: 12 + r * 17 + (lit ? jy : 0), lit, warm: rng() < 0.72, flicker: rng() < 0.1, delay: rng() * 8 });
+        const lit = winRng() < 0.7;
+        windows.push({ x: 4, y: 9 + r * 9, lit, warm: winRng() < 0.72, flicker: false, delay: 0, w: w - 8, h: 3.2 });
       }
+    } else {
+      // 灯りは、規則正しい格子にならないよう、1つずつ、ランダムに散らす。
+      const cols = Math.max(2, Math.floor((w - 8) / 7));
+      const rows = Math.max(3, Math.floor((h - 14) / 10));
+      for (let c = 0; c < cols; c++)
+        for (let r = 0; r < rows; r++) {
+          const lit = winRng() < 0.3;
+          windows.push({ x: 5 + c * 7, y: 8 + r * 10, lit, warm: winRng() < 0.72, flicker: winRng() < 0.08, delay: winRng() * 8 });
+        }
+    }
     const roofPick = rng();
     const signColors = ["#ff6fa5", "#6fe3ff", "#ffd35a", "#9bff9b"];
     out.push({
@@ -223,15 +236,15 @@ function CityLayer({ buildings, color, base, night, near }: { buildings: Buildin
             {/* 階ごとの、うすい線 */}
             {near && (
               <g stroke="#000" strokeWidth={0.5} opacity={0.12}>
-                {Array.from({ length: Math.floor(b.h / 17) }, (_, k) => (
-                  <line key={k} x1={0} x2={b.w} y1={12 + k * 17 + 12} y2={12 + k * 17 + 12} />
+                {Array.from({ length: Math.floor(b.h / 10) }, (_, k) => (
+                  <line key={k} x1={0} x2={b.w} y1={8 + k * 10 + 7} y2={8 + k * 10 + 7} />
                 ))}
               </g>
             )}
             {/* 昼は、窓ガラスが、空と太陽を、うっすら映す */}
             <g style={{ opacity: night ? 0 : 1, transition: "opacity 4.5s ease" }}>
               {b.windows.filter((w, k) => k % 3 === 0 && !w.lit).map((w, k) => (
-                <rect key={k} x={w.x} y={w.y} width={5} height={8} rx={0.6} fill="#ffffff" opacity={0.16} />
+                <rect key={k} x={w.x} y={w.y} width={w.w ?? 3.4} height={w.h ?? 5.6} rx={0.5} fill="#ffffff" opacity={0.16} />
               ))}
             </g>
             {/* 夜の窓の灯り(光が、にじむ) */}
@@ -239,8 +252,8 @@ function CityLayer({ buildings, color, base, night, near }: { buildings: Buildin
               {b.windows.map((w, k) =>
                 w.lit ? (
                   <g key={k}>
-                    <rect x={w.x - 1.5} y={w.y - 1.5} width={8} height={11} rx={2} fill={w.warm ? "#f6cf8c" : "#cfe0ff"} opacity={0.09} />
-                    <rect x={w.x} y={w.y} width={5} height={8} rx={0.6} fill={w.warm ? "#f6cf8c" : "#cfe0ff"} opacity={0.55} className={w.flicker ? "win-flicker" : undefined} style={w.flicker ? { animationDelay: `${w.delay}s` } : undefined} />
+                    <rect x={w.x - 1.2} y={w.y - 1.2} width={(w.w ?? 3.4) + 2.4} height={(w.h ?? 5.6) + 2.4} rx={1.6} fill={w.warm ? "#f6cf8c" : "#cfe0ff"} opacity={0.09} />
+                    <rect x={w.x} y={w.y} width={w.w ?? 3.4} height={w.h ?? 5.6} rx={0.5} fill={w.warm ? "#f6cf8c" : "#cfe0ff"} opacity={0.55} className={w.flicker ? "win-flicker" : undefined} style={w.flicker ? { animationDelay: `${w.delay}s` } : undefined} />
                   </g>
                 ) : null,
               )}
@@ -341,14 +354,14 @@ const wheelFront: Building[] = (() => {
   const w = 54;
   const h = 112;
   const windows: Building["windows"] = [];
-  for (let c = 0; c < 4; c++) for (let r = 0; r < 6; r++) windows.push({ x: 7 + c * 12, y: 12 + r * 17, lit: (c * 3 + r) % 4 !== 0, warm: (c + r) % 3 !== 0, flicker: c === 2 && r === 3, delay: 0.9 });
+  for (let c = 0; c < 7; c++) for (let r = 0; r < 10; r++) windows.push({ x: 5 + c * 7, y: 8 + r * 10, lit: (c * 3 + r) % 4 !== 0, warm: (c + r) % 3 !== 0, flicker: c === 2 && r === 3, delay: 0.9 });
   return [{ x: 566, w, h, antenna: 0, windows, beacon: false, delay: 0, roof: 2, setback: false, sign: null, signY: 0 }];
 })();
 
 const frontBuilding: Building[] = (() => {
   const make = (x: number, w: number, h: number, cols: number, rows: number, roof: 0 | 1 | 2 | 3, sign: string | null, shift: number): Building => {
     const windows: Building["windows"] = [];
-    for (let c = 0; c < cols; c++) for (let r = 0; r < rows; r++) windows.push({ x: 8 + c * 12, y: 8 + r * 17, lit: (c + r + shift) % 3 !== 1, warm: (c + shift) % 4 !== 3, flicker: c === 1 && r === 0, delay: 1.3 + shift * 0.4 });
+    for (let c = 0; c < Math.floor((w - 8) / 7); c++) for (let r = 0; r < Math.floor((h - 12) / 10); r++) windows.push({ x: 5 + c * 7, y: 6 + r * 10, lit: (c + r + shift) % 3 !== 1, warm: (c + shift) % 4 !== 3, flicker: c === 1 && r === 0, delay: 1.3 + shift * 0.4 });
     return { x, w, h, antenna: 0, windows, beacon: false, delay: 0, roof, setback: false, sign, signY: 14 };
   };
   // タワーの足もとの、低い建物(3つ)
@@ -359,7 +372,7 @@ const frontBuilding: Building[] = (() => {
 const forestFront: Building[] = (() => {
   const make = (x: number, w: number, h: number, cols: number, rows: number, shift: number): Building => {
     const windows: Building["windows"] = [];
-    for (let c = 0; c < cols; c++) for (let r = 0; r < rows; r++) windows.push({ x: 8 + c * 12, y: 8 + r * 17, lit: (c + r + shift) % 3 !== 1, warm: (c + shift) % 4 !== 3, flicker: false, delay: 0 });
+    for (let c = 0; c < Math.floor((w - 8) / 7); c++) for (let r = 0; r < Math.floor((h - 12) / 10); r++) windows.push({ x: 5 + c * 7, y: 6 + r * 10, lit: (c + r + shift) % 3 !== 1, warm: (c + shift) % 4 !== 3, flicker: false, delay: 0 });
     return { x, w, h, antenna: 0, windows, beacon: false, delay: 0, roof: 0, setback: false, sign: null, signY: 14 };
   };
   return [make(452, 46, 62, 3, 3, 1), make(512, 28, 38, 2, 2, 0), make(622, 48, 56, 3, 3, 2)];

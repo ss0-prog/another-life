@@ -4,7 +4,7 @@ import { getMessages } from "@/lib/i18n";
 const t = getMessages();
 
 const PLAY = [
-  { href: "/", label: "もうひとつの人生をはじめる" },
+  { href: "/", label: "人生をはじめる" },
   { href: "/archive", label: t.nav.archive },
   { href: "/collection", label: "コレクション" },
   { href: "/concept", label: t.nav.concept },

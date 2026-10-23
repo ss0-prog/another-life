@@ -22,7 +22,7 @@ const NAV = [
 
 // スマホのメニューに出す、ページへのリンク(ひとこと説明つき)。
 const DRAWER_LINKS = [
-  { href: "/", label: "もうひとつの人生をはじめる", desc: "ターニングポイントから人生をやり直す" },
+  { href: "/", label: "人生をはじめる", desc: "ターニングポイントから人生をやり直す" },
   { href: "/concept", label: t.nav.concept, desc: "このサイトでできること・遊び方" },
   { href: "/archive", label: t.nav.archive, desc: "ほかの人の一生を見る・探す" },
   { href: "/collection", label: "コレクション", desc: "達成した実績を集めてならべる" },
@@ -81,15 +81,7 @@ export function SiteHeader() {
               </span>
             ) : (
             <Link key={n.href} href={n.href} onClick={() => setMenuOpen(false)} aria-current={active(n.href) ? "page" : undefined} className={active(n.href) ? "text-warm" : "text-haze hover:text-mist"}>
-              {n.href === "/" && !drawer ? (
-                <>
-                  {/* 横ならびのメニューは、幅がせまいと、はみ出すので、広い画面(1536px〜)だけ、全部を書く */}
-                  <span className="2xl:hidden">はじめる</span>
-                  <span className="max-2xl:hidden">{n.label}</span>
-                </>
-              ) : (
-                n.label
-              )}
+              {n.label}
             </Link>
             ),
           )}

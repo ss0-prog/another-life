@@ -483,11 +483,11 @@ function processDebts(next: GameState, a: number, data: CountryData, push: (text
     if (d.amount <= 1) continue;
     if (d.lender === "family" || d.lender === "friend") {
       if (d.missed >= 4) {
-        push(`返せないまま年月がたち、${name[d.lender]}との関係が、決定的に壊れた`, 64);
+        push(`返せないまま年月がたち、${name[d.lender]}との関係が決定的に壊れた`, 64);
         bump(p, { bonds: -10, joy: -8 });
         w.debts = w.debts.filter((x) => x !== d);
       } else if (d.missed >= 1) {
-        push(`返済が遅れ、${name[d.lender]}との間に、気まずい空気が流れた`, 46);
+        push(`返済が遅れ、${name[d.lender]}との間に気まずい空気が流れた`, 46);
         bump(p, { bonds: -2, joy: -2 });
       }
     } else if (d.lender === "bank") {
@@ -504,7 +504,7 @@ function processDebts(next: GameState, a: number, data: CountryData, push: (text
       }
     } else {
       if (d.missed >= 3) {
-        push("弁護士に相談して債務整理をし、闇金の借金から、ようやく抜け出した", 66);
+        push("弁護士に相談して債務整理をし、闇金の借金からようやく抜け出した", 66);
         bump(p, { joy: -10, health: -2 });
         w.debts = w.debts.filter((x) => x !== d);
       } else if (d.missed >= 2) {
@@ -528,7 +528,7 @@ function processDebts(next: GameState, a: number, data: CountryData, push: (text
   const remain = w.debts.filter((d) => d.amount > 1);
   if (remain.length < w.debts.length || (remain.length === 0 && w.debts.length > 0)) {
     if (remain.length === 0) {
-      push("借金を、すべて返し終えた", 58);
+      push("借金をすべて返し終えた", 58);
       bump(p, { joy: 8 });
       p.history.debtCleared = a;
     }
@@ -895,7 +895,7 @@ export function answer(state: GameState, tp: TurningPoint, choice: Choice, data:
     p.jobPlan = choice.path;
     p.history.asked_job = p.age;
     const labels = resolvePath(tp, choice.path, p).map((n) => n.label.replace(/する$/, ""));
-    next.events.push({ age: p.age, event: `卒業したあとは、「${labels.join(" → ")}」の道に進むことにした`, weight: 70 });
+    next.events.push({ age: p.age, event: `卒業したあとは「${labels.join(" → ")}」の道に進むことにした`, weight: 70 });
     flush(next);
     return next;
   }
@@ -1008,10 +1008,10 @@ export function runForOffice(state: GameState, id: string, data: CountryData = j
 
 // 総理大臣の経済対策。ひどい不況のとき、年に一度だけ、税金などを動かせる。
 export const PM_POLICIES: { id: string; label: string; note: string }[] = [
-  { id: "consumption_cut", label: "消費税を引き下げる", note: "暮らしが楽になり、支持は上がる。財源への批判が、あとから出てくる。" },
+  { id: "consumption_cut", label: "消費税を引き下げる", note: "暮らしが楽になり、支持は上がる。財源への批判があとから出てくる。" },
   { id: "income_cut", label: "所得税・住民税を減税する", note: "働く人の手取りが増え、支持が上がる。税収が減り、批判も出る。" },
   { id: "cash_benefit", label: "国民に給付金を出す", note: "すぐに家計を支えられ、支持が上がる。一度きりで、効果は長続きしない。" },
-  { id: "tax_hike", label: "増税して財政を立て直す", note: "国の財政は守られるが、不況のなかの増税で、支持は大きく下がる。" },
+  { id: "tax_hike", label: "増税して財政を立て直す", note: "国の財政は守られるが、不況のなかの増税で支持は大きく下がる。" },
 ];
 
 // 経済対策ができる状態か(総理大臣で、ひどい不況で、今年まだ使っていない)。
@@ -1034,21 +1034,21 @@ export function pmPolicy(state: GameState, id: string): GameState | null {
     t(7);
     bump(p, { joy: 3, bonds: 2 });
     next.later.push({ age: p.age + 2, event: "消費税の減税の財源をめぐり、批判が強まった", weight: 55, delta: { bonds: -2 } });
-    text = "不況のなか、消費税の引き下げを決めた。家計への支えとして、国民の支持が集まった";
+    text = "不況のなか、消費税の引き下げを決めた。家計への支えとして国民の支持が集まった";
   } else if (id === "income_cut") {
     t(5);
     bump(p, { joy: 2, bonds: 2 });
-    next.later.push({ age: p.age + 2, event: "減税による税収の落ちこみが、国会で問われた", weight: 55, delta: { bonds: -2 } });
+    next.later.push({ age: p.age + 2, event: "減税による税収の落ちこみが国会で問われた", weight: 55, delta: { bonds: -2 } });
     text = "不況のなか、所得税と住民税の減税を決めた。働く人の手取りが増えた";
   } else if (id === "cash_benefit") {
     t(6);
     bump(p, { joy: 2 });
-    next.later.push({ age: p.age + 1, event: "給付金の効果は一時的で、景気の回復には、つながらなかったとの指摘が出た", weight: 50, delta: { bonds: -1 } });
-    text = "不況のなか、国民への給付金を決めた。すぐに家計を支える対策として、受け入れられた";
+    next.later.push({ age: p.age + 1, event: "給付金の効果は一時的で、景気の回復にはつながらなかったとの指摘が出た", weight: 50, delta: { bonds: -1 } });
+    text = "不況のなか、国民への給付金を決めた。すぐに家計を支える対策として受け入れられた";
   } else {
     t(-9);
     bump(p, { joy: -3, bonds: -3 });
-    next.later.push({ age: p.age + 3, event: "増税の効果で、国の財政に、少しゆとりが出てきた", weight: 55, delta: { joy: 2 } });
+    next.later.push({ age: p.age + 3, event: "増税の効果で、国の財政に少しゆとりが出てきた", weight: 55, delta: { joy: 2 } });
     text = "不況のなか、増税による財政の立て直しに踏み切った。国民の反発は強く、支持は大きく下がった";
   }
   const fx = fxSince(next, snap);
@@ -1070,7 +1070,7 @@ export function contributeKidFund(state: GameState, yen: number): GameState | nu
   flush(next);
   const fx = { money: -yen };
   void snap;
-  next.events.push({ age: p.age, event: `こどもNISAに、${Math.round(yen / 10000).toLocaleString("ja-JP")}万円を積み立てた(子どもの将来のための投資。値動きがあり、減ることもある)`, weight: 58, fx });
+  next.events.push({ age: p.age, event: `こどもNISAに${Math.round(yen / 10000).toLocaleString("ja-JP")}万円を積み立てた(子どもの将来のための投資。値動きがあり、減ることもある)`, weight: 58, fx });
   return next;
 }
 
@@ -1148,7 +1148,7 @@ export function lenderOffers(state: GameState, shortfallYen: number, data: Count
   const income = incomeOf(state.person, data, state.person.econ);
   return LENDER_ORDER.map((id) => {
     const def = LENDERS[id];
-    const av = state.person.age < 18 ? { ok: false, why: "子どもは、お金を借りられない" } : lenderAvailable(state.person, id, shortfallYen, income);
+    const av = state.person.age < 18 ? { ok: false, why: "子どもはお金を借りられない" } : lenderAvailable(state.person, id, shortfallYen, income);
     return { id, label: def.label, note: def.note, ok: av.ok, why: av.why, rateText: def.rate === 0 ? "利息なし" : `年利 約${Math.round(def.rate * 100)}%` };
   });
 }
@@ -1255,7 +1255,7 @@ export function tick(state: GameState, data: CountryData = jpData): GameState {
           p.extra.career = Math.min(100, p.extra.career + 5);
           bump(p, { money: 3, joy: 4, bonds: 1 });
           p.extra.stress = Math.min(100, p.extra.stress + 3);
-          push(lad.publicStyle && p.sector === "public" ? `昇任の試験と人事を経て、${nxt.label}になった` : nxt.exec ? `${nxt.label}に就いた。組織の中で、大きな責任を担うことになった` : `昇進して、${nxt.label}になった`, 58 + p.rank.idx * 3);
+          push(lad.publicStyle && p.sector === "public" ? `昇任の試験と人事を経て、${nxt.label}になった` : nxt.exec ? `${nxt.label}に就いた。組織の中で大きな責任を担うことになった` : `昇進して${nxt.label}になった`, 58 + p.rank.idx * 3);
         }
       }
     }
@@ -1337,7 +1337,7 @@ export function tick(state: GameState, data: CountryData = jpData): GameState {
   if (a >= MAX_AGE || suddenHit || roll(seed + next.salt * 104729, a, S.death) < qOther) {
     next.deathAge = a;
     next.snap ??= clone(p);
-    const info = a >= MAX_AGE ? { label: "老衰", text: (age: number) => `${age}歳。このゲームの最大寿命まで、生き抜いた。眠るように、人生を終えた` } : causeOfDeath(p, suddenHit && a < MAX_AGE, streamRng(seed + next.salt * 7919, a, S.sudden + 1));
+    const info = a >= MAX_AGE ? { label: "老衰", text: (age: number) => `${age}歳。このゲームの最大寿命まで生き抜いた。眠るように人生を終えた` } : causeOfDeath(p, suddenHit && a < MAX_AGE, streamRng(seed + next.salt * 7919, a, S.sudden + 1));
     next.deathCause = info.label;
     next.deathNote = buildDeathNote(p, info.label, suddenHit && a < MAX_AGE, p.ailment !== "none" ? (data.ailments.find((x) => x.id === p.ailment)?.label ?? "") : "", p.condition !== "none" ? (data.conditions.find((x) => x.id === p.condition)?.label ?? "") : "", p.occ && p.occ !== "retired" ? jobLabel(p, data) : null);
     push(info.text(a), 100);
@@ -1349,7 +1349,7 @@ export function tick(state: GameState, data: CountryData = jpData): GameState {
     push("大きな病気をした", 55);
     if (a >= 18) {
       p.treatMan = Math.max(1, Math.round((6 + roll(seed, a, S.illness + 5) * 24) * (p.history.medIns ? 0.3 : 1)));
-      p.treatLabel = "大きな病気で、治療が必要になった。";
+      p.treatLabel = "大きな病気で治療が必要になった。";
       if (!next.queue.includes("treat")) next.queue.push("treat");
     }
   }
@@ -1410,7 +1410,7 @@ export function tick(state: GameState, data: CountryData = jpData): GameState {
       const plan = p.jobPlan;
       p.jobPlan = null;
       p.history.asked_job = a;
-      push(`${({ hs_work: "高校", vocational: "専門学校", univ: "大学", grad: "大学院" } as const)[p.edu]}を卒業した。決めていた進路に、進みはじめる`, 66);
+      push(`${({ hs_work: "高校", vocational: "専門学校", univ: "大学", grad: "大学院" } as const)[p.edu]}を卒業した。決めていた進路に進みはじめる`, 66);
       const jtp = data.turningPoints.find((x) => x.id === "job");
       if (jtp) {
         const prng = streamRng(seed, a, S.choice + 3);
@@ -1419,7 +1419,7 @@ export function tick(state: GameState, data: CountryData = jpData): GameState {
           if (text) push(text, 75);
         }
       }
-    } else push(`${({ hs_work: "高校", vocational: "専門学校", univ: "大学", grad: "大学院" } as const)[p.edu]}を卒業した。これからの進路を、考えるときがきた`, 66);
+    } else push(`${({ hs_work: "高校", vocational: "専門学校", univ: "大学", grad: "大学院" } as const)[p.edu]}を卒業した。これからの進路を考えるときがきた`, 66);
   }
   // 留学を終えたら、学歴が上がり、そのあとの道(残る・国を変える・帰国する)を選ぶ。
   if (p.abroad?.study && a >= p.abroad.study.until) {
@@ -1431,7 +1431,7 @@ export function tick(state: GameState, data: CountryData = jpData): GameState {
     }
     if (st.kind === "grad") p.edu = "grad";
     p.gradAge = null;
-    push(`${p.abroad.country}での留学を終えた。これから、どうするかを、考えるときがきた`, 66);
+    push(`${p.abroad.country}での留学を終えた。これからどうするかを考えるときがきた`, 66);
     if (!next.queue.includes("study_end")) next.queue.push("study_end");
   }
   // 就労ビザ: 更新が認められないことがある。永住権は、決まった年のあとで認められる。
@@ -1440,7 +1440,7 @@ export function tick(state: GameState, data: CountryData = jpData): GameState {
       p.abroad.visa = "permanent";
       p.abroad.permAt = undefined;
       bump(p, { joy: 6, money: 2 });
-      push(`${p.abroad.country}の永住権が認められた。ビザの更新を、気にしなくてよくなった`, 66);
+      push(`${p.abroad.country}の永住権が認められた。ビザの更新を気にしなくてよくなった`, 66);
     } else if (roll(seed, a, S.job + 55) < 0.04) {
       const country = p.abroad.country;
       moveHome(p, streamRng(seed, a, S.movePick + 5), data);
@@ -1552,7 +1552,7 @@ export function tick(state: GameState, data: CountryData = jpData): GameState {
     p.housingKind = null;
     p.withParents = false;
     p.owns.home = a;
-    push("ローンを組んで、住まいを買った", 50);
+    push("ローンを組んで住まいを買った", 50);
   }
   if (p.withParents && a >= 24 && roll(seed, a, S.parents) < 0.06) p.withParents = false;
 
@@ -1570,7 +1570,7 @@ export function tick(state: GameState, data: CountryData = jpData): GameState {
       p.occ = "retired";
       p.parttime = null;
       p.office = null;
-      push(`${a}歳。体力の限界を感じて、仕事を退いた`, 60);
+      push(`${a}歳。体力の限界を感じて仕事を退いた`, 60);
     } else if (!next.queue.includes("work_end")) {
       const frail = p.stats.health < 45 || p.sick;
       const q = (a < 70 ? 0.4 : a < 80 ? 0.55 : 0.75) + (frail ? 0.3 : 0);
@@ -1595,11 +1595,11 @@ export function tick(state: GameState, data: CountryData = jpData): GameState {
   }
   if (p.tax.gross > 0 && p.employment === "self" && p.occ !== "retired" && p.history.selfTax === undefined && p.history.payslip !== a) {
     p.history.selfTax = a;
-    push(`独立して、会社が半分払っていた社会保険料を、全額自分で払うようになった。国民年金と国民健康保険で、年に${p.tax.pension + p.tax.health}万円ほど`, 46);
+    push(`独立して、会社が半分払っていた社会保険料を全額自分で払うようになった。国民年金と国民健康保険で年に${p.tax.pension + p.tax.health}万円ほど`, 46);
   }
   if (p.tax.gross > 0 && p.married && p.occ !== "retired" && p.history.marrySlip === undefined) {
     p.history.marrySlip = a;
-    push("結婚して、配偶者の収入も世帯に加わった。税や社会保険料は、ひとりずつにかかるので、世帯の手取りは、ふたりの合計になる", 30);
+    push("結婚して、配偶者の収入も世帯に加わった。税や社会保険料はひとりずつにかかるので、世帯の手取りはふたりの合計になる", 30);
   }
   for (const k of p.kidList) {
     if (a - k.bornAge === 16) push("子どもが16歳になった。扶養控除(所得税38万円・住民税33万円)の対象になり、税が少し軽くなった", 30);
@@ -1637,12 +1637,12 @@ export function tick(state: GameState, data: CountryData = jpData): GameState {
     // ひとり親家庭で、離れて暮らしていたほうの親は、知らせを受けるかたちになる。
     const apart = p.soloParent && absentWho(p) === who;
     if (apart && a === deathAge - 2) {
-      push(`離れて暮らしていた${who}が、病気で入院したと知らせが届いた`, 50);
+      push(`離れて暮らしていた${who}が病気で入院したと知らせが届いた`, 50);
       bump(p, { bonds: -1 });
       continue;
     }
     if (apart && a === deathAge) {
-      push(`離れて暮らしていた${who}が亡くなったと、知らせが届いた`, 62);
+      push(`離れて暮らしていた${who}が亡くなったと知らせが届いた`, 62);
       p.history.parentDied = a;
       bump(p, { bonds: -3, joy: -6 });
       continue;
@@ -1660,7 +1660,7 @@ export function tick(state: GameState, data: CountryData = jpData): GameState {
         // 相続したお金は、使い道を選んで、はじめて手元に入る(貯金・株・家族のためなど)。
         const v = Math.round(100 + roll(seed, a, S.ev + 8) * 500);
         p.inheritMan = v;
-        push(`相続の手続きに追われ、${v.toLocaleString("ja-JP")}万円ほどを受け継ぐことになった。使い道を、決めるときがきた`, 52);
+        push(`相続の手続きに追われ、${v.toLocaleString("ja-JP")}万円ほどを受け継ぐことになった。どう使おうか`, 52);
         if (!next.queue.includes("inherit_use")) next.queue.push("inherit_use");
       }
     }
@@ -1673,7 +1673,7 @@ export function tick(state: GameState, data: CountryData = jpData): GameState {
     else if (kage === 12) push(`${nm}が中学校に入学した`, 48);
     else if (kage === 15) push(`${nm}が高校受験に挑み、進む学校が決まった`, 50);
     else if (kage === 18) {
-      push(`${nm}が、大学や就職など、新しい道に進んだ`, 56);
+      push(`${nm}が大学や就職など、新しい道に進んだ`, 56);
       // こどもNISAは、いちばん下の子が18歳になるときに、使われる。
       if (next.wallet.kidFund && next.wallet.kidFund.units > 0 && !p.kidList.some((o) => o.bornAge > k.bornAge)) {
         const value = next.wallet.kidFund.units * priceAt(marketOf(seed, data), "index", a, 0);
@@ -1767,7 +1767,7 @@ export function tick(state: GameState, data: CountryData = jpData): GameState {
         p.housingKind = "homeless";
         p.history.homeless = a;
         bump(p, { health: -8, joy: -12, bonds: -5, money: -6 });
-        push(`家賃が払えず、住まいを失った。${yearOf(p) >= SINCE.netCafe ? "ネットカフェや路上" : "駅や公園"}で、夜を過ごすようになった`, 90);
+        push(`家賃が払えず住まいを失った。${yearOf(p) >= SINCE.netCafe ? "ネットカフェや路上" : "駅や公園"}で夜を過ごすようになった`, 90);
         if (!next.queue.includes("homeless_help")) next.queue.push("homeless_help");
       }
     }
@@ -1787,13 +1787,13 @@ export function tick(state: GameState, data: CountryData = jpData): GameState {
       next.wallet.cash += gain - everyday;
       push(
         monthly > 0
-          ? `お正月に、お年玉を${otoshidama.toLocaleString("ja-JP")}円もらった。お小遣いは、月に${monthly.toLocaleString("ja-JP")}円`
-          : `お正月に、お年玉を${otoshidama.toLocaleString("ja-JP")}円もらった。家計に余裕がなく、お小遣いはない`,
+          ? `お正月にお年玉を${otoshidama.toLocaleString("ja-JP")}円もらった。お小遣いは月に${monthly.toLocaleString("ja-JP")}円`
+          : `お正月にお年玉を${otoshidama.toLocaleString("ja-JP")}円もらった。家計に余裕がなく、お小遣いはない`,
         18,
       );
     } else if (a >= 3) {
       // 3〜5歳: お年玉はもらうが、お金は親が預かる。お小遣いは、まだない。
-      push("お正月に、親戚からお年玉をもらった。お金は、親が預かってくれた", 18);
+      push("お正月に親戚からお年玉をもらった。お金は親が預かってくれた", 18);
     }
   }
 
@@ -1961,7 +1961,7 @@ export function tick(state: GameState, data: CountryData = jpData): GameState {
       const m = def.milestones.find((x) => x.years === years);
       if (m) {
         if (m.delta) bump(p, m.delta);
-        push(`アルバイト「${def.label}」で、${m.text}`, 48);
+        push(`アルバイト「${def.label}」で${m.text}`, 48);
       }
       const quitP = 0.05 + (p.stats.joy < 30 ? 0.12 : 0) + (p.stats.health < 35 ? 0.12 : 0) + (full ? 0.05 : 0);
       if (roll(seed, a, S.lesson + 91) < quitP) {
@@ -1986,13 +1986,13 @@ export function tick(state: GameState, data: CountryData = jpData): GameState {
       bump(p, { joy: -6, bonds: -3 });
     } else if (trustNow < 90 && tenure >= 2 + Math.floor(roll(seed, a, S.job + 43) * 4) && roll(seed, a, S.job + 44) < 0.5) {
       p.office.rank = "former_pm";
-      push("内閣総理大臣を退いた。国のかじ取りの重責から、ようやく解き放たれた", 80);
+      push("内閣総理大臣を退いた。国のかじ取りの重責からようやく解き放たれた", 80);
       bump(p, { health: 2, joy: -3 });
     }
     // 総理として災害に見舞われる(年に約2割)。対応しだいで、信用が大きく動く。
     if (p.office.rank === "pm" && !next.queue.includes("pm_disaster") && roll(seed, a, S.job + 47) < 0.2) {
       next.queue.push("pm_disaster");
-      push("国内で、大きな災害が起きた", 70);
+      push("国内で大きな災害が起きた", 70);
     }
   }
   // ---- 犯罪: 追われる生活・逮捕・裁き・服役・出所 ----
@@ -2011,7 +2011,7 @@ export function tick(state: GameState, data: CountryData = jpData): GameState {
       p.payMult *= 0.8;
       p.history.release = a;
       bump(p, { joy: 3, health: 1 });
-      push(`${yrs}年の刑期を終えて、出所した。前科が知られ、仕事探しは難航し、${title}として、非正規で働きはじめた`, 88);
+      push(`${yrs}年の刑期を終えて出所した。前科が知られ、仕事探しは難航し、${title}として非正規で働きはじめた`, 88);
     }
   } else if (p.crime) {
     const def = CRIMES[p.crime.kind as CrimeId];
@@ -2026,18 +2026,18 @@ export function tick(state: GameState, data: CountryData = jpData): GameState {
         p.payMult *= 0.85;
         if (p.employment === "regular") p.employment = "nonregular";
         bump(p, { bonds: -8, joy: -10, money: -4 });
-        if (p.married && cr() < 0.4) next.later.push({ age: a + 1, event: "前科が知られ、家庭にも亀裂が入り、離婚した", weight: 70, delta: { bonds: -6, joy: -6 }, divorce: true });
+        if (p.married && cr() < 0.4) next.later.push({ age: a + 1, event: "前科が知られ、家庭にも亀裂が入り離婚した", weight: 70, delta: { bonds: -6, joy: -6 }, divorce: true });
       };
       push(`${def.label}の疑いで逮捕された(${def.law})`, 90);
       if (v.kind === "none") {
         p.history.arrested = a;
         bump(p, { bonds: -4, joy: -6 });
         p.extra.trust = Math.max(0, p.extra.trust - 8);
-        push("検察は、起訴を見送った(不起訴・起訴猶予)。前科はつかなかったが、逮捕されたことは、周囲に知られた", 80);
+        push("検察は起訴を見送った(不起訴・起訴猶予)。前科はつかなかったが、逮捕されたことは周囲に知られた", 80);
       } else if (v.kind === "fine") {
         next.wallet.cash = Math.max(0, next.wallet.cash - v.man * 10000);
         rec();
-        push(`略式の手続きで、罰金${v.man}万円の刑に処された。前科がつき、就職や転職、海外への渡航などで、長く不利になる`, 88);
+        push(`略式の手続きで罰金${v.man}万円の刑に処された。前科がつき、就職や転職、海外への渡航などで長く不利になる`, 88);
       } else if (v.kind === "suspended") {
         rec();
         if (p.occ && p.occ !== "retired" && cr() < 0.5) {
@@ -2045,7 +2045,7 @@ export function tick(state: GameState, data: CountryData = jpData): GameState {
           p.job = null;
           push("会社に知られ、解雇された", 70);
         }
-        push(`拘禁刑${v.years}年・執行猶予つきの判決を受けた。刑務所には入らないが、前科がつき、猶予の間に罪を犯せば、実刑になる`, 90);
+        push(`拘禁刑${v.years}年・執行猶予つきの判決を受けた。刑務所には入らないが、前科がつき、猶予の間に罪を犯せば実刑になる`, 90);
       } else {
         rec();
         p.history.prisonFrom = a;
@@ -2054,14 +2054,14 @@ export function tick(state: GameState, data: CountryData = jpData): GameState {
           p.occ = null;
           p.job = null;
         }
-        push(`拘禁刑${v.years}年の実刑判決を受け、刑務所に入った。仕事も、暮らしも、失った`, 95);
+        push(`拘禁刑${v.years}年の実刑判決を受け、刑務所に入った。仕事も暮らしも失った`, 95);
       }
       p.crime = null;
     } else if (a > p.crime.until) {
       p.crime = null;
       bump(p, { joy: 5 });
       p.extra.stress = Math.max(0, p.extra.stress - 15);
-      push("公訴時効が成立し、罪に問われることはなくなった。長く続いた追われる日々が、ようやく終わった", 80);
+      push("公訴時効が成立し、罪に問われることはなくなった。長く続いた追われる日々がようやく終わった", 80);
     } else {
       bump(p, { joy: -3, bonds: -2 });
       p.extra.stress = Math.min(100, p.extra.stress + 6);
@@ -2084,7 +2084,7 @@ export function tick(state: GameState, data: CountryData = jpData): GameState {
   if (p.job === "athlete" && p.occ && p.occ !== "retired" && a >= 15 && a <= 44 && next.queue.length === 0) {
     if (!p.sport) {
       next.queue.push("athlete_sport");
-      push("選手として、どの競技に打ちこむかを、決めるときが来た", 55);
+      push("どの競技に打ちこむか決めよう", 55);
     } else {
       const sp = sportById(p.sport);
       const year = (p.birthYear ?? 0) + a;
@@ -2107,7 +2107,7 @@ export function tick(state: GameState, data: CountryData = jpData): GameState {
         p.office.since = a;
         p.office.terms = (p.office.terms ?? 1) + 1;
         bump(p, { bonds: 3, joy: 5 });
-        push(`${od.label}の選挙で再選され、もう一期、務めることになった`, 66);
+        push(`${od.label}の選挙で再選され、もう一期務めることになった`, 66);
         // 国会議員は、当選を重ねると、ごくまれに大臣になり、さらにまれに、内閣総理大臣になる(運しだい)。
         if (od.id === "lower" || od.id === "upper") {
           const o = p.office;
@@ -2174,7 +2174,7 @@ export function tick(state: GameState, data: CountryData = jpData): GameState {
         p.jobOfferFactor = drawChangeFactor(r);
         p.jobOffer = target;
         p.jobOfferJob = pool[Math.floor(r() * pool.length)].id;
-        push(`${jobById(p.jobOfferJob)?.title ?? data.occLabel[target]}への、転職の話が出た`, 56);
+        push(`${jobById(p.jobOfferJob)?.title ?? data.occLabel[target]}への転職の話が出た`, 56);
         next.queue.push("job_change");
       }
     }

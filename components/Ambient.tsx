@@ -632,15 +632,40 @@ function EdgeBuilding({ phase }: { phase: Phase }) {
   );
 }
 
+// 見えている街の層だけ、動かす。見えなくなった層は、色が入れ替わる時間(最長13.5秒)がすぎたら、display:none にして、
+// 中の動き(窓のちらつき・ランプ・観覧車・電車)を止める。見た目は、変わらない(透明のまま、動いていただけ)。
+function SkyLayer({ on, ease, children }: { on: boolean; ease: string; children: React.ReactNode }) {
+  const [show, setShow] = useState(on);
+  const [lit, setLit] = useState(on);
+  useEffect(() => {
+    if (on) {
+      // display:none から、出てくるときは、まず、透明のまま出して、次のフレームから、色を入れ替える(いきなり、現れないように)。
+      setShow(true);
+      const t = window.setTimeout(() => setLit(true), 40);
+      return () => window.clearTimeout(t);
+    }
+    setLit(false);
+    const t = window.setTimeout(() => setShow(false), 14000);
+    return () => window.clearTimeout(t);
+  }, [on]);
+  return (
+    <div className="absolute inset-0" style={{ opacity: lit ? 1 : 0, transition: `opacity ${ease}`, willChange: "opacity", display: show ? undefined : "none" }}>
+      {children}
+    </div>
+  );
+}
+
 function Skyline({ phase, ease }: { phase: Phase; ease: string }) {
-  const layer = (p: Phase, on: boolean) => ({ opacity: on ? 1 : 0, transition: `opacity ${ease}`, willChange: "opacity" as const, ...(p ? {} : {}) });
+  const glowOn = phase !== "day";
+  const nightOn = phase === "night" || phase === "dawn";
+  const duskOn = phase === "dusk"; // (朝焼けのあいだは、これまでも、夕の層は、出ていなかった)
   return (
     <div className="absolute inset-x-0 bottom-0 h-[30vh] min-h-44 w-full">
-      <div className="absolute inset-0" style={layer("night", phase !== "day")}><SkylineImg phase="night" mode="glow" /></div>
+      <div className="absolute inset-0" style={{ opacity: glowOn ? 1 : 0, transition: `opacity ${ease}`, willChange: "opacity" }}><SkylineImg phase="night" mode="glow" /></div>
       {/* 夜の街は、昼のあいだは、見えなくする(昼の街の屋上から、夜の赤いランプが、はみ出して、見えてしまうため)。ほかの層と同じ時間で、ゆっくり入れ替える(灯りが、急に消えたり、点いたりしないように) */}
-      <div className="absolute inset-0" style={{ opacity: phase === "night" || phase === "dawn" ? 1 : 0, transition: `opacity ${ease}` }}><SkylineImg phase="night" mode="city" /><EdgeBuilding phase="night" /></div>
-      <div className="absolute inset-0" style={layer("dusk", phase === "dusk" || phase === "dawn")}><SkylineImg phase="dusk" mode="all" /><EdgeBuilding phase="dusk" /></div>
-      <div className="absolute inset-0" style={layer("day", phase === "day")}><SkylineImg phase="day" mode="all" /><EdgeBuilding phase="day" /></div>
+      <SkyLayer on={nightOn} ease={ease}><SkylineImg phase="night" mode="city" /><EdgeBuilding phase="night" /></SkyLayer>
+      <SkyLayer on={duskOn} ease={ease}><SkylineImg phase="dusk" mode="all" /><EdgeBuilding phase="dusk" /></SkyLayer>
+      <SkyLayer on={phase === "day"} ease={ease}><SkylineImg phase="day" mode="all" /><EdgeBuilding phase="day" /></SkyLayer>
     </div>
   );
 }

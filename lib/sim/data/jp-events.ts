@@ -77,12 +77,12 @@ const ev = (id: string, weight: AutoEvent["weight"], apply: AutoEvent["apply"], 
 
 export const lifeEvents: AutoEvent[] = [
   // ---- 体調・けが ----
-  ev("cold", (p) => (p.age >= 1 ? 3.5 * hg(p) : 0), (s) => (bump(s.person, { health: -2 }), "風邪をひいて、数日寝込んだ"), 30),
+  ev("cold", (p) => (p.age >= 1 ? 3.5 * hg(p) : 0), (s) => (bump(s.person, { health: -2 }), "風邪をひいて数日寝込んだ"), 30),
   ev("flu", (p) => (p.age >= 2 ? 1.6 * hg(p) : 0), (s) => (bump(s.person, { health: -3 }), "インフルエンザにかかり、しばらく休んだ"), 32),
   ev("injury", (p) => (inAge(p, 5, 75) ? 1.3 * hg(p) : 0), (s, r) => {
     bump(s.person, { health: -6 });
     needTreat(s, 1 + r() * 3, "けがの治療が必要になった");
-    return pickOne(r, ["転んで、足を骨折した", "スポーツ中にけがをして、しばらく通院した", "階段から落ちて、腕を痛めた"]);
+    return pickOne(r, ["転んで足を骨折した", "スポーツ中にけがをしてしばらく通院した", "階段から落ちて腕を痛めた"]);
   }, 45),
   ev("checkup", (p) => (p.age >= 40 ? 1.4 : 0), (s, r) => {
     if (r() < 0.6) return "健康診断で再検査と言われたが、異常はなかった";
@@ -94,9 +94,9 @@ export const lifeEvents: AutoEvent[] = [
   ev("hospital", (p) => (p.age >= 30 ? 0.7 * hg(p) * 2 : 0), (s, r) => {
     const p = s.person;
     bump(p, { health: -5, joy: -6 });
-    needTreat(s, 2 + r() * 6, "入院して、治療を受けるかを、決めるときがきた");
-    const reason = recent(p, "overtime", 2) ? "過労がたたって" : p.condition !== "none" ? "持病が悪化して" : p.age >= 60 ? "年齢による体の衰えから" : pickOne(r, ["急な発熱と痛みで", "検査で異常が見つかり", "無理が重なった体が、悲鳴をあげて"]);
-    return `${reason}、体調を崩して、入院することになった`;
+    needTreat(s, 2 + r() * 6, "入院して治療を受けるかを決めるときがきた");
+    const reason = recent(p, "overtime", 2) ? "過労がたたって" : p.condition !== "none" ? "持病が悪化して" : p.age >= 60 ? "年齢による体の衰えから" : pickOne(r, ["急な発熱と痛みで", "検査で異常が見つかり", "無理が重なった体が悲鳴をあげて"]);
+    return `${reason}、体調を崩して入院することになった`;
   }, 55),
   ev("burnout", (p) => (working(p) && p.stats.health < 58 ? 1.0 * hg(p) * 2 : 0), (s) => {
     const p = s.person;
@@ -110,8 +110,8 @@ export const lifeEvents: AutoEvent[] = [
     const reason = recent(p, "parentDied", 2) ? "大切な人を失った悲しみが癒えず" : recent(p, "breakup", 2) ? "別れの痛手が癒えず" : recent(p, "bully", 3) ? "いじめの傷が残ったまま" : p.stats.bonds < 30 ? "話せる相手がいない孤独のなかで" : "つながりの薄さを感じ続けて";
     return `${reason}、気持ちが沈む日が続き、休養が必要になった`;
   }, 55),
-  ev("heat", (p) => (inAge(p, 1, 90) ? 0.7 : 0), (s) => (bump(s.person, { health: -2 }), "記録的な猛暑で、体調を崩した"), 28),
-  ev("jogging", (p) => (inAge(p, 15, 70) ? 1.0 : 0), (s) => (bump(s.person, { health: 4 }), "朝の散歩やジョギングが、習慣になった"), 30),
+  ev("heat", (p) => (inAge(p, 1, 90) ? 0.7 : 0), (s) => (bump(s.person, { health: -2 }), "記録的な猛暑で体調を崩した"), 28),
+  ev("jogging", (p) => (inAge(p, 15, 70) ? 1.0 : 0), (s) => (bump(s.person, { health: 4 }), "朝の散歩やジョギングが習慣になった"), 30),
   ev("legs", (p) => (p.age >= 68 ? 2.0 : 0), (s) => (bump(s.person, { health: -3 }), "足腰が弱ってきたと感じるようになった"), 40),
 
   // ---- 男女で、ちがう体の節目 ----
@@ -120,13 +120,13 @@ export const lifeEvents: AutoEvent[] = [
     mark(p, "menopause");
     bump(p, { health: -4, joy: -5 });
     p.extra.stress = Math.min(100, p.extra.stress + 8);
-    return "更年期のゆらぎで、ほてりや気分の落ち込みに、悩まされるようになった";
+    return "更年期のゆらぎで、ほてりや気分の落ち込みに悩まされるようになった";
   }, 44),
   ev("prostate", (p) => (p.sex === "male" && inAge(p, 55, 78) && !p.history.prostate ? 0.45 : 0), (s) => {
     const p = s.person;
     mark(p, "prostate");
     bump(p, { health: -2, joy: -2 });
-    return "健康診断で、前立腺の数値を指摘され、定期的に通院することになった";
+    return "健康診断で前立腺の数値を指摘され、定期的に通院することになった";
   }, 42),
 
   // ---- 子どもの時代・学校 ----
@@ -137,8 +137,8 @@ export const lifeEvents: AutoEvent[] = [
     s.later.push({ age: p.age + 2, event: "支えてくれる友だちに出会い、少しずつ元気を取り戻した", weight: 55, delta: { bonds: 6, health: 3, joy: 8 } });
     if (!s.queue.includes("bully_help")) s.queue.push("bully_help");
     // きっかけ(理由)も、あわせて残す。
-    const trigger = p.history.transfer !== undefined && recent(p, "transfer", 1) ? "転校してきたばかりで、なじめないまま" : pickOne(r, ["ささいな言い争いがきっかけで", "目立つことをしたのを、ねたまれて", "はっきりした理由のないまま、空気が変わって", "グループの仲たがいに巻き込まれて", "いつも一緒だった友だちに、突然、距離を置かれて"]);
-    const form = pickOne(r, ["クラスで無視されるようになり", "持ち物を隠されたり、からかわれたりして", ...(yearOf(p) >= SINCE.sns ? ["SNSで悪口を書かれ"] : ["黒板や机に、悪口を書かれ"]), "仲間はずれにされ"]);
+    const trigger = p.history.transfer !== undefined && recent(p, "transfer", 1) ? "転校してきたばかりで、なじめないまま" : pickOne(r, ["ささいな言い争いがきっかけで", "目立つことをしたのをねたまれて", "はっきりした理由のないまま空気が変わって", "グループの仲たがいに巻き込まれて", "いつも一緒だった友だちに、突然距離を置かれて"]);
+    const form = pickOne(r, ["クラスで無視されるようになり", "持ち物を隠されたりからかわれたりして", ...(yearOf(p) >= SINCE.sns ? ["SNSで悪口を書かれ"] : ["黒板や机に悪口を書かれ"]), "仲間はずれにされ"]);
     return `${trigger}、${form}、学校に行くのがつらくなった`;
   }, 64),
   ev("bystander", (p) => (inAge(p, 8, 17) ? 0.6 : 0), (s) => (bump(s.person, { bonds: -1, joy: -3 }), "同じクラスの子がいじめられているのを見て、胸が痛んだ"), 40),
@@ -146,10 +146,10 @@ export const lifeEvents: AutoEvent[] = [
   ev("truancy", (p) => (inAge(p, 10, 17) ? 0.5 : 0), (s, r) => {
     const p = s.person;
     let reason: string;
-    if (recent(p, "bully", 3)) reason = "いじめを受けた恐怖で、教室に入れなくなり";
+    if (recent(p, "bully", 3)) reason = "いじめを受けた恐怖で教室に入れなくなり";
     else if (p.stats.health < 50) reason = "体調がすぐれず、朝になると体が動かず";
     else if (p.stats.joy < 35) reason = "気持ちが落ち込み、学校に行く気力がわかず";
-    else if (recent(p, "parentIll", 2)) reason = "親の病気が心配で、家を離れられず";
+    else if (recent(p, "parentIll", 2)) reason = "親の病気が心配で家を離れられず";
     else if (recent(p, "cram", 2)) reason = "受験のプレッシャーに押しつぶされそうになり";
     else reason = pickOne(r, ["クラスに居場所を感じられず", "環境の変化についていけず", "朝になると頭やお腹が痛くなり"]);
     bump(p, { learn: -3, bonds: -2, joy: -9 });
@@ -160,9 +160,9 @@ export const lifeEvents: AutoEvent[] = [
     const c = compat(s.person.mbti, f);
     const nm = friendName(s.person, "best", r, d);
     bump(s.person, { bonds: c >= 62 ? 7 : 5, joy: c >= 80 ? 3 : 0 });
-    return `${nm}という、${typeCall(f)}の、親友と呼べる友だちができた${s.person.mbti ? `(相性 ${compatMark(c)})` : ""}`;
+    return `${nm}という、${typeCall(f)}の親友と呼べる友だちができた${s.person.mbti ? `(相性 ${compatMark(c)})` : ""}`;
   }, 50),
-  ev("first_love", (p) => (inAge(p, 12, 19) ? 1.2 : 0), (s) => (bump(s.person, { bonds: 3 }), "はじめて、誰かを好きになった"), 50),
+  ev("first_love", (p) => (inAge(p, 12, 19) ? 1.2 : 0), (s) => (bump(s.person, { bonds: 3 }), "はじめて誰かを好きになった"), 50),
   ev("sports_day", (p) => (inAge(p, 6, 15) ? 1.2 : 0), (s) => (bump(s.person, { health: 2, bonds: 3 }), "運動会で活躍して、みんなに驚かれた"), 35),
   ev("teacher", (p) => (inAge(p, 8, 18) ? 1.0 : 0), (s) => (bump(s.person, { learn: 4 }), "心に残る先生に出会った"), 45),
   ev("cram", (p) => (inAge(p, 14, 18) ? 1.2 : 0), (s, r) => {
@@ -170,7 +170,7 @@ export const lifeEvents: AutoEvent[] = [
     mark(s.person, "cram");
     return pickOne(r, ["志望校に届くかどうか不安で、受験勉強に追われる日々が続いた", "周りが次々に塾へ通い始めたのに焦り、受験勉強に追われた", "親の期待を重く感じながら、受験勉強に追われた"]);
   }, 38),
-  ev("transfer_school", (p) => (inAge(p, 6, 15) ? 0.5 : 0), (s, r) => ["親の転勤で、転校することになった", ...moveAftermath(s.person, r)], 45),
+  ev("transfer_school", (p) => (inAge(p, 6, 15) ? 0.5 : 0), (s, r) => ["親の転勤で転校することになった", ...moveAftermath(s.person, r)], 45),
   ev("contest", (p) => (inAge(p, 8, 18) ? 0.8 : 0), (s) => (bump(s.person, { learn: 3, bonds: 2 }), "作文や絵のコンクールで入賞した"), 42),
   ev("club_win", (p) => (inAge(p, 12, 17) ? 0.8 : 0), (s) => (bump(s.person, { health: 2, bonds: 4 }), "部活の大会で、県の舞台に立った"), 42),
 
@@ -192,12 +192,12 @@ export const lifeEvents: AutoEvent[] = [
       return "昇進して、課長や部長など、部下をもつ立場になった";
     }
     void d;
-    return "昇格して、役職がついた";
+    return "昇格して役職がついた";
   }, 62),
   ev("demotion", (p, e) => (hasBoss(p) && !ladderOf(p) && p.employment === "regular" && p.age >= 35 ? 0.35 + (e < -0.4 ? 0.5 : 0) + (p.stats.health < 45 ? 0.3 : 0) : 0), (s) => {
     const p = s.person;
     bump(p, { money: -3, bonds: -2, joy: -7 });
-    const reason = p.econ < -0.4 ? "不況で会社の業績が悪化し" : p.stats.health < 45 ? "体調不良で、思うように成果が出せず" : recent(p, "conflict", 3) ? "職場でのいざこざが評価に響き" : "ミスが重なり、評価が下がって";
+    const reason = p.econ < -0.4 ? "不況で会社の業績が悪化し" : p.stats.health < 45 ? "体調不良で思うように成果が出せず" : recent(p, "conflict", 3) ? "職場でのいざこざが評価に響き" : "ミスが重なり評価が下がって";
     if (p.occ === "mgmt" && p.prev) {
       p.occ = p.prev.occ;
       p.job = p.prev.job;
@@ -209,8 +209,8 @@ export const lifeEvents: AutoEvent[] = [
     return `${reason}、降格となって給料が下がった`;
   }, 62),
   ev("raise", (p, e) => (working(p) && p.employment === "regular" ? 1.4 * (e > 0 ? 1.5 : 0.8) : 0), (s) => (s.person.payMult *= 1.012, "給料が上がった"), 38),
-  ev("bonus_cut", (p, e) => (working(p) && p.employment === "regular" && e < -0.4 ? 1.8 : 0), (s) => (bump(s.person, { money: -3 }), "不況で、ボーナスが減らされた"), 45),
-  ev("transfer", (p) => (hasBoss(p) && p.employment === "regular" && p.firm !== "small" && inAge(p, 26, 56) ? 1.0 : 0), (s) => (bump(s.person, { learn: 2, bonds: -1 }), "異動で、新しい部署に移った"), 38),
+  ev("bonus_cut", (p, e) => (working(p) && p.employment === "regular" && e < -0.4 ? 1.8 : 0), (s) => (bump(s.person, { money: -3 }), "不況でボーナスが減らされた"), 45),
+  ev("transfer", (p) => (hasBoss(p) && p.employment === "regular" && p.firm !== "small" && inAge(p, 26, 56) ? 1.0 : 0), (s) => (bump(s.person, { learn: 2, bonds: -1 }), "異動で新しい部署に移った"), 38),
   ev("overtime", (p) => (working(p) && p.age < 60 ? 1.6 : 0), (s, r) => {
     const p = s.person;
     bump(p, { health: -3, money: 1 });
@@ -230,7 +230,7 @@ export const lifeEvents: AutoEvent[] = [
   ev("mentor", (p) => (hasBoss(p) && inAge(p, 28, 55) ? 1.0 : 0), (s) => (bump(s.person, { learn: 2, bonds: 2 }), "後輩の指導を任された"), 38),
   ev("colleague_left", (p) => (hasBoss(p) ? 1.0 : 0), (s, r) => {
     bump(s.person, { bonds: -2 });
-    return `${pickOne(r, ["キャリアアップを目指して", "家庭の事情で", "職場の雰囲気に疲れて", "地元に戻ることになって"])}、仲のよかった同僚が、会社を去っていった`;
+    return `${pickOne(r, ["キャリアアップを目指して", "家庭の事情で", "職場の雰囲気に疲れて", "地元に戻ることになって"])}、仲のよかった同僚が会社を去っていった`;
   }, 35),
   ev("power_harass", (p) => (hasBoss(p) && p.age < 60 ? 0.5 * (isT(p.npc?.boss) && isJ(p.npc?.boss) ? 1.8 : p.npc?.boss?.[2] === "F" ? 0.5 : 1) * clash(bossCompat(p)) : 0), (s, r) => {
     const p = s.person;
@@ -264,10 +264,10 @@ export const lifeEvents: AutoEvent[] = [
     const c = compat(p.mbti, inlaw);
     if (c >= 80) {
       bump(p, { bonds: 3, joy: 3 });
-      return `${typeCall(inlaw)}の義理の家族に、温かく迎えられ、居心地のよい関係が築けた`;
+      return `${typeCall(inlaw)}の義理の家族に温かく迎えられ、居心地のよい関係が築けた`;
     }
     bump(p, { bonds: c < 48 ? -3 : -1, joy: c < 48 ? -4 : 0 });
-    return c < 48 ? `${typeCall(inlaw)}の義理の家族と、考え方が合わず、気をつかう日々が続いた` : "義理の家族との関係に、気をつかう日々が続いた";
+    return c < 48 ? `${typeCall(inlaw)}の義理の家族と考え方が合わず、気をつかう日々が続いた` : "義理の家族との関係に気をつかう日々が続いた";
   }, 34),
   // 恋人・配偶者のタイプによる、日々のちがい。
   ev("partner_trait", (p) => ((p.partner?.status === "dating" || p.partner?.status === "married") && p.partner.mbti ? 0.9 : 0), (s, r) => {
@@ -277,10 +277,10 @@ export const lifeEvents: AutoEvent[] = [
     const c = partnerCompat(p);
     const warm = c >= 62 ? 1 : 0;
     const lines: [string, () => void][] = [
-      [isE(m) ? `${who}の誘いで、友人たちを招き、にぎやかな食卓になった` : `${who}と、家で静かに過ごす休日が、心地よかった`, () => bump(p, isE(m) ? { bonds: 3 + warm, joy: 2 } : { joy: 4 + warm, health: 1 })],
-      [m[3] === "J" ? `${who}と一緒に、家計と予定を整理した` : `${who}の思いつきで、予定のない小旅行に出かけた`, () => (m[3] === "J" ? bump(p, { money: 2, joy: 1 }) : (money(s, -2), bump(p, { joy: 5, bonds: 2 })))],
-      [m[2] === "F" ? `${who}が、話をじっくり聞いてくれて、気持ちが軽くなった` : `${who}の冷静な助言で、悩みごとが整理できた`, () => bump(p, m[2] === "F" ? { joy: 5, bonds: 2 } : { joy: 2, learn: 1, money: 1 })],
-      [isN(m) ? `${who}と、将来の夢について、夜遅くまで語り合った` : `${who}と、いまの暮らしを大切にする時間を過ごした`, () => bump(p, isN(m) ? { learn: 1, joy: 3, bonds: 2 } : { joy: 3, health: 1, bonds: 2 })],
+      [isE(m) ? `${who}の誘いで友人たちを招き、にぎやかな食卓になった` : `${who}と、家で静かに過ごす休日が心地よかった`, () => bump(p, isE(m) ? { bonds: 3 + warm, joy: 2 } : { joy: 4 + warm, health: 1 })],
+      [m[3] === "J" ? `${who}と一緒に家計と予定を整理した` : `${who}の思いつきで、予定のない小旅行に出かけた`, () => (m[3] === "J" ? bump(p, { money: 2, joy: 1 }) : (money(s, -2), bump(p, { joy: 5, bonds: 2 })))],
+      [m[2] === "F" ? `${who}が話をじっくり聞いてくれて、気持ちが軽くなった` : `${who}の冷静な助言で、悩みごとが整理できた`, () => bump(p, m[2] === "F" ? { joy: 5, bonds: 2 } : { joy: 2, learn: 1, money: 1 })],
+      [isN(m) ? `${who}と、将来の夢について夜遅くまで語り合った` : `${who}と、いまの暮らしを大切にする時間を過ごした`, () => bump(p, isN(m) ? { learn: 1, joy: 3, bonds: 2 } : { joy: 3, health: 1, bonds: 2 })],
     ];
     const [text, fx] = pickOne(r, lines);
     fx();
@@ -294,14 +294,14 @@ export const lifeEvents: AutoEvent[] = [
     const call = `${typeCall(boss)}の上司`;
     if (boss[2] === "F") {
       bump(p, { bonds: 3, joy: 4 + (c >= 62 ? 2 : 0) });
-      return `${call}が、親身に相談にのってくれ、働きやすい日々が続いた`;
+      return `${call}が親身に相談にのってくれ、働きやすい日々が続いた`;
     }
     if (isJ(boss)) {
       bump(p, { learn: 2, health: -1, money: c >= 62 ? 2 : 0 });
-      return `${call}に、段取りと期限の大切さを、きびしく教え込まれた`;
+      return `${call}に段取りと期限の大切さをきびしく教え込まれた`;
     }
     bump(p, { learn: 2, joy: c >= 62 ? 3 : -1 });
-    return `${call}が、細かいことは任せてくれて、自分のやり方で仕事を進められた`;
+    return `${call}が細かいことは任せてくれて、自分のやり方で仕事を進められた`;
   }, 36),
   // 友人のタイプによる、つきあいのちがい。
   ev("friend_trait", (p) => (inAge(p, 10, 85) ? 0.8 : 0), (s, r, d) => {
@@ -314,35 +314,35 @@ export const lifeEvents: AutoEvent[] = [
     }
     if (isN(f)) {
       bump(p, { learn: 2, joy: 2, bonds: 2 });
-      return `${call}が、思いもよらなかった考え方を教えてくれた`;
+      return `${call}が思いもよらなかった考え方を教えてくれた`;
     }
     if (f[2] === "F") {
       bump(p, { joy: 5, bonds: 2 });
-      return `${call}が、つらい気持ちを、静かに聞いてくれた`;
+      return `${call}がつらい気持ちを静かに聞いてくれた`;
     }
     bump(p, { bonds: 2, money: 1 });
-    return `${call}が、実務的に、こまごまと助けてくれた`;
+    return `${call}が実務的にこまごまと助けてくれた`;
   }, 34),
   ev("home_visit", (p) => (inAge(p, 20, 80) && !p.withParents && p.age < Math.max(p.parentDeath.mother, p.parentDeath.father) ? 1.0 : 0), (s) => (bump(s.person, { bonds: 3 }), "久しぶりに実家に帰り、家族と食卓を囲んだ"), 32),
 
   // ---- 友人 ----
   ev("friend_wedding", (p) => (inAge(p, 24, 40) ? 2.4 : 0), (s, r, d) => (money(s, -3), bump(s.person, { bonds: 2 }), `友人の${friendName(s.person, "friend", r, d)}の結婚式に招かれた(ご祝儀3万円)`), 42),
-  ev("reunion", (p) => (inAge(p, 25, 75) ? 1.2 : 0), (s) => (bump(s.person, { bonds: 3 }), "同窓会で、懐かしい顔ぶれと再会した"), 38),
+  ev("reunion", (p) => (inAge(p, 25, 75) ? 1.2 : 0), (s) => (bump(s.person, { bonds: 3 }), "同窓会で懐かしい顔ぶれと再会した"), 38),
   ev("friend_fight", (p) => (inAge(p, 12, 70) ? 0.6 * clash(friendCompat(p)) : 0), (s, r, d) => {
     const friend = npcMbti(s.person, "friend", r);
     bump(s.person, { bonds: -3, joy: -4 });
-    return `${pickOne(r, ["ささいな言い違いがきっかけで", "お金の貸し借りがもとで", "価値観のちがいが表に出て", "長く連絡をとらずにいたうちに"])}、親しい${typeCall(friend)}の友人の${friendName(s.person, "friend", r, d)}と、気まずくなってしまった`;
+    return `${pickOne(r, ["ささいな言い違いがきっかけで", "お金の貸し借りがもとで", "価値観のちがいが表に出て", "長く連絡をとらずにいたうちに"])}、親しい${typeCall(friend)}の友人の${friendName(s.person, "friend", r, d)}と気まずくなってしまった`;
   }, 38),
   ev("friend_passed", (p) => (p.age >= 42 ? 0.8 + (p.age - 42) * 0.03 : 0), (s, r, d) => (bump(s.person, { bonds: -3, health: -1, joy: -6 }), `旧友の${friendName(s.person, "old", r, d)}の訃報が届いた`), 55),
   ev("friend_success", (p) => (inAge(p, 25, 60) ? 0.7 : 0), (s, r, d) => (bump(s.person, { bonds: 1, learn: 1 }), `友人の${friendName(s.person, "friend", r, d)}が、仕事で大きな成功をおさめたと聞いた`), 34),
-  ev("neighbor", (p) => (p.age >= 22 ? 0.5 : 0), (s) => (bump(s.person, { bonds: -1 }), "近所づきあいで、小さなトラブルがあった"), 32),
+  ev("neighbor", (p) => (p.age >= 22 ? 0.5 : 0), (s) => (bump(s.person, { bonds: -1 }), "近所づきあいで小さなトラブルがあった"), 32),
 
   // ---- 恋愛 ----
   ev("crush", (p) => (!p.married && inAge(p, 16, 45) && (!p.partner || p.partner.status === "ex") ? 1.2 : 0), (s, r, d) => {
     const p = s.person;
     p.partner = randomPartner(r, d, p.age, "crush", p.mbti, p);
     bump(p, { bonds: 2 });
-    return `気になる人ができた。${typeCall(p.partner.mbti)}の${fullName(p.partner)}さんのことが、気になりはじめた${p.mbti && p.partner.mbti ? `(相性 ${compatMark(compat(p.mbti, p.partner.mbti))} ${compat(p.mbti, p.partner.mbti)}%)` : ""}`;
+    return `気になる人ができた。${typeCall(p.partner.mbti)}の${fullName(p.partner)}さんのことが気になりはじめた${p.mbti && p.partner.mbti ? `(相性 ${compatMark(compat(p.mbti, p.partner.mbti))} ${compat(p.mbti, p.partner.mbti)}%)` : ""}`;
   }, 42),
   ev("breakup", () => 0, (s, r) => {
     const p = s.person;
@@ -350,7 +350,7 @@ export const lifeEvents: AutoEvent[] = [
     mark(p, "breakup");
     const who = p.partner ? `${p.partner.given}さん` : "恋人";
     if (p.partner) p.partner.status = "ex";
-    return `${pickOne(r, ["すれ違いが続き", "仕事の忙しさで会えない日が重なり", "価値観のちがいが大きくなり", "遠距離になって、気持ちが離れ", "将来の考え方が合わず"])}、長くつきあった${who}と、別れた`;
+    return `${pickOne(r, ["すれ違いが続き", "仕事の忙しさで会えない日が重なり", "価値観のちがいが大きくなり", "遠距離になって気持ちが離れ", "将来の考え方が合わず"])}、長くつきあった${who}と別れた`;
   }, 50),
   ev("spouse_cheat", (p) => (p.married && inAge(p, 28, 58) ? 0.28 * clash(partnerCompat(p)) * (isE(p.partner?.mbti) ? 1.3 : 0.85) : 0), (s, r) => {
     const p = s.person;
@@ -358,7 +358,7 @@ export const lifeEvents: AutoEvent[] = [
     if (r() < 0.5) {
       s.later.push({ age: p.age + 1, event: "話し合いを重ねたが、離婚を選んだ", weight: 62, delta: { bonds: -4, money: -4 } });
       p.marriageBias = 0.4;
-    } else s.later.push({ age: p.age + 1, event: "時間をかけて、関係を立て直そうとした", weight: 50, delta: { bonds: 3 } });
+    } else s.later.push({ age: p.age + 1, event: "時間をかけて関係を立て直そうとした", weight: 50, delta: { bonds: 3 } });
     return `${partnerCall(p)}の浮気が発覚し、家庭が大きく揺れた`;
   }, 66),
 
@@ -389,7 +389,7 @@ export const lifeEvents: AutoEvent[] = [
   ev("bike_stolen", (p) => (inAge(p, 8, 60) ? 0.5 : 0), (s) => (money(s, -2), "自転車を盗まれた"), 28),
 
   // ---- 災害・天候 ----
-  ev("typhoon", (p) => 0.35 * rural(p), (s, r) => (homeMoney(s, r, -(1 + r() * 4)), "台風で、停電や浸水の被害があった"), 44),
+  ev("typhoon", (p) => 0.35 * rural(p), (s, r) => (homeMoney(s, r, -(1 + r() * 4)), "台風で停電や浸水の被害があった"), 44),
   ev("snowstorm", (p) => (p.region === "rural" || p.region === "local" ? 0.45 : 0.1), (s) => (bump(s.person, { health: -1 }), "記録的な大雪で、暮らしが止まった"), 38),
   ev("quake", () => 0.22, (s, r) => (bump(s.person, { health: -2, bonds: 2 }), homeMoney(s, r, -(1 + r() * 5)), "大きな地震が起き、避難生活を送った"), 62),
 
@@ -417,7 +417,7 @@ export const lifeEvents: AutoEvent[] = [
     addDebt(s, lender, amt);
     s.wallet.cash += amt;
     bump(p, { money: -5, health: -2, joy: -9 });
-    return lender === "card" ? "生活が苦しく、カードローンに頼って、借金をした" : "生活が苦しく、知人にお金を借りた";
+    return lender === "card" ? "生活が苦しく、カードローンに頼って借金をした" : "生活が苦しく、知人にお金を借りた";
   }, 55),
 
   // ---- 現実的な災厄(お金が足りなければ、借金になる) ----
@@ -427,13 +427,13 @@ export const lifeEvents: AutoEvent[] = [
     mark(s.person, "catastrophe");
     homeMoney(s, r, -loss);
     bump(s.person, { joy: -12, health: -2, bonds: 1 });
-    return pickOne(r, ["火事で、家の一部が焼けてしまった", "隣家からの火事がうつり、家が焼けてしまった"]);
+    return pickOne(r, ["火事で家の一部が焼けてしまった", "隣家からの火事がうつり、家が焼けてしまった"]);
   }, 68),
   ev("flood", (p) => (p.age >= 8 && !p.history.catastrophe ? 0.03 * rural(p) : 0), (s, r) => {
     mark(s.person, "catastrophe");
     homeMoney(s, r, -(10 + r() * 30));
     bump(s.person, { joy: -6, health: -1 });
-    return "豪雨で川があふれ、家が浸水して、家財の多くがだめになった";
+    return "豪雨で川があふれ、家が浸水して家財の多くがだめになった";
   }, 62),
   ev("pandemic", () => 0.12, (s, r) => {
     const p = s.person;
@@ -442,7 +442,7 @@ export const lifeEvents: AutoEvent[] = [
       p.payMult *= 0.94;
       money(s, -(5 + r() * 25));
     }
-    return "感染症が広がり、人と会えない日々のなかで、仕事も暮らしも大きく変わった";
+    return "感染症が広がり、人と会えない日々のなかで仕事も暮らしも大きく変わった";
   }, 60),
   ev("company_bankrupt", (p, e) => (working(p) && p.sector === "private" && p.employment === "regular" && p.firm === "small" && e < -0.2 ? 0.5 : 0), (s, r) => {
     const p = s.person;
@@ -451,7 +451,7 @@ export const lifeEvents: AutoEvent[] = [
     money(s, -(10 + r() * 30));
     bump(p, { money: -6, joy: -10, bonds: -2 });
     mark(p, "layoff");
-    return "勤め先が倒産し、給料の未払いを抱えたまま、職を失った";
+    return "勤め先が倒産し、給料の未払いを抱えたまま職を失った";
   }, 68),
   ev("guarantor", (p) => (inAge(p, 28, 60) ? 0.04 : 0), (s, r) => {
     const loss = 30 + r() * 120;
@@ -490,7 +490,7 @@ export const lifeEvents: AutoEvent[] = [
     // 高額療養費制度があるため、自己負担には上限がある。差額ベッド代や通院の費用などが重なる。
     needTreat(s, 10 + r() * 40, "大きな病気の治療が必要になった");
     bump(s.person, { health: -3, joy: -6 });
-    return "大きな病気の治療費が、かさんだ";
+    return "大きな病気の治療費がかさんだ";
   }, 60),
   ev("gambling", (p) => (inAge(p, 20, 60) && p.stats.joy < 45 ? 0.1 : 0), (s, r) => {
     money(s, -(20 + r() * 100));
@@ -500,11 +500,11 @@ export const lifeEvents: AutoEvent[] = [
 
   // ---- 海外暮らし ----
   ev("abroad_language", (p) => (p.abroad && p.age - p.abroad.since <= 2 ? 2.2 : 0), (s, r) => (bump(s.person, { learn: 1, joy: -3 }), pickOne(r, ["言葉の壁にぶつかり、思うように気持ちが伝わらず、悔しい思いをした", "現地の言葉で電話をかけるのが怖く、役所の手続きに半日かかった"])), 48),
-  ev("abroad_homesick", (p) => (p.abroad ? 1.2 : 0), (s) => (bump(s.person, { joy: -5, bonds: -1 }), "日本の味と、家族の声が恋しくなり、ホームシックになった"), 46),
-  ev("abroad_friend", (p) => (p.abroad ? 1.3 : 0), (s) => (bump(s.person, { bonds: 4, joy: 4 }), "現地の友人ができ、休日に、街を案内してもらった"), 46),
+  ev("abroad_homesick", (p) => (p.abroad ? 1.2 : 0), (s) => (bump(s.person, { joy: -5, bonds: -1 }), "日本の味と家族の声が恋しくなり、ホームシックになった"), 46),
+  ev("abroad_friend", (p) => (p.abroad ? 1.3 : 0), (s) => (bump(s.person, { bonds: 4, joy: 4 }), "現地の友人ができ、休日に街を案内してもらった"), 46),
   ev("abroad_visa", (p) => (p.abroad ? 0.8 : 0), (s) => (money(s, -4), bump(s.person, { joy: -2 }), "ビザの更新の手続きに追われ、書類をそろえる日々が続いた"), 44),
   ev("abroad_cost", (p) => (p.abroad && p.abroad.costFactor > 1.15 ? 1.0 : 0), (s) => (bump(s.person, { money: -2, joy: -2 }), "物価と家賃の高さに、家計をやりくりする日々が続いた"), 44),
-  ev("abroad_settle", (p) => (p.abroad && p.age - p.abroad.since >= 4 ? 1.3 : 0), (s) => (bump(s.person, { joy: 4, bonds: 2 }), `異国の暮らしにも慣れ、${s.person.abroad?.city ?? "この街"}が、第二の故郷になってきた`), 48),
+  ev("abroad_settle", (p) => (p.abroad && p.age - p.abroad.since >= 4 ? 1.3 : 0), (s) => (bump(s.person, { joy: 4, bonds: 2 }), `異国の暮らしにも慣れ、${s.person.abroad?.city ?? "この街"}が第二の故郷になってきた`), 48),
   ev("abroad_visit", (p) => (p.abroad ? 0.8 : 0), (s) => (money(s, -15), bump(s.person, { bonds: 4, joy: 5 }), "久しぶりに日本に一時帰国し、家族と食卓を囲んだ"), 46),
   ev("abroad_festival", (p) => (p.abroad ? 0.8 : 0), (s) => (bump(s.person, { joy: 3, learn: 1 }), "現地の祭りに参加し、文化のちがいを楽しんだ"), 40),
 
@@ -512,7 +512,7 @@ export const lifeEvents: AutoEvent[] = [
   ev("trip", (p) => (inAge(p, 16, 80) ? 1.0 : 0), (s) => (money(s, -5), bump(s.person, { bonds: 3 }), "友人たちと旅行に出かけ、いい思い出ができた"), 38),
   ev("concert", (p) => (inAge(p, 14, 70) ? 0.8 : 0), (s) => (money(s, -1), bump(s.person, { health: 1 }), "ライブに行き、日常を忘れる夜を過ごした"), 30),
   ev("book", (p) => (inAge(p, 10, 85) ? 0.8 : 0), (s) => (bump(s.person, { learn: 2 }), "一冊の本に出会い、考え方が少し変わった"), 32),
-  ev("move_neighbor", (p) => (inAge(p, 20, 80) ? 0.4 : 0), (s) => (bump(s.person, { bonds: 2 }), "近所に、気の合う人が引っ越してきた"), 30),
+  ev("move_neighbor", (p) => (inAge(p, 20, 80) ? 0.4 : 0), (s) => (bump(s.person, { bonds: 2 }), "近所に気の合う人が引っ越してきた"), 30),
 ];
 
 const pickOne = <T,>(r: () => number, list: T[]): T => list[Math.floor(r() * list.length)];
@@ -528,7 +528,7 @@ const careQuestion = (p: Person): TurningQuestion => {
   const anyWork = working(p) || partnerWorks(p);
   return {
     title: "仕事のあいだ、子どもをどうする？",
-    prompt: "仕事に戻ったあとの、預け先を選びます。預け先で、毎年の費用と、仕事・暮らしへの影響が変わります。",
+    prompt: "仕事に戻ったあとの預け先を選びます。預け先で、毎年の費用と、仕事・暮らしへの影響が変わります。",
     options: [
       opt("daycare", "認可保育園に預ける", (q, r) => {
         if (r() < (WAITLIST[q.region] ?? 0.1)) {
@@ -540,29 +540,29 @@ const careQuestion = (p: Person): TurningQuestion => {
           return "認可保育園に申し込んだが、入れなかった(待機になった)。仕事を減らして、家で見ることになった";
         }
         q.childcare = { kind: "daycare", since: q.age };
-        return "認可保育園に入れた。朝から夕方まで、見てもらえることになった";
-      }, { auto: true, show: () => anyWork, detail: (q) => `0〜2歳は月に2〜3万円ほど(世帯の収入で変わる)、3歳からは無償化。ただ、${q.region === "tokyo" ? "東京23区などでは、入れないこと(待機)も、ある(約" + Math.round((WAITLIST.tokyo ?? 0.2) * 100) + "%と仮定)" : q.region === "metro" ? "都市部では、入れないこと(待機)も、ある(約" + Math.round((WAITLIST.metro ?? 0.1) * 100) + "%と仮定)" : "地方では、比較的入りやすい(待機は約" + Math.round((WAITLIST.local ?? 0.05) * 100) + "%と仮定)"}。` }),
+        return "認可保育園に入れた。朝から夕方まで見てもらえることになった";
+      }, { auto: true, show: () => anyWork, detail: (q) => `0〜2歳は月に2〜3万円ほど(世帯の収入で変わる)、3歳からは無償化。ただ、${q.region === "tokyo" ? "東京23区などでは、入れないこと(待機)もある(約" + Math.round((WAITLIST.tokyo ?? 0.2) * 100) + "%と仮定)" : q.region === "metro" ? "都市部では、入れないこと(待機)も、ある(約" + Math.round((WAITLIST.metro ?? 0.1) * 100) + "%と仮定)" : "地方では、比較的入りやすい(待機は約" + Math.round((WAITLIST.local ?? 0.05) * 100) + "%と仮定)"}。` }),
       opt("grandparents", "親(祖父母)に預ける", (q) => {
         q.childcare = { kind: "grandparents", since: q.age };
         bump(q, { bonds: 3, joy: 2 });
-        return "仕事のあいだは、親に子どもを預けることにした";
-      }, { show: (q) => anyWork && parentsAround(q), detail: () => "費用はかからない。親との関係が深まるが、頼りすぎると、親の体への負担や、子育てのやり方での衝突が、起こることもある。" }),
+        return "仕事のあいだは親に子どもを預けることにした";
+      }, { show: (q) => anyWork && parentsAround(q), detail: () => "費用はかからない。親との関係が深まるが、頼りすぎると親の体への負担や、子育てのやり方での衝突が起こることもある。" }),
       opt("sitter", "ベビーシッター・認可外保育を使う", (q) => {
         q.childcare = { kind: "sitter", since: q.age };
         q.extra.stress = Math.max(0, q.extra.stress - 2);
         return "ベビーシッターや、認可外の保育を使うことにした";
-      }, { show: () => anyWork, detail: () => "時間の融通がきき、気持ちは楽になる。そのぶん、費用が大きい(年に100万円前後)。" }),
-      opt("home_self", "自分が、仕事を減らして家で育てる", (q) => {
+      }, { show: () => anyWork, detail: () => "時間の融通がきき、気持ちは楽になる。そのぶん費用が大きい(年に100万円前後)。" }),
+      opt("home_self", "自分が仕事を減らして家で育てる", (q) => {
         q.childcare = { kind: "home_self", since: q.age };
         bump(q, { bonds: 3, joy: 2 });
         q.extra.career = Math.max(0, q.extra.career - 3);
         return "仕事を減らして、自分が家で子どもを育てることにした";
-      }, { show: (q) => working(q), detail: () => "子どもとの時間は増えるが、収入が大きく減り(手取りの4割ほど。税や保険料も減るので、額面では、もう少し小さな割合になる)、キャリアにも響く。子どもが小学校に入るころまで、続く。" }),
-      opt("home_partner", "パートナーが、家で育てる", (q) => {
+      }, { show: (q) => working(q), detail: () => "子どもとの時間は増えるが、収入が大きく減り(手取りの4割ほど。税や保険料も減るので、額面ではもう少し小さな割合になる)、キャリアにも響く。子どもが小学校に入るころまで続く。" }),
+      opt("home_partner", "パートナーが家で育てる", (q) => {
         q.childcare = { kind: "home_partner", since: q.age };
         bump(q, { bonds: 2 });
-        return `${q.partner ? q.partner.given + "さん" : "パートナー"}が家で、子どもを育てることになった`;
-      }, { show: (q) => !!q.partner && q.partner.status !== "ex", detail: () => "自分は仕事に集中できる。世帯の収入は、パートナーの分だけ減る(自分の年収の3.5割ほどと仮定)。" }),
+        return `${q.partner ? q.partner.given + "さん" : "パートナー"}が家で子どもを育てることになった`;
+      }, { show: (q) => !!q.partner && q.partner.status !== "ex", detail: () => "自分は仕事に集中できる。世帯の収入はパートナーの分だけ減る(自分の年収の3.5割ほどと仮定)。" }),
     ],
   };
 };
@@ -574,7 +574,7 @@ const nextCountryQuestion = (p: Person): TurningQuestion => {
   const others = [...STUDY_OTHERS].sort((x, y) => hash(x) - hash(y)).slice(0, 3);
   return {
     title: "どの国へ移る？",
-    prompt: "主な国と、人気の国から、いくつか出ています。そこで就労ビザを取って働きます。",
+    prompt: "主な国と、人気の国からいくつか出ています。そこで就労ビザを取って働きます。",
     options: [...STUDY_MAIN, ...others].map((id) => {
       const c = countryById(id)!;
       return {
@@ -583,7 +583,7 @@ const nextCountryQuestion = (p: Person): TurningQuestion => {
         // 渡航・ビザ・住まいの準備にかかる費用。
         cost: () => 50,
         apply: (q: Person, r: () => number, d: CountryData) => (moveAbroad(q, r, d, id), (q.cashDelta -= 500000), q.abroad && (q.abroad.visa = "work"), q.employment = "regular", ""),
-        detail: () => `収入の水準は日本の約${Math.round(c.incomeFactor * 100)}%、物価は約${Math.round(c.costFactor * 100)}%。就労ビザは、更新が必要で、認められないこともある。あとで、働く業界と職種を選ぶ。`,
+        detail: () => `収入の水準は日本の約${Math.round(c.incomeFactor * 100)}%、物価は約${Math.round(c.costFactor * 100)}%。就労ビザは更新が必要で、認められないこともある。あとで働く業界と職種を選ぶ。`,
         children: () => industryQuestion({ factor: 1, finish: (q, title) => `${q.city.split("・")[0]}に移り、就労ビザで、${title}として働き始めた` }),
       } as TurningOption;
     }),
@@ -604,7 +604,7 @@ const lottery = (p: Person, r: () => number, yen: number) => {
   const n = Math.floor(yen / 300);
   const { win, top } = drawLottery(r, n);
   addCash(p, (win - n * 300) / 10000);
-  if (top === "1等") return (bump(p, { joy: 30, money: 40, bonds: -5 }), "宝くじで、1等が当たった。受け取ったのは、数億円。人生が、大きく動きはじめた");
+  if (top === "1等") return (bump(p, { joy: 30, money: 40, bonds: -5 }), "宝くじで1等が当たった。受け取ったのは数億円。人生が大きく動きはじめた");
   if (win >= 100000) return (bump(p, { joy: 12, money: 6 }), `宝くじで、${Math.round(win / 10000)}万円が当たった`);
   return (bump(p, { joy: win > n * 300 * 0.5 ? 2 : -1 }), `宝くじを${n}枚買って、${win.toLocaleString("ja-JP")}円が戻ってきた(買った額は${(n * 300).toLocaleString("ja-JP")}円)`);
 };
@@ -619,7 +619,7 @@ const meetResult = (p: Person, r: () => number, d: CountryData, odds: MeetOdds, 
   if (x < (acc += e.love)) {
     if (p.partner?.status === "dating") {
       bump(p, { bonds: 3, joy: 3 });
-      return `${where}で、気の合う人と話が弾んだ`;
+      return `${where}で気の合う人と話が弾んだ`;
     }
     p.partner = randomPartner(r, d, p.age, "crush", p.mbti, p);
     bump(p, { bonds: 4, joy: 6 });
@@ -628,30 +628,30 @@ const meetResult = (p: Person, r: () => number, d: CountryData, odds: MeetOdds, 
   if (x < (acc += e.friend)) {
     npcMbti(p, "friend", r);
     bump(p, { bonds: 6, joy: 4 });
-    return `${where}で、気の合う友人ができた。これからも、会う約束をした`;
+    return `${where}で気の合う友人ができた。これからも会う約束をした`;
   }
   if (x < (acc += e.skill)) {
     bump(p, { learn: 6, joy: 2 });
     p.extra.career = Math.min(100, p.extra.career + 3);
-    return `${where}で、新しい知識や技を教わり、自分のスキルが一段上がった`;
+    return `${where}で新しい知識や技を教わり、自分のスキルが一段上がった`;
   }
   if (x < (acc += e.chance)) {
     if (p.occ !== null && p.occ !== "retired") {
       p.payMult *= 1.03;
       p.extra.career = Math.min(100, p.extra.career + 6);
       bump(p, { money: 3, bonds: 3, joy: 3 });
-      return `${where}で知り合った人から、仕事を紹介され、収入と実績につながった`;
+      return `${where}で知り合った人から仕事を紹介され、収入と実績につながった`;
     }
     bump(p, { bonds: 3, learn: 3 });
-    return `${where}で、仕事や進路の、よい話を聞くことができた`;
+    return `${where}で仕事や進路の、よい話を聞くことができた`;
   }
   if (x < (acc += e.trouble)) {
     addCash(p, -(3 + r() * 12));
     bump(p, { joy: -5, bonds: -2 });
-    return `${where}で、お酒や出費で失敗し、いやな思いをした`;
+    return `${where}でお酒や出費で失敗し、いやな思いをした`;
   }
   bump(p, { joy: 1 });
-  return `${where}に参加したが、とくに、大きな出会いはなかった`;
+  return `${where}に参加したが、とくに大きな出会いはなかった`;
 };
 
 export const eventQuestions: EventQuestionDef[] = [
@@ -665,7 +665,7 @@ export const eventQuestions: EventQuestionDef[] = [
       const route = offer ? `${p.city}(${REGION_NAME[p.region]})から、${offer.city}(${REGION_NAME[offer.region]})への引っ越しです。` : "";
       return {
         title: offer ? `引っ越し: ${p.city} → ${offer.city}` : "引っ越し",
-        prompt: `${route}${isStudent(p) ? "新しい土地で暮らす話が出ました。いまの学校や友だちとは、はなれることになります。慣れない環境で、ストレスもかかります。" : "仕事や暮らしの事情で、新しい土地へ移る話が出ました。"}`,
+        prompt: `${route}${isStudent(p) ? "新しい土地で暮らす話が出ました。いまの学校や友だちとは離れることになります。慣れない環境でストレスもかかります。" : "仕事や暮らしの事情で、新しい土地へ移る話が出ました。"}`,
         options: [
           opt("move", offer ? `${offer.city}に引っ越す` : "引っ越す", (q, r, d) => {
             const student = isStudent(q);
@@ -688,7 +688,7 @@ export const eventQuestions: EventQuestionDef[] = [
     intro: () => "地元の有力者から、選挙に出ないかと声がかかった",
     question: () => ({
       title: "選挙への出馬",
-      prompt: "「あなたなら、地域のために働けるはずだ」と、立候補を打診されました。",
+      prompt: "「あなたなら地域のために働けるはずだ」と、立候補を打診されました。",
       options: [
         opt("run", "立候補する", (p, r, d) => {
           mark(p, "politicalCall");
@@ -713,7 +713,7 @@ export const eventQuestions: EventQuestionDef[] = [
           const back = r() < 0.55;
           if (back) addCash(p, od.depositMan);
           return `${od.label}に立候補したが、落選した(選挙運動に約${od.campaignMan}万円を使い、供託金${od.depositMan}万円は${back ? "戻った" : "没収された"})`;
-        }, { cost: () => 130, detail: () => "供託金や選挙運動の費用(最低でも約130万円)がかかり、落選すると戻らない。当選すれば、議員になる。" }),
+        }, { cost: () => 130, detail: () => "供託金や選挙運動の費用(最低でも約130万円)がかかり、落選すると戻らない。当選すれば議員になる。" }),
         opt("no", "今の仕事を続ける", (p) => (mark(p, "politicalCall"), "声はかかったが、今の仕事を続けることにした"), { auto: true }),
       ],
     }),
@@ -745,17 +745,17 @@ export const eventQuestions: EventQuestionDef[] = [
       const b = bearerOf(r, p, p.partner ? { ...p.partner, sex: p.partner.sex ?? (p.sex === "male" ? "female" : "male") } : null);
       p.history.bearer = b ?? (p.sex === "female" ? 1 : 0);
     },
-    intro: (p) => (p.history.bearer === 1 ? `妊娠していることが、わかった` : `${p.partner ? p.partner.given + "さん" : "パートナー"}から、妊娠したことを、告げられた`),
+    intro: (p) => (p.history.bearer === 1 ? `妊娠していることがわかった` : `${p.partner ? p.partner.given + "さん" : "パートナー"}から、妊娠したことを告げられた`),
     question: (p) => {
       const n = p.partner ? `${p.partner.given}さん` : "パートナー";
       const st = p.history.stance ?? 1;
       const female = p.history.bearer === 1;
-      const stanceText = st === 2 ? `${n}は、産んで、一緒に育てたいと言っている。` : st === 1 ? `${n}は、気持ちが決まらず、迷っている。` : `${n}は、いまは産むことに、反対している。`;
+      const stanceText = st === 2 ? `${n}は、産んで、一緒に育てたいと言っている。` : st === 1 ? `${n}は、気持ちが決まらずに迷っている。` : `${n}は、いまは産むことに反対している。`;
       return {
         title: female ? "妊娠がわかった" : `${n}の妊娠`,
         prompt: female
-          ? `妊娠していることがわかりました。${n}と、話し合いました。${stanceText}産むかどうかは、あなたの体と人生にかかわる、大きな決断です。どうしますか？`
-          : `${n}から、妊娠したと告げられました。${stanceText}最終的には、${n}の体と気持ちを、いちばんに考えて決めます。どうしますか？`,
+          ? `妊娠していることがわかりました。${n}と話し合いました。${stanceText}産むかどうかは、あなたの体と人生にかかわる大きな決断です。どうしますか？`
+          : `${n}から、妊娠したと告げられました。${stanceText}最終的には、${n}の体と気持ちをいちばんに考えて決めます。どうしますか？`,
         options: [
           opt("birth", female ? "産む" : "産んでほしい。一緒に育てる", (p, r) => {
             const st = p.history.stance ?? 1;
@@ -773,21 +773,21 @@ export const eventQuestions: EventQuestionDef[] = [
             const baby = `${sex === "boy" ? "男の子" : "女の子"}が生まれた`;
             if (st === 2 || p.married) {
               if (p.partner && p.partner.status === "dating") { p.proposeAt = p.age; p.marriageBias = Math.max(p.marriageBias, 2); }
-              return `${n}と話し合い、産むことにした。${baby}。二人で育てていく覚悟が、決まった`;
+              return `${n}と話し合い、産むことにした。${baby}。二人で育てていく覚悟が決まった`;
             }
             if (st === 1 && r() < 0.7) {
               if (p.partner && p.partner.status === "dating") { p.proposeAt = p.age; p.marriageBias = Math.max(p.marriageBias, 1.6); }
-              return `迷っていた${n}も、話し合いの末、受け入れてくれた。${baby}`;
+              return `迷っていた${n}も、話し合いの末に受け入れてくれた。${baby}`;
             }
             if (p.partner) p.partner.status = "ex";
             bump(p, { bonds: -4, joy: -4, money: -4 });
             p.extra.stress = Math.min(100, p.extra.stress + 15);
-            return `${n}とは、考えが合わず、別れることになった。${baby}。ひとりで、育てていく道を選んだ`;
+            return `${n}とは考えが合わず、別れることになった。${baby}。ひとりで子を育てていく道を選んだ`;
           }, {
             auto: true,
             detail: (p) => {
               const st = p.history.stance ?? 1;
-              return st === 2 ? "二人で育てる意思が、そろっている。お金・時間・体力の負担は大きいが、家族が増える。" : st === 1 ? "相手は迷っている。話し合えば、受け入れてくれることが多いが、そうならないこともある。" : "相手は反対している。別れて、ひとりで育てることになる可能性が高い。";
+              return st === 2 ? "二人で育てる意思がそろっている。お金・時間・体力の負担は大きいが、家族が増える。" : st === 1 ? "相手は迷っている。話し合えば受け入れてくれることが多いが、そうならないこともある。" : "相手は反対している。別れてひとりで育てることになる可能性が高い。";
             },
           }),
           opt("no", female ? "産まない選択をする" : "相手の気持ちを尊重し、産まない選択を受け入れる", (p, r) => {
@@ -797,17 +797,17 @@ export const eventQuestions: EventQuestionDef[] = [
             p.extra.stress = Math.min(100, p.extra.stress + 10);
             if (st === 2 && p.partner && r() < 0.4) {
               p.partner.status = "ex";
-              return `${n}と、何度も話し合い、産まないことを選んだ。${n}の悲しみは深く、二人の関係は、終わった`;
+              return `${n}と何度も話し合い、産まないことを選んだ。${n}の悲しみは深く、二人の関係は終わった`;
             }
-            return `${n}と、何度も話し合い、産まないことを選んだ。心と体に、大きな負担が残った`;
-          }, { detail: () => "心と体への負担が大きい。ひとりで抱えず、パートナーや専門の相談窓口に、支えてもらうことも大切(産む・産まないは、本人の意思が最も尊重される)。" }),
-          opt("wait", "もう少し、二人で話し合う", (p, r) => {
+            return `${n}と何度も話し合い、産まないことを選んだ。心と体に大きな負担が残った`;
+          }, { detail: () => "心と体への負担が大きい。ひとりで抱えず、パートナーや専門の相談窓口に支えてもらうことも大切(産む・産まないは、本人の意思が最も尊重される)。" }),
+          opt("wait", "もう少し二人で話し合う", (p, r) => {
             const st = p.history.stance ?? 1;
             const n = p.partner ? `${p.partner.given}さん` : "パートナー";
             bump(p, { bonds: 1, joy: -2 });
             p.extra.stress = Math.min(100, p.extra.stress + 6);
             p.history.stance = Math.min(2, st + (r() < 0.5 ? 1 : 0));
-            return `${n}と、時間をかけて話し合った。気持ちが、少しずつ、そろってきた`;
+            return `${n}と時間をかけて話し合った。気持ちが少しずつそろってきた`;
           }, { show: (q) => (q.history.stance ?? 1) < 2, detail: () => "決断までの時間は限られる。話し合うほど、相手の気持ちが変わることもある。" }),
         ],
       };
@@ -817,59 +817,59 @@ export const eventQuestions: EventQuestionDef[] = [
   {
     id: "parental_leave",
     weight: () => 0,
-    intro: () => "子どもが生まれて、仕事と育児を、どう分けるかを考えた",
+    intro: () => "子どもが生まれて、仕事と育児をどう分けるかを考えた",
     question: (p) => {
       const pn = p.partner ? `${p.partner.given}さん` : "パートナー";
       const hasPartner = !!p.partner && p.partner.status !== "ex";
       return {
-        title: "育児休業と、預け先",
-        prompt: hasPartner ? `子どもが生まれて、仕事と育児を、どう分けるかを決めます。まず、育児休業を、だれが取るか。そのあと、仕事に戻ったときの、預け先も選びます。` : "子どもが生まれて、仕事と育児を、どうするかを決めます。まず、育児休業を取るか。そのあと、仕事に戻ったときの、預け先も選びます。",
+        title: "育児休業と預け先",
+        prompt: hasPartner ? `子どもが生まれて、仕事と育児をどう分けるかを決めます。まず、育児休業をだれが取るか。そのあと、仕事に戻ったときの預け先も選びます。` : "子どもが生まれて、仕事と育児をどうするかを決めます。まず育児休業を取るか。そのあと、仕事に戻ったときの預け先も選びます。",
         options: [
-          opt("take", "自分が、育休を長めに取る(約1年)", (p, r, d) => {
+          opt("take", "自分が育休を長めに取る(約1年)", (p, r, d) => {
             addCash(p, -Math.round(leaveLoss(p, d, p.econ, 12)));
             bump(p, { bonds: 6, joy: 5, health: 1 });
             p.extra.career = Math.max(0, p.extra.career - 2);
-            return "育児休業を、1年ほど取り、子どもとの時間を大切にした";
-          }, { show: (q) => working(q) && q.employment !== "self", detail: (q, env, d) => `休業中は、育児休業給付(賃金の67%、6か月をこえると50%)が出る。給付には所得税も住民税もかからず、休業中は社会保険料も免除されるので、手取りで見た減りは、1年で約${manText(leaveLoss(q, d, q.econ, 12))}万円。取得した人の割合は、令和5年度で、女性約84%・男性約30%(厚生労働省「雇用均等基本調査」)。`, children: (q) => careQuestion(q) }),
-          opt("short", "自分が、短く取る(数か月)", (p, r, d) => {
+            return "育児休業を1年ほど取り、子どもとの時間を大切にした";
+          }, { show: (q) => working(q) && q.employment !== "self", detail: (q, env, d) => `休業中は育児休業給付(賃金の67%、6か月をこえると50%)が出る。給付には所得税も住民税もかからず、休業中は社会保険料も免除されるので、手取りで見た減りは1年で約${manText(leaveLoss(q, d, q.econ, 12))}万円。取得した人の割合は、令和5年度で女性約84%・男性約30%(厚生労働省「雇用均等基本調査」)。`, children: (q) => careQuestion(q) }),
+          opt("short", "自分が短く取る(数か月)", (p, r, d) => {
             addCash(p, -Math.round(leaveLoss(p, d, p.econ, 4)));
             bump(p, { bonds: 3, joy: 2 });
             return "育児休業を短く取り、早めに仕事に復帰した";
-          }, { show: (q) => working(q) && q.employment !== "self", detail: (q, env, d) => `収入とキャリアへの影響は、小さくすむ。給付は税も保険料もかからず、4か月ほどの休業なら、手取りで見た減りは約${manText(leaveLoss(q, d, q.econ, 4))}万円。そのぶん、子どもとの時間は短くなる。`, children: (q) => careQuestion(q) }),
-          opt("partner", `${hasPartner ? pn : "パートナー"}が、育休を取る`, (p, r, d) => {
+          }, { show: (q) => working(q) && q.employment !== "self", detail: (q, env, d) => `収入とキャリアへの影響は小さくすむ。給付は税も保険料もかからず、4か月ほどの休業なら、手取りで見た減りは約${manText(leaveLoss(q, d, q.econ, 4))}万円。そのぶん子どもとの時間は短くなる。`, children: (q) => careQuestion(q) }),
+          opt("partner", `${hasPartner ? pn : "パートナー"}が育休を取る`, (p, r, d) => {
             addCash(p, -Math.round(leaveLoss(p, d, p.econ, 12) * 0.9));
             bump(p, { bonds: 6, joy: 4 });
             p.extra.stress = Math.max(0, p.extra.stress - 3);
             p.extra.career = Math.min(100, p.extra.career + 1);
-            return `${pn}が育児休業を取り、子どもを見てくれることになった。自分は、仕事を続けた`;
-          }, { show: (q) => !!q.partner && q.partner.status !== "ex" && partnerWorks(q), detail: (q, env, d) => `世帯の収入は、一時的に減る(相手の収入は、自分と同じ程度と仮定すると、手取りで見て約${manText(leaveLoss(q, d, q.econ, 12) * 0.9)}万円。給付は税も保険料もかからない)。自分は仕事に集中でき、二人の関係にも、よい影響がある。`, children: (q) => careQuestion(q) }),
-          opt("both", "ふたりで、分けて取る", (p, r, d) => {
+            return `${pn}が育児休業を取り、子どもを見てくれることになった。自分は仕事を続けた`;
+          }, { show: (q) => !!q.partner && q.partner.status !== "ex" && partnerWorks(q), detail: (q, env, d) => `世帯の収入は一時的に減る(相手の収入は自分と同じ程度と仮定すると、手取りで見て約${manText(leaveLoss(q, d, q.econ, 12) * 0.9)}万円。給付は税も保険料もかからない)。自分は仕事に集中でき、二人の関係にもよい影響がある。`, children: (q) => careQuestion(q) }),
+          opt("both", "ふたりで分けて取る", (p, r, d) => {
             addCash(p, -Math.round(leaveLoss(p, d, p.econ, 6) * 2));
             bump(p, { bonds: 8, joy: 5 });
             p.extra.stress = Math.max(0, p.extra.stress - 2);
             p.extra.career = Math.max(0, p.extra.career - 1);
-            return `${pn}と、育児休業を分け合って取り、ふたりで子どもを見ることにした`;
-          }, { show: (q) => working(q) && q.employment !== "self" && !!q.partner && q.partner.status !== "ex" && partnerWorks(q), detail: (q, env, d) => `どちらの仕事への影響も、小さくすむ。収入は、手取りで見て世帯で約${manText(leaveLoss(q, d, q.econ, 6) * 2)}万円ほど減るが、二人の関係と、子どもとの時間が、増える。`, children: (q) => careQuestion(q) }),
-          opt("none", "育休は取らず、働き続ける", (p) => {
+            return `${pn}と育児休業を分け合って取り、ふたりで子どもを見ることにした`;
+          }, { show: (q) => working(q) && q.employment !== "self" && !!q.partner && q.partner.status !== "ex" && partnerWorks(q), detail: (q, env, d) => `どちらの仕事への影響も小さくすむ。収入は手取りで見て世帯で約${manText(leaveLoss(q, d, q.econ, 6) * 2)}万円ほど減るが、二人の関係と子どもとの時間が増える。`, children: (q) => careQuestion(q) }),
+          opt("none", "育休は取らずに働き続ける", (p) => {
             p.extra.stress = Math.min(100, p.extra.stress + 8);
             bump(p, { bonds: -2, health: -1 });
             p.extra.career = Math.min(100, p.extra.career + 1);
-            return "育休は取らず、仕事を続けた。育児と仕事の両立で、慌ただしい日々が続く";
-          }, { auto: true, show: (q) => working(q) && q.employment !== "self", detail: () => "収入とキャリアは守れるが、体力とパートナーとの関係に、負担がかかる。", children: (q) => careQuestion(q) }),
+            return "育休は取らずに仕事を続けた。育児と仕事の両立で、慌ただしい日々が続く";
+          }, { auto: true, show: (q) => working(q) && q.employment !== "self", detail: () => "収入とキャリアは守れるが、体力とパートナーとの関係に負担がかかる。", children: (q) => careQuestion(q) }),
           // 自営の人には、育児休業(給付)はない。仕事の量を調整するか、変えずに続けるかを選ぶ。
           opt("self_adjust", "仕事の量を減らして、育児の時間をつくる", (p) => {
             p.payMult *= 0.85;
             bump(p, { bonds: 5, joy: 4, health: 1, money: -2 });
             p.extra.stress = Math.max(0, p.extra.stress - 2);
             return "仕事の量を減らし、子どもと過ごす時間をつくった(自営のため、育児休業の給付はない)";
-          }, { show: (q) => working(q) && q.employment === "self", detail: () => "収入は減る。育児休業給付は、雇われている人の制度で、自営の人は対象にならない。", children: (q) => careQuestion(q) }),
+          }, { show: (q) => working(q) && q.employment === "self", detail: () => "収入は減る。育児休業給付は雇われている人の制度で、自営の人は対象にならない。", children: (q) => careQuestion(q) }),
           opt("self_keep", "仕事の量は変えずに、働き続ける", (p) => {
             p.extra.stress = Math.min(100, p.extra.stress + 8);
             bump(p, { bonds: -2, health: -1 });
             return "仕事の量は変えず、働き続けた。育児と仕事の両立で、慌ただしい日々が続く";
-          }, { auto: true, show: (q) => working(q) && q.employment === "self", detail: () => "収入は守れるが、体力とパートナーとの関係に、負担がかかる。", children: (q) => careQuestion(q) }),
+          }, { auto: true, show: (q) => working(q) && q.employment === "self", detail: () => "収入は守れるが、体力とパートナーとの関係に負担がかかる。", children: (q) => careQuestion(q) }),
           // 自分が働いていないとき(パートナーが働いている)は、預け先だけを選ぶ。
-          opt("care_only", "預け先を決める", () => "仕事に戻るときの、子どもの預け先を考えた", { auto: true, show: (q) => !working(q), detail: () => "パートナーが働いている間の、子どもの預け先を選びます。", children: (q) => careQuestion(q) }),
+          opt("care_only", "預け先を決める", () => "仕事に戻るときの子どもの預け先を考えた", { auto: true, show: (q) => !working(q), detail: () => "パートナーが働いている間の、子どもの預け先を選びます。", children: (q) => careQuestion(q) }),
         ],
       };
     },
@@ -880,24 +880,24 @@ export const eventQuestions: EventQuestionDef[] = [
     weight: () => 0,
     intro: () => "子どもが3歳になり、通う場所を考えた",
     question: (p) => ({
-      title: "3歳からの、通い先",
+      title: "3歳からの通い先",
       prompt: "子どもが3歳になりました。3歳から5歳の幼稚園・保育園・こども園は、利用料が無償になります(給食費や行事の費用などは別にかかります)。どこに通わせますか？",
       options: [
         opt("kindergarten", "幼稚園(預かり保育あり)", (p) => {
           p.childcare = { kind: "kindergarten", since: p.age };
           bump(p, { joy: 2 });
           return "幼稚園に通わせることにした。昼すぎに帰ってくるので、預かり保育も使うことになった";
-        }, { detail: (q) => `午前から昼すぎまで。預かり保育で、夕方まで預けられることが多い。ふたりとも働いていると、送り迎えと時間のやりくりが大変になる。費用は、年に15〜18万円ほど。` }),
+        }, { detail: (q) => `午前から昼すぎまで。預かり保育で、夕方まで預けられることが多い。ふたりとも働いていると、送り迎えと時間のやりくりが大変になる。費用は年に15〜18万円ほど。` }),
         opt("daycare", "認可保育園(そのまま・切りかえ)", (p) => {
           p.childcare = { kind: "daycare", since: p.age };
-          return "保育園に、通わせ続けることにした。朝から夕方まで見てもらえて、仕事との両立がしやすい";
-        }, { auto: true, detail: () => "朝から夕方まで。仕事との両立がしやすい。費用は、給食費などで、年に8万円ほど。" }),
+          return "保育園に通わせ続けることにした。朝から夕方まで見てもらえて、仕事との両立がしやすい";
+        }, { auto: true, detail: () => "朝から夕方まで。仕事との両立がしやすい。費用は、給食費などで年に8万円ほど。" }),
         opt("kodomoen", "認定こども園", (p) => {
           p.childcare = { kind: "kodomoen", since: p.age };
           bump(p, { joy: 1 });
-          return "認定こども園に通わせることにした。幼稚園と保育園の、よいところを合わせた場所だ";
-        }, { detail: () => "幼稚園と保育園の、両方の役割を持つ。働いていても、いなくても、通える。費用は、年に12万円ほど。" }),
-        opt("keep", "いまの預け先を、続ける", () => "預け先は、いまのまま、続けることにした", { show: (q) => !!q.childcare && q.childcare.kind !== "daycare" && q.childcare.kind !== "kindergarten" && q.childcare.kind !== "kodomoen", detail: () => "親や、シッターなどに、これまでどおり、見てもらう。" }),
+          return "認定こども園に通わせることにした。幼稚園と保育園のよいところを合わせた場所だ";
+        }, { detail: () => "幼稚園と保育園の両方の役割を持つ。働いていても、いなくても通える。費用は年に12万円ほど。" }),
+        opt("keep", "いまの預け先を続ける", () => "預け先はいまのまま続けることにした", { show: (q) => !!q.childcare && q.childcare.kind !== "daycare" && q.childcare.kind !== "kindergarten" && q.childcare.kind !== "kodomoen", detail: () => "親や、シッターなどに、これまでどおり、見てもらう。" }),
       ],
     }),
   },
@@ -905,84 +905,84 @@ export const eventQuestions: EventQuestionDef[] = [
   {
     id: "meet_party",
     weight: () => 0,
-    intro: () => "飲み会・交流会に、顔を出した",
+    intro: () => "飲み会・交流会に顔を出した",
     question: (p) => ({
       title: "飲み会・交流会",
       prompt: "にぎやかな会場で、知らない人も多い。どう過ごしますか？",
       options: [
-        opt("talk", "積極的に、いろいろな人に話しかける", (p, r, d) => meetResult(p, r, d, { friend: 0.4, love: 0.25, chance: 0.2, trouble: 0.1 }, "飲み会"), { detail: () => "出会いも、チャンスも、広がりやすい。飲みすぎて、失敗することも。" }),
-        opt("one", "気になった人と、じっくり話す", (p, r, d) => meetResult(p, r, d, { friend: 0.25, love: 0.45, chance: 0.1, trouble: 0.05 }, "飲み会"), { show: (q) => !q.married, detail: () => "恋人候補に出会いやすい。" }),
-        opt("listen", "聞き役に回って、早めに帰る", (p) => (bump(p, { bonds: 1, health: 1 }), "聞き役に回り、早めに帰って、ゆっくり休んだ"), { auto: true }),
+        opt("talk", "積極的にいろいろな人に話しかける", (p, r, d) => meetResult(p, r, d, { friend: 0.4, love: 0.25, chance: 0.2, trouble: 0.1 }, "飲み会"), { detail: () => "出会いもチャンスも広がりやすい。飲みすぎて失敗することも。" }),
+        opt("one", "気になった人とじっくり話す", (p, r, d) => meetResult(p, r, d, { friend: 0.25, love: 0.45, chance: 0.1, trouble: 0.05 }, "飲み会"), { show: (q) => !q.married, detail: () => "恋人候補に出会いやすい。" }),
+        opt("listen", "聞き役に回って、早めに帰る", (p) => (bump(p, { bonds: 1, health: 1 }), "聞き役に回り、早めに帰ってゆっくり休んだ"), { auto: true }),
       ],
     }),
   },
   {
     id: "meet_study",
     weight: () => 0,
-    intro: () => "勉強会・セミナーに、参加した",
+    intro: () => "勉強会・セミナーに参加した",
     question: () => ({
       title: "勉強会・セミナー",
       prompt: "同じ分野に関心のある人たちが集まっています。",
       options: [
         opt("ask", "積極的に質問し、講師や参加者と話す", (p, r, d) => meetResult(p, r, d, { skill: 0.5, chance: 0.3, friend: 0.15, love: 0.05 }, "勉強会"), { detail: () => "学びが深まり、仕事のチャンスにつながりやすい。" }),
         opt("cards", "名刺を交換して、人脈を広げる", (p, r, d) => meetResult(p, r, d, { chance: 0.45, friend: 0.3, skill: 0.15, love: 0.05 }, "勉強会"), { show: (q) => q.occ !== null, detail: () => "仕事の紹介や、転職の話が出ることも。" }),
-        opt("note", "話を聞いて、メモをとって帰る", (p) => (bump(p, { learn: 3 }), (p.extra.career = Math.min(100, p.extra.career + 1)), "勉強会で、じっくり学んで帰った"), { auto: true }),
+        opt("note", "話を聞いて、メモをとって帰る", (p) => (bump(p, { learn: 3 }), (p.extra.career = Math.min(100, p.extra.career + 1)), "勉強会でじっくり学んで帰った"), { auto: true }),
       ],
     }),
   },
   {
     id: "meet_circle",
     weight: () => 0,
-    intro: () => "趣味やスポーツのサークルに、顔を出した",
+    intro: () => "趣味やスポーツのサークルに顔を出した",
     question: () => ({
       title: "サークル・仲間の集まり",
       prompt: "共通の趣味を持つ人たちの集まりです。",
       options: [
-        opt("join", "輪に入って、一緒に楽しむ", (p, r, d) => meetResult(p, r, d, { friend: 0.5, love: 0.2, skill: 0.15 }, "サークル"), { detail: () => "気の合う仲間ができやすい。" }),
-        opt("close", "気になる人と、仲良くなる", (p, r, d) => meetResult(p, r, d, { friend: 0.25, love: 0.4, skill: 0.1 }, "サークル"), { show: (q) => !q.married, detail: () => "恋人候補に出会いやすい。" }),
-        opt("watch", "見学だけして、帰る", (p) => (bump(p, { joy: 1 }), "見学だけして、帰った"), { auto: true }),
+        opt("join", "輪に入って一緒に楽しむ", (p, r, d) => meetResult(p, r, d, { friend: 0.5, love: 0.2, skill: 0.15 }, "サークル"), { detail: () => "気の合う仲間ができやすい。" }),
+        opt("close", "気になる人と仲良くなる", (p, r, d) => meetResult(p, r, d, { friend: 0.25, love: 0.4, skill: 0.1 }, "サークル"), { show: (q) => !q.married, detail: () => "恋人候補に出会いやすい。" }),
+        opt("watch", "見学だけして帰る", (p) => (bump(p, { joy: 1 }), "見学だけして帰った"), { auto: true }),
       ],
     }),
   },
   {
     id: "meet_app",
     weight: () => 0,
-    intro: () => "マッチングアプリで、会うことになった",
+    intro: () => "マッチングアプリで会うことになった",
     question: () => ({
       title: "マッチングアプリ",
       prompt: "何人かとやりとりして、会う約束ができました。",
       options: [
-        opt("meet", "実際に、会ってみる", (p, r, d) => meetResult(p, r, d, { love: 0.5, friend: 0.15, trouble: 0.15 }, "マッチングアプリ"), { detail: () => "いい出会いもあれば、がっかりすることも、だまされることもある。" }),
-        opt("careful", "メッセージで、様子を見る", (p, r, d) => meetResult(p, r, d, { love: 0.2, friend: 0.1, trouble: 0.03 }, "マッチングアプリ"), { detail: () => "安全だが、進展はゆっくり。" }),
-        opt("stop", "今日は、やめておく", (p) => "アプリを閉じて、今日は、やめておいた", { auto: true }),
+        opt("meet", "実際に会ってみる", (p, r, d) => meetResult(p, r, d, { love: 0.5, friend: 0.15, trouble: 0.15 }, "マッチングアプリ"), { detail: () => "いい出会いもあれば、がっかりすることも、だまされることもある。" }),
+        opt("careful", "メッセージで様子を見る", (p, r, d) => meetResult(p, r, d, { love: 0.2, friend: 0.1, trouble: 0.03 }, "マッチングアプリ"), { detail: () => "安全だが、進展はゆっくり。" }),
+        opt("stop", "今日はやめておく", (p) => "アプリを閉じて、今日はやめておいた", { auto: true }),
       ],
     }),
   },
   {
     id: "meet_pet",
     weight: () => 0,
-    intro: () => "保護犬・保護猫の譲渡会に、足を運んだ",
+    intro: () => "保護犬・保護猫の譲渡会に足を運んだ",
     question: (p) => ({
       title: "保護犬・保護猫の譲渡会",
-      prompt: "家族を探している動物たちが、並んでいます。",
+      prompt: "家族を探している動物たちが並んでいます。",
       options: [
-        opt("dog", "保護犬を、家族に迎える", (p) => (p.pets.push({ name: "", kind: "犬", adoptedAge: p.age }), bump(p, { health: 3, bonds: 4, joy: 4 }), "保護犬を、家族に迎えた"), { show: (q) => q.pets.filter((x) => !x.died).length < 3, cost: () => 3, detail: () => "毎日の散歩で、健康になる。費用がかかり、世話も大変。(譲渡の費用 約3万円)" }),
-        opt("cat", "保護猫を、家族に迎える", (p) => (p.pets.push({ name: "", kind: "猫", adoptedAge: p.age }), bump(p, { bonds: 4, joy: 4 }), "保護猫を、家族に迎えた"), { show: (q) => q.pets.filter((x) => !x.died).length < 3, cost: () => 3, detail: () => "気ままな同居人。(譲渡の費用 約3万円)" }),
-        opt("help", "預かりボランティアの仲間に、加わる", (p, r, d) => meetResult(p, r, d, { friend: 0.6, love: 0.1 }, "ボランティア"), { detail: () => "動物好きの仲間ができる。" }),
-        opt("look", "見学だけして、帰る", (p) => (bump(p, { joy: 2 }), "動物たちと触れ合い、心がなごんだ"), { auto: true }),
+        opt("dog", "保護犬を家族に迎える", (p) => (p.pets.push({ name: "", kind: "犬", adoptedAge: p.age }), bump(p, { health: 3, bonds: 4, joy: 4 }), "保護犬を家族に迎えた"), { show: (q) => q.pets.filter((x) => !x.died).length < 3, cost: () => 3, detail: () => "毎日の散歩で、健康になる。費用がかかり、世話も大変。(譲渡の費用 約3万円)" }),
+        opt("cat", "保護猫を家族に迎える", (p) => (p.pets.push({ name: "", kind: "猫", adoptedAge: p.age }), bump(p, { bonds: 4, joy: 4 }), "保護猫を家族に迎えた"), { show: (q) => q.pets.filter((x) => !x.died).length < 3, cost: () => 3, detail: () => "気ままな同居人。(譲渡の費用 約3万円)" }),
+        opt("help", "預かりボランティアの仲間に加わる", (p, r, d) => meetResult(p, r, d, { friend: 0.6, love: 0.1 }, "ボランティア"), { detail: () => "動物好きの仲間ができる。" }),
+        opt("look", "見学だけして帰る", (p) => (bump(p, { joy: 2 }), "動物たちと触れ合い、心がなごんだ"), { auto: true }),
       ],
     }),
   },
   {
     id: "meet_local",
     weight: () => 0,
-    intro: () => "地域のイベントに、参加した",
+    intro: () => "地域のイベントに参加した",
     question: () => ({
       title: "地域のイベント・ボランティア",
-      prompt: "近所の人や、同じ思いの人たちが、集まっています。",
+      prompt: "近所の人や、同じ思いの人たちが集まっています。",
       options: [
-        opt("help", "運営を手伝い、人と話す", (p, r, d) => meetResult(p, r, d, { friend: 0.5, love: 0.12, chance: 0.12, skill: 0.1 }, "地域のイベント"), { detail: () => "地域に、顔見知りが増える。" }),
-        opt("fun", "客として楽しむ", (p) => (bump(p, { joy: 3, bonds: 1 }), "地域のイベントを、のんびり楽しんだ"), { auto: true }),
+        opt("help", "運営を手伝い、人と話す", (p, r, d) => meetResult(p, r, d, { friend: 0.5, love: 0.12, chance: 0.12, skill: 0.1 }, "地域のイベント"), { detail: () => "地域に顔見知りが増える。" }),
+        opt("fun", "客として楽しむ", (p) => (bump(p, { joy: 3, bonds: 1 }), "地域のイベントをのんびり楽しんだ"), { auto: true }),
       ],
     }),
   },
@@ -990,7 +990,7 @@ export const eventQuestions: EventQuestionDef[] = [
   {
     id: "inherit_use",
     weight: () => 0,
-    intro: (p) => `${p.inheritMan}万円ほどの遺産の、使い道を考えた`,
+    intro: (p) => `${p.inheritMan}万円ほどの遺産の使い道を考えた`,
     question: (p) => {
       const v = p.inheritMan;
       const young = p.kidList.some((k) => p.age - k.bornAge < 18);
@@ -998,12 +998,12 @@ export const eventQuestions: EventQuestionDef[] = [
         title: "遺産の使い方",
         prompt: `親から、${v}万円ほどを受け継ぎました。どう使いますか？`,
         options: [
-          opt("save", "そのまま、貯金にする", (p) => (addCash(p, p.inheritMan), (p.inheritMan = 0), `受け継いだ${v}万円は、貯金にした`), { auto: true, detail: () => "いつでも使える。増えはしないが、減りもしない。" }),
-          opt("stocks", "株・投資信託で運用する(日本株インデックス)", (p) => ((p.nisaYen += p.inheritMan * 10000), (p.inheritMan = 0), bump(p, { money: 3 }), `受け継いだ${v}万円を、株(日本株インデックス)で運用することにした`), { show: (p) => p.age >= 18, detail: () => "長い目では増えやすいが、値下がりすることもある(株価は架空)。運用は「資産」の株の欄から、続けられる。" }),
-          opt("split", "半分は貯金、半分は株で運用する", (p) => (addCash(p, p.inheritMan / 2), (p.nisaYen += (p.inheritMan / 2) * 10000), (p.inheritMan = 0), bump(p, { money: 2 }), `受け継いだ${v}万円の半分を貯金、半分を株で運用することにした`), { show: (p) => p.age >= 18, detail: () => "値動きの影響を、半分におさえる。" }),
-          opt("kid", "子どもの将来のために積み立てる(こどもNISA)", (p) => ((p.kidFundYen += p.inheritMan * 10000), (p.inheritMan = 0), bump(p, { bonds: 4, joy: 2 }), `受け継いだ${v}万円を、子どもの将来のために、積み立てることにした`), { show: (q) => young && yearOf(q) >= SINCE.kidsNisa, detail: () => "子どもが18歳になるとき、新しい道のために使われる。" }),
+          opt("save", "そのまま貯金にする", (p) => (addCash(p, p.inheritMan), (p.inheritMan = 0), `受け継いだ${v}万円は貯金にした`), { auto: true, detail: () => "いつでも使える。増えはしないが、減りもしない。" }),
+          opt("stocks", "株・投資信託で運用する(日本株インデックス)", (p) => ((p.nisaYen += p.inheritMan * 10000), (p.inheritMan = 0), bump(p, { money: 3 }), `受け継いだ${v}万円を、株(日本株インデックス)で運用することにした`), { show: (p) => p.age >= 18, detail: () => "長い目では増えやすいが、値下がりすることもある(株価は架空)。運用は「資産」の株の欄から続けられる。" }),
+          opt("split", "半分は貯金、半分は株で運用する", (p) => (addCash(p, p.inheritMan / 2), (p.nisaYen += (p.inheritMan / 2) * 10000), (p.inheritMan = 0), bump(p, { money: 2 }), `受け継いだ${v}万円の半分を貯金、半分を株で運用することにした`), { show: (p) => p.age >= 18, detail: () => "値動きの影響を半分におさえる。" }),
+          opt("kid", "子どもの将来のために積み立てる(こどもNISA)", (p) => ((p.kidFundYen += p.inheritMan * 10000), (p.inheritMan = 0), bump(p, { bonds: 4, joy: 2 }), `受け継いだ${v}万円を、子どもの将来のために積み立てることにした`), { show: (q) => young && yearOf(q) >= SINCE.kidsNisa, detail: () => "子どもが18歳になるとき、新しい道のために使われる。" }),
           opt("loan", "借金やローンの返済にあてる", (p) => (addCash(p, p.inheritMan), (p.inheritMan = 0), bump(p, { money: 4, joy: 3 }), `受け継いだ${v}万円を、借金やローンの返済にあてることにした`), { show: () => p.owned || p.stats.money < 35, detail: () => "毎年の返済の負担が軽くなる。" }),
-          opt("memorial", "供養やお墓に一部を使い、残りは貯金にする", (p) => (addCash(p, p.inheritMan * 0.9), (p.inheritMan = 0), bump(p, { bonds: 4, joy: 3 }), "親の供養やお墓に一部を使い、残りは貯金にした"), { detail: () => "約1割を、供養やお墓にあてる。心が落ち着く。" }),
+          opt("memorial", "供養やお墓に一部を使い、残りは貯金にする", (p) => (addCash(p, p.inheritMan * 0.9), (p.inheritMan = 0), bump(p, { bonds: 4, joy: 3 }), "親の供養やお墓に一部を使い、残りは貯金にした"), { detail: () => "約1割を供養やお墓にあてる。心が落ち着く。" }),
           opt("self", "旅や学びなど、自分のために使う", (p) => (addCash(p, p.inheritMan * 0.4), (p.inheritMan = 0), bump(p, { joy: 8, learn: 3, health: 1 }), "受け継いだお金の一部で、旅や学びに出かけた"), { detail: () => "約6割を使い、残りは貯金にする。" }),
         ],
       };
@@ -1016,7 +1016,7 @@ export const eventQuestions: EventQuestionDef[] = [
     intro: () => "宝くじ売り場の前を通りかかり、足が止まった",
     question: () => ({
       title: "宝くじを買う？",
-      prompt: "年末ジャンボなどの宝くじが売り出されています。当たれば大きいが、戻ってくるお金は、買った額の半分ほどです。",
+      prompt: "年末ジャンボなどの宝くじが売り出されています。当たれば大きいが、戻ってくるお金は買った額の半分ほどです。",
       options: [
         opt("small", "少しだけ買う(3千円)", (p, r) => lottery(p, r, 3000)),
         opt("big", "まとめて買う(3万円)", (p, r) => lottery(p, r, 30000), { cost: () => 3 }),
@@ -1038,18 +1038,18 @@ export const eventQuestions: EventQuestionDef[] = [
     question: (p) => {
       const k = p.temptKind;
       const label = { gamble: "ギャンブル(パチンコ・競馬・ネット賭博など)", smoke: "タバコ", drink: "お酒" }[k];
-      const hint = { gamble: "のめり込むと、お金・信用・人間関係を失い、借金を抱えることもある。", smoke: "体に悪く、毎年の出費もかさむ。やめるのは、むずかしい。", drink: "飲みすぎると、体をこわし、人間関係にも響く。" }[k];
+      const hint = { gamble: "のめり込むと、お金・信用・人間関係を失い、借金を抱えることもある。", smoke: "体に悪く、毎年の出費もかさむ。やめるのはむずかしい。", drink: "飲みすぎると体をこわし、人間関係にも響く。" }[k];
       return {
         title: `${label}との付き合い方`,
-        prompt: `心が晴れない日が続くなか、${label}が、気晴らしになることに気づきました。どうしますか？(${hint})`,
+        prompt: `心が晴れない日が続くなか、${label}が気晴らしになることに気づきました。どうしますか？(${hint})`,
         options: [
-          opt("deep", "気晴らしに、のめり込む", (p) => {
+          opt("deep", "気晴らしにのめり込む", (p) => {
             p.history.addictCount = (p.history.addictCount ?? 0) + 1;
             p.habit = { kind: p.temptKind, since: p.age };
             bump(p, { joy: 6 });
-            return `${label}にのめり込むようになった。やめられない日々が、はじまった`;
-          }, { detail: () => "一時の気晴らしにはなるが、毎年、お金・健康・つながりをむしばむ。数年おきに、やめるかどうかを選べる。" }),
-          opt("some", "ほどほどに、つきあう", (p) => {
+            return `${label}にのめり込むようになった。やめられない日々がはじまった`;
+          }, { detail: () => "一時の気晴らしにはなるが、毎年お金・健康・つながりをむしばむ。数年おきに、やめるかどうかを選べる。" }),
+          opt("some", "ほどほどにつきあう", (p) => {
             p.history.addictCount = (p.history.addictCount ?? 0) + 1;
             bump(p, { joy: 3, health: -1 });
             return `${label}は、ほどほどにとどめることにした`;
@@ -1067,12 +1067,12 @@ export const eventQuestions: EventQuestionDef[] = [
   {
     id: "habit_quit",
     weight: () => 0,
-    intro: (p) => `${({ gamble: "ギャンブル", smoke: "タバコ", drink: "お酒" })[p.habit?.kind ?? "gamble"]}をやめるべきか、考える日が増えた`,
+    intro: (p) => `${({ gamble: "ギャンブル", smoke: "タバコ", drink: "お酒" })[p.habit?.kind ?? "gamble"]}をやめるべきか考える日が増えた`,
     question: (p) => {
       const label = { gamble: "ギャンブル", smoke: "タバコ", drink: "お酒" }[p.habit?.kind ?? "gamble"];
       return {
-        title: `${label}を、やめますか`,
-        prompt: `${label}を続けて${p.habit ? p.age - p.habit.since : 0}年。体や暮らしへの影響が、見えてきました。`,
+        title: `${label}をやめますか`,
+        prompt: `${label}を続けて${p.habit ? p.age - p.habit.since : 0}年。体や暮らしへの影響が見えてきました。`,
         options: [
           opt("quit", "専門の相談や通院で、本気でやめる", (p, r) => {
             const kind = p.habit?.kind;
@@ -1090,11 +1090,11 @@ export const eventQuestions: EventQuestionDef[] = [
             if (r() < 0.25) {
               p.habit = null;
               bump(p, { joy: 3, health: 1 });
-              return "少しずつ量をへらし、いつのまにか、やめられていた";
+              return "少しずつ量をへらしていたら、いつのまにかやめられていた";
             }
             return "量をへらそうとしたが、あまり変わらなかった";
           }, { detail: () => "やめられる確率は低い。" }),
-          opt("keep", "このまま、続ける", (p) => (bump(p, { joy: -1 }), "やめられないまま、日々が過ぎた"), { auto: true }),
+          opt("keep", "このまま続ける", (p) => (bump(p, { joy: -1 }), "やめられないまま、日々が過ぎた"), { auto: true }),
         ],
       };
     },
@@ -1108,9 +1108,9 @@ export const eventQuestions: EventQuestionDef[] = [
       title: "同棲するか？",
       prompt: `${p.partner ? fullName(p.partner) + "さん" : "恋人"}と、付き合って${Math.max(1, p.age - (p.history.datingSince ?? p.age))}年。一緒に暮らしますか？`,
       options: [
-        opt("yes", "一緒に暮らす", (p) => (mark(p, "cohab"), (p.history.cohab = p.age), (p.withParents = false), bump(p, { bonds: 6, joy: 4, money: 2 }), `${p.partner ? p.partner.given + "さん" : "恋人"}との同棲をはじめた。二人で暮らすぶん、家賃や生活費が、わけあえる`), { auto: true, detail: () => "毎日を一緒に過ごせる。生活費をわけあえるが、相性が悪いと、ぶつかることもふえる。" }),
-        opt("later", "もう少し、今の距離のままで", (p) => (bump(p, { bonds: 1 }), "同棲は見送り、今の距離を、大事にすることにした"), { auto: true }),
-        opt("marry", "同棲より先に、結婚を考える", (p) => ((p.proposeAt = p.age), (p.marriageBias = Math.max(p.marriageBias, 1.8)), bump(p, { bonds: 4, joy: 2 }), "同棲より先に、結婚を考えたいと、伝えた"), { detail: () => "結婚の話が、近いうちに出やすくなる。" }),
+        opt("yes", "一緒に暮らす", (p) => (mark(p, "cohab"), (p.history.cohab = p.age), (p.withParents = false), bump(p, { bonds: 6, joy: 4, money: 2 }), `${p.partner ? p.partner.given + "さん" : "恋人"}との同棲をはじめた。二人で暮らすぶん、家賃や生活費がわけあえる`), { auto: true, detail: () => "毎日を一緒に過ごせる。生活費をわけあえるが、相性が悪いと、ぶつかることもふえる。" }),
+        opt("later", "もう少し、今の距離のままで", (p) => (bump(p, { bonds: 1 }), "同棲は見送り、今の距離を大事にすることにした"), { auto: true }),
+        opt("marry", "同棲より先に、結婚を考える", (p) => ((p.proposeAt = p.age), (p.marriageBias = Math.max(p.marriageBias, 1.8)), bump(p, { bonds: 4, joy: 2 }), "同棲より先に、結婚を考えたいと伝えた"), { detail: () => "結婚の話が近いうちに出やすくなる。" }),
       ],
     }),
   },
@@ -1118,13 +1118,13 @@ export const eventQuestions: EventQuestionDef[] = [
   {
     id: "homeless_help",
     weight: () => 0,
-    intro: () => "住まいを失い、これからどうするかを、考えた",
+    intro: () => "住まいを失い、これからどうするかを考えた",
     question: () => ({
       title: "住まいを失って",
       prompt: "夜をしのぐ場所もない状態です。どうしますか？",
       options: [
-        opt("office", "自治体の窓口に相談する(生活困窮者の支援・生活保護)", (p, r) => (r() < 0.85 ? ((p.housingKind = null), bump(p, { joy: 6, health: 3, bonds: 2 }), "自治体の窓口に相談し、住まいと生活の支援が受けられた") : (bump(p, { joy: -2 }), "窓口に相談したが、手続きが進まず、住まいは、まだ見つからなかった")), { auto: true, detail: () => "支援が受けられることが多い。手続きに時間がかかることもある。" }),
-        opt("friend", "友人や親戚を頼る", (p, r) => (r() < 0.35 + p.stats.bonds / 150 ? ((p.housingKind = "lodging"), bump(p, { bonds: -2, joy: 4 }), "友人の家に身を寄せることができた") : (bump(p, { bonds: -3 }), "頼れる人は、見つからなかった")), { auto: true, detail: (p) => `つながりが強いほど、受け入れてもらいやすい(約${Math.round(Math.min(0.9, 0.35 + p.stats.bonds / 150) * 100)}%)。` }),
+        opt("office", "自治体の窓口に相談する(生活困窮者の支援・生活保護)", (p, r) => (r() < 0.85 ? ((p.housingKind = null), bump(p, { joy: 6, health: 3, bonds: 2 }), "自治体の窓口に相談し、住まいと生活の支援が受けられた") : (bump(p, { joy: -2 }), "窓口に相談したが、手続きが進まず、住まいはまだ見つからなかった")), { auto: true, detail: () => "支援が受けられることが多い。手続きに時間がかかることもある。" }),
+        opt("friend", "友人や親戚を頼る", (p, r) => (r() < 0.35 + p.stats.bonds / 150 ? ((p.housingKind = "lodging"), bump(p, { bonds: -2, joy: 4 }), "友人の家に身を寄せることができた") : (bump(p, { bonds: -3 }), "頼れる人は見つからなかった")), { auto: true, detail: (p) => `つながりが強いほど、受け入れてもらいやすい(約${Math.round(Math.min(0.9, 0.35 + p.stats.bonds / 150) * 100)}%)。` }),
         opt("work", "寮つきの仕事を探す", (p, r, d) => (r() < 0.5 ? (assignJob(p, "logistics", r, d), (p.employment = "nonregular"), (p.housingKind = "dorm"), bump(p, { joy: 5, money: 3 }), "寮つきの仕事が見つかり、住む場所と収入を得た") : (bump(p, { health: -3, joy: -4 }), "寮つきの仕事を探したが、見つからなかった")), { auto: true, detail: () => "うまくいけば、住まいと収入を同時に得られる(約5割)。" }),
         opt("self", "このまま、なんとか自力でしのぐ", (p) => (bump(p, { health: -3, joy: -3 }), "助けは求めず、なんとか日々をしのいだ"), { auto: true }),
       ],
@@ -1153,14 +1153,14 @@ export const eventQuestions: EventQuestionDef[] = [
       const p = s.person;
       if (!p.partner || p.partner.status === "ex") p.partner = randomPartner(r, d, p.age, "crush", p.mbti, p);
     },
-    intro: (p) => (p.partner ? `${fullName(p.partner)}さんから、付き合ってほしいと言われた` : "だれかに、付き合ってほしいと言われた"),
+    intro: (p) => (p.partner ? `${fullName(p.partner)}さんから、付き合ってほしいと言われた` : "だれかに付き合ってほしいと言われた"),
     question: (p) => ({
       title: p.partner ? `${fullName(p.partner)}さんからの告白` : "告白された",
-      prompt: p.partner ? `${fullName(p.partner)}さんは、${typeCall(p.partner.mbti) || "どんな人か、まだよくわからない"}。${p.mbti && p.partner.mbti ? `あなたとの相性は${compatMark(partnerCompat(p))} ${partnerCompat(p)}%。` : ""}付き合いますか？` : "付き合いますか？",
+      prompt: p.partner ? `${fullName(p.partner)}さんは、${typeCall(p.partner.mbti) || "どんな人かまだよくわからない"}。${p.mbti && p.partner.mbti ? `あなたとの相性は${compatMark(partnerCompat(p))} ${partnerCompat(p)}%。` : ""}付き合いますか？` : "付き合いますか？",
       options: [
-        opt("yes", "付き合う", (p) => (mark(p, "askedOut"), p.partner && (p.partner.status = "dating"), (p.marriageBias *= 1.6), bump(p, { bonds: 6, joy: 5 }), `${p.partner ? p.partner.given + "さん" : "その人"}と、付き合いはじめた`), { auto: true, detail: (p) => "毎日が、にぎやかになる。ただ、相性しだいで、別れることもある。" }),
+        opt("yes", "付き合う", (p) => (mark(p, "askedOut"), p.partner && (p.partner.status = "dating"), (p.marriageBias *= 1.6), bump(p, { bonds: 6, joy: 5 }), `${p.partner ? p.partner.given + "さん" : "その人"}と付き合いはじめた`), { auto: true, detail: (p) => "毎日がにぎやかになる。ただ、相性しだいで別れることもある。" }),
         opt("friend", "友人としてなら", (p) => (mark(p, "askedOut"), p.partner && (p.partner.status = "crush"), bump(p, { bonds: 2 }), "友人として、これからもつきあうことにした"), { auto: true }),
-        opt("no", "断る", (p) => (mark(p, "askedOut"), p.partner && (p.partner.status = "ex"), bump(p, { bonds: -1 }), "気持ちに応えられないと、はっきり伝えた"), { auto: true }),
+        opt("no", "断る", (p) => (mark(p, "askedOut"), p.partner && (p.partner.status = "ex"), bump(p, { bonds: -1 }), "気持ちに応えられないとはっきり伝えた"), { auto: true }),
       ],
     }),
   },
@@ -1168,10 +1168,10 @@ export const eventQuestions: EventQuestionDef[] = [
   {
     id: "hobby_offer",
     weight: (p) => (inAge(p, 18, 62) && !p.history.hobbyOffer && p.lessons.length < MAX_LESSONS ? 0.8 : 0),
-    intro: () => "毎日に、もう一つ、楽しみがほしいと思った",
+    intro: () => "毎日に、もう一つ楽しみがほしいと思った",
     question: () => ({
       title: "趣味を増やしますか",
-      prompt: "新しい趣味をはじめるなら、どれにしますか？(習い事と趣味は、あわせて5つまで。あとで、習い事・趣味の欄からも、増やせます)",
+      prompt: "新しい趣味をはじめるならどれにしますか？(習い事と趣味は、あわせて5つまで。あとで習い事・趣味の欄からも増やせます)",
       options: [
         ["hiking", "登山・ハイキング"], ["fishing", "釣り"], ["camp", "キャンプ"], ["reading", "読書・映画"], ["gardening", "園芸・家庭菜園"], ["running", "ランニング"], ["games", "ゲーム・ボードゲーム"], ["travel_club", "旅行・街歩き"],
       ].map(([id, label]) =>
@@ -1181,7 +1181,7 @@ export const eventQuestions: EventQuestionDef[] = [
           const def = d.lessons.find((l) => l.id === id);
           return (bump(p, { joy: 4 }), `新しい趣味に、${label}をはじめた${def ? `(年に約${def.costMan}万円)` : ""}`);
         }, { show: (p) => p.lessons.length < MAX_LESSONS && !p.lessons.some((l) => l.id === id) }),
-      ).concat([opt("skip", "今は、増やさない", (p) => (mark(p, "hobbyOffer"), "趣味は増やさず、今の毎日を大事にすることにした"), { auto: true })]),
+      ).concat([opt("skip", "今は増やさない", (p) => (mark(p, "hobbyOffer"), "趣味は増やさず、今の毎日を大事にすることにした"), { auto: true })]),
     }),
   },
   // ---- NISAを始めるか(人生で一度) ----
@@ -1191,11 +1191,11 @@ export const eventQuestions: EventQuestionDef[] = [
     intro: () => "職場や友人との話で、NISAのことが話題になった",
     question: () => ({
       title: "NISAを始めますか",
-      prompt: "NISAは、投資の利益に税金がかからない制度です。株価は変動するので、減ることもあります。(このサイトの株価は、すべて架空です)",
+      prompt: "NISAは投資の利益に税金がかからない制度です。株価は変動するので、減ることもあります。(このサイトの株価はすべて架空です)",
       options: [
         ...[["small", 12, "年12万円(月1万円)"], ["mid", 36, "年36万円(月3万円)"], ["big", 120, "年120万円(月10万円)"]].map(([id, man, label]) =>
-          opt(id as string, `NISAを始める(${label}を積み立てる)`, (p) => (mark(p, "nisaOffer"), addCash(p, -(man as number)), (p.nisaYen += (man as number) * 10000), bump(p, { money: 2 }), `NISAを始め、${label}の積み立てをはじめた`), { cost: () => man as number, detail: () => `今年は${man}万円を積み立てる。以後は「資産」の欄の株から、増やせる。` })),
-        opt("skip", "今は、始めない", (p) => (mark(p, "nisaOffer"), "NISAは、見送ることにした"), { auto: true }),
+          opt(id as string, `NISAを始める(${label}を積み立てる)`, (p) => (mark(p, "nisaOffer"), addCash(p, -(man as number)), (p.nisaYen += (man as number) * 10000), bump(p, { money: 2 }), `NISAを始め、${label}の積み立てをはじめた`), { cost: () => man as number, detail: () => `今年は${man}万円を積み立てる。以後は「資産」の欄の株から増やせる。` })),
+        opt("skip", "今は始めない", (p) => (mark(p, "nisaOffer"), "NISAは見送ることにした"), { auto: true }),
       ],
     }),
   },
@@ -1204,19 +1204,19 @@ export const eventQuestions: EventQuestionDef[] = [
     id: "work_end",
     weight: () => 0,
     // 定年があるのは、会社や役所に正社員で勤める人。自営の人や、契約・パートの人には、「定年」はなく、「仕事の区切り」を考える。
-    intro: (p) => (p.stats.health < 45 || p.sick ? "体調のことを考えて、仕事を続けるかどうかを、決めるときが来た" : p.employment === "regular" ? "定年を迎え、仕事の区切りを考えるときが来た" : "年齢を重ね、仕事の区切りを考えるときが来た"),
+    intro: (p) => (p.stats.health < 45 || p.sick ? "体調のことを考えて、仕事を続けるかどうかを決めるときが来た" : p.employment === "regular" ? "定年を迎え、仕事の区切りを考えるときが来た" : "年齢を重ね、仕事の区切りを考えるときが来た"),
     question: (p) => {
       const frail = p.stats.health < 45 || p.sick;
       const fixed = p.employment === "regular";
       const self = p.employment === "self";
       return {
-        title: frail ? "体調と、仕事" : fixed ? "定年のとき" : "仕事の区切り",
-        prompt: frail ? "体がきつくなってきました。この先も、いまの仕事を、続けますか？" : fixed ? "定年を迎えました。この先の仕事を、どうしますか？" : "年齢を重ねました。この先の仕事を、どうしますか？",
+        title: frail ? "体調と仕事" : fixed ? "定年のとき" : "仕事の区切り",
+        prompt: frail ? "体がきつくなってきました。この先も、いまの仕事を続けますか？" : fixed ? "定年を迎えました。この先の仕事をどうしますか？" : "年齢を重ねました。この先の仕事をどうしますか？",
         options: [
-          opt("retire", fixed ? "定年で、仕事を退く" : self ? "仕事をたたんで、引退する" : "仕事を退く", (q) => ((q.occ = "retired"), (q.parttime = null), bump(q, { joy: -1, health: 2 }), q.employment === "regular" ? "定年を迎え、長年の仕事を退いた" : q.employment === "self" ? "長年続けた仕事をたたみ、引退した" : "長年の仕事を退いた"), { auto: true, show: (q) => !(q.stats.health < 45 || q.sick), detail: () => "給料や売り上げはなくなり、年金や貯金が中心の暮らしになる。時間はたっぷりできる。" }),
+          opt("retire", fixed ? "定年で仕事を退く" : self ? "仕事をたたんで引退する" : "仕事を退く", (q) => ((q.occ = "retired"), (q.parttime = null), bump(q, { joy: -1, health: 2 }), q.employment === "regular" ? "定年を迎え、長年の仕事を退いた" : q.employment === "self" ? "長年続けた仕事をたたみ、引退した" : "長年の仕事を退いた"), { auto: true, show: (q) => !(q.stats.health < 45 || q.sick), detail: () => "給料や売り上げはなくなり、年金や貯金が中心の暮らしになる。時間はたっぷりできる。" }),
           opt("retire_health", "体調を優先して、退職する", (q) => ((q.occ = "retired"), (q.parttime = null), bump(q, { health: 5, joy: -2 }), "体調のことを考えて、仕事を退いた"), { auto: true, show: (q) => q.stats.health < 45 || !!q.sick, detail: () => "無理をしない暮らしになる。収入は、年金や貯金が中心になる。" }),
           opt("rehire", fixed ? "再雇用・嘱託で、もう少し働く" : self ? "規模を小さくして、もう少し続ける" : "契約を更新して、もう少し働く", (q) => ((q.payMult *= 0.6), (q.workLong = true), bump(q, { money: 2, health: -1, bonds: 1 }), q.employment === "regular" ? "再雇用で、もうしばらく、働くことにした" : q.employment === "self" ? "規模を小さくして、もうしばらく、続けることにした" : "契約を更新して、もうしばらく、働くことにした"), { show: (q) => q.age < 80 && !(q.stats.health < 45 || q.sick), detail: () => "収入は、これまでの6割ほどに下がる。体力の続くかぎり、働ける。" }),
-          opt("push", "無理をしてでも、働きつづける", (q) => (bump(q, { health: -7, joy: -2, money: 2 }), "体にむち打って、働きつづけることにした"), { show: (q) => q.age < 80 && (q.stats.health < 45 || !!q.sick), detail: () => "収入は続くが、体への負担が大きい。また、退職をせまられることがある。" }),
+          opt("push", "無理をしてでも働きつづける", (q) => (bump(q, { health: -7, joy: -2, money: 2 }), "体にむち打って、働きつづけることにした"), { show: (q) => q.age < 80 && (q.stats.health < 45 || !!q.sick), detail: () => "収入は続くが、体への負担が大きい。また、退職をせまられることがある。" }),
         ],
       };
     },
@@ -1225,65 +1225,65 @@ export const eventQuestions: EventQuestionDef[] = [
   {
     id: "retire_life",
     weight: (p) => (p.occ === "retired" && inAge(p, 60, 76) && !recent(p, "retireLife", 30) ? 1.4 : 0),
-    intro: () => "仕事を退いた毎日を、どう過ごすかを考えた",
+    intro: () => "仕事を退いた毎日をどう過ごすかを考えた",
     question: () => ({
       title: "退職後の毎日",
-      prompt: "時間がたっぷりできました。これからの毎日を、どう過ごしますか？",
+      prompt: "時間がたっぷりできました。これからの毎日をどう過ごしますか？",
       options: [
-        opt("rest", "のんびり休み、暮らしを整える", (p) => (mark(p, "retireLife"), bump(p, { health: 4, joy: 4 }), "のんびり休みながら、暮らしを整えることにした"), { auto: true, detail: () => "体と心に、ゆとりができる。収入は年金だけになる。" }),
-        opt("volunteer", "地域の活動やボランティアに参加する", (p) => (mark(p, "retireLife"), bump(p, { bonds: 8, joy: 4 }), "地域の活動に参加し、新しい仲間ができた"), { detail: () => "人とのつながりが、広がる。費用は、ほとんどかからない。" }),
-        opt("learn", "大学の公開講座などで、学び直す", (p) => (mark(p, "retireLife"), addCash(p, -5), bump(p, { learn: 8, joy: 4, bonds: 2 }), "公開講座に通い、学ぶ楽しさを思い出した"), { cost: () => 5, detail: () => "年に約5万円。頭と心が、若返る。" }),
-        opt("parttime", "パートやシルバー人材で、少し働く", (p) => (mark(p, "retireLife"), addCash(p, 90), bump(p, { money: 3, health: -1, bonds: 3 }), "パートで少し働き、収入と張り合いを得た"), { detail: () => "年に約90万円の収入。体への負担は、少しある。" }),
-        opt("travel", "貯金を使って、旅に出る", (p) => (mark(p, "retireLife"), addCash(p, -80), bump(p, { joy: 10, bonds: 3, health: 2, money: -2 }), "友人や家族と、ゆっくり旅をして回った"), { cost: () => 80, detail: () => "約80万円。思い出と、元気が増える。" }),
+        opt("rest", "のんびり休み、暮らしを整える", (p) => (mark(p, "retireLife"), bump(p, { health: 4, joy: 4 }), "のんびり休みながら、暮らしを整えることにした"), { auto: true, detail: () => "体と心にゆとりができる。収入は年金だけになる。" }),
+        opt("volunteer", "地域の活動やボランティアに参加する", (p) => (mark(p, "retireLife"), bump(p, { bonds: 8, joy: 4 }), "地域の活動に参加し、新しい仲間ができた"), { detail: () => "人とのつながりが広がる。費用はほとんどかからない。" }),
+        opt("learn", "大学の公開講座などで学び直す", (p) => (mark(p, "retireLife"), addCash(p, -5), bump(p, { learn: 8, joy: 4, bonds: 2 }), "公開講座に通い、学ぶ楽しさを思い出した"), { cost: () => 5, detail: () => "年に約5万円。頭と心が若返る。" }),
+        opt("parttime", "パートやシルバー人材で少し働く", (p) => (mark(p, "retireLife"), addCash(p, 90), bump(p, { money: 3, health: -1, bonds: 3 }), "パートで少し働き、収入と張り合いを得た"), { detail: () => "年に約90万円の収入。体への負担は少しある。" }),
+        opt("travel", "貯金を使って旅に出る", (p) => (mark(p, "retireLife"), addCash(p, -80), bump(p, { joy: 10, bonds: 3, health: 2, money: -2 }), "友人や家族と、ゆっくり旅をして回った"), { cost: () => 80, detail: () => "約80万円。思い出と元気が増える。" }),
       ],
     }),
   },
   {
     id: "grandchild_role",
     weight: (p) => (p.history.grandchild !== undefined && inAge(p, 58, 90) && !recent(p, "grandRole", 10) ? 0.6 : 0),
-    intro: () => "孫との関わり方を、考えた",
+    intro: () => "孫との関わり方を考えた",
     question: () => ({
       title: "孫との関わり",
-      prompt: "孫と、どんなふうに関わっていきますか？",
+      prompt: "孫とどんなふうに関わっていきますか？",
       options: [
-        opt("care", "進んで、孫の世話をする", (p) => (mark(p, "grandRole"), bump(p, { bonds: 8, joy: 6, health: -2 }), "孫の世話を、進んで引き受けることにした"), { detail: () => "にぎやかで、張り合いが出る。体力は使う。" }),
-        opt("fit", "ほどよい距離で、見守る", (p) => (mark(p, "grandRole"), bump(p, { bonds: 4, joy: 3 }), "ほどよい距離で、孫を見守ることにした"), { auto: true, detail: () => "自分の時間も、守れる。" }),
-        opt("far", "離れて、手紙や電話で見守る", (p) => (mark(p, "grandRole"), bump(p, { bonds: 1, joy: 1 }), "離れた場所から、孫を見守ることにした"), { detail: () => "気楽だが、会う機会は、減る。" }),
+        opt("care", "進んで孫の世話をする", (p) => (mark(p, "grandRole"), bump(p, { bonds: 8, joy: 6, health: -2 }), "孫の世話を進んで引き受けることにした"), { detail: () => "にぎやかで張り合いが出る。体力は使う。" }),
+        opt("fit", "ほどよい距離で見守る", (p) => (mark(p, "grandRole"), bump(p, { bonds: 4, joy: 3 }), "ほどよい距離で孫を見守ることにした"), { auto: true, detail: () => "自分の時間も守れる。" }),
+        opt("far", "離れて手紙や電話で見守る", (p) => (mark(p, "grandRole"), bump(p, { bonds: 1, joy: 1 }), "離れた場所から孫を見守ることにした"), { detail: () => "気楽だが会う機会は減る。" }),
       ],
     }),
   },
   {
     id: "remarry",
     weight: (p) => (!p.married && inAge(p, 55, 80) && !p.stayingSingle && !recent(p, "remarry", 12) ? 0.35 : 0),
-    intro: () => "これからの、ひとりの暮らしについて、考えた",
+    intro: () => "これからのひとりの暮らしについて考えた",
     question: () => ({
-      title: "これからの、パートナー",
-      prompt: "これからの人生を、ひとりで歩くか、だれかと歩むか、考えます。",
+      title: "これからのパートナー",
+      prompt: "これからの人生をひとりで歩くか、だれかと歩むかを考えます。",
       options: [
         opt("meet", "新しい出会いを探し、パートナーをもつ", (p, r, d) => {
           mark(p, "remarry");
           if (r() < 0.55) {
             p.partner = randomPartner(r, d, p.age, "dating", p.mbti, p);
             bump(p, { bonds: 8, joy: 8 });
-            return `${fullName(p.partner)}さんと出会い、これからを、ともに歩むことになった`;
+            return `${fullName(p.partner)}さんと出会い、これからをともに歩むことになった`;
           }
           bump(p, { bonds: -1, joy: -2 });
           return "新しい出会いを探したが、なかなか巡り会えなかった";
-        }, { detail: () => "出会えるかは、運しだい(約55%)。出会えれば、毎日が、あたたかくなる。" }),
-        opt("alone", "ひとりの暮らしを、大切にする", (p) => (mark(p, "remarry"), bump(p, { joy: 2, health: 1 }), "ひとりの暮らしを、大切にすることにした"), { auto: true, detail: () => "自分のペースで暮らせる。友人や家族とのつながりが、支えになる。" }),
+        }, { detail: () => "出会えるかは運しだい(約55%)。出会えれば、毎日があたたかくなる。" }),
+        opt("alone", "ひとりの暮らしを大切にする", (p) => (mark(p, "remarry"), bump(p, { joy: 2, health: 1 }), "ひとりの暮らしを大切にすることにした"), { auto: true, detail: () => "自分のペースで暮らせる。友人や家族とのつながりが支えになる。" }),
       ],
     }),
   },
   {
     id: "license",
     weight: (p) => (inAge(p, 70, 88) && !recent(p, "license", 20) ? 0.5 : 0),
-    intro: () => "運転を、これからも続けるかを、考えた",
+    intro: () => "運転をこれからも続けるかを考えた",
     question: () => ({
       title: "運転免許",
-      prompt: "年齢とともに、反応が鈍くなってきました。運転を、どうしますか？",
+      prompt: "年齢とともに、反応が鈍くなってきました。運転をどうしますか？",
       options: [
-        opt("return", "免許を、返納する", (p) => (mark(p, "license"), bump(p, { health: 1, bonds: -2, joy: -2 }), "免許を返納し、公共交通や家族の車に頼ることにした"), { auto: true, detail: () => "事故の心配は、なくなる。出かける自由は、少し減る。" }),
-        opt("keep", "もうしばらく、運転を続ける", (p, r) => {
+        opt("return", "免許を返納する", (p) => (mark(p, "license"), bump(p, { health: 1, bonds: -2, joy: -2 }), "免許を返納し、公共交通や家族の車に頼ることにした"), { auto: true, detail: () => "事故の心配はなくなる。出かける自由は少し減る。" }),
+        opt("keep", "もうしばらく運転を続ける", (p, r) => {
           mark(p, "license");
           if (r() < 0.12) {
             bump(p, { health: -6, joy: -8, bonds: -3 });
@@ -1291,50 +1291,50 @@ export const eventQuestions: EventQuestionDef[] = [
             return "運転を続けたが、事故を起こしてしまい、免許を返納することになった";
           }
           bump(p, { joy: 3 });
-          return "もうしばらく、運転を続けることにした";
-        }, { detail: () => "自由は保てる。年に約12%の確率で、事故を起こす。" }),
+          return "もうしばらく運転を続けることにした";
+        }, { detail: () => "自由は保てる。年に約12%の確率で事故を起こす。" }),
       ],
     }),
   },
   {
     id: "will",
     weight: (p) => (inAge(p, 65, 88) && !recent(p, "will", 15) ? 0.6 : 0),
-    intro: () => "人生の整理(終活)を、考えはじめた",
+    intro: () => "人生の整理(終活)を考えはじめた",
     question: () => ({
       title: "人生の整理(終活)",
-      prompt: "これまでのものや、財産を、どう整理しておきますか？",
+      prompt: "これまでのものや、財産をどう整理しておきますか？",
       options: [
-        opt("will", "遺言を書き、身のまわりを整える", (p) => (mark(p, "will"), addCash(p, -10), bump(p, { joy: 3, bonds: 3 }), "遺言を書き、身のまわりを整理した"), { cost: () => 10, auto: true, detail: () => "約10万円。家族の負担が、軽くなる。気持ちも、すっきりする。" }),
-        opt("gift", "家族に、生前に財産を分ける", (p) => (mark(p, "will"), addCash(p, -200), bump(p, { bonds: 8, joy: 4, money: -3 }), "家族に、生前に財産を分け、感謝された"), { cost: () => 200, show: (p) => p.kids > 0, detail: () => "約200万円。家族との絆は、深まる。自分の老後の資金は、減る。" }),
-        opt("donate", "お世話になった団体に、寄付する", (p) => (mark(p, "will"), addCash(p, -100), bump(p, { bonds: 4, joy: 6 }), "お世話になった団体に、寄付をした"), { cost: () => 100, detail: () => "約100万円。社会に、お返しできる。" }),
-        opt("none", "何もせず、いまの暮らしを続ける", (p) => (mark(p, "will"), "整理は、まだ先でよいと考えた"), { detail: () => "気楽だが、あとで、家族が困ることもある。" }),
+        opt("will", "遺言を書き、身のまわりを整える", (p) => (mark(p, "will"), addCash(p, -10), bump(p, { joy: 3, bonds: 3 }), "遺言を書き、身のまわりを整理した"), { cost: () => 10, auto: true, detail: () => "約10万円。家族の負担が軽くなる。気持ちもすっきりする。" }),
+        opt("gift", "家族に生前に財産を分ける", (p) => (mark(p, "will"), addCash(p, -200), bump(p, { bonds: 8, joy: 4, money: -3 }), "家族に生前に財産を分け、感謝された"), { cost: () => 200, show: (p) => p.kids > 0, detail: () => "約200万円。家族との絆は深まる。自分の老後の資金は減る。" }),
+        opt("donate", "お世話になった団体に寄付する", (p) => (mark(p, "will"), addCash(p, -100), bump(p, { bonds: 4, joy: 6 }), "お世話になった団体に寄付をした"), { cost: () => 100, detail: () => "約100万円。社会にお返しできる。" }),
+        opt("none", "何もせず、いまの暮らしを続ける", (p) => (mark(p, "will"), "整理はまだ先でよいと考えた"), { detail: () => "気楽だが、あとで家族が困ることもある。" }),
       ],
     }),
   },
   {
     id: "treatment",
     weight: (p) => (inAge(p, 72, 90) && p.stats.health < 55 && !recent(p, "treatment", 6) ? 0.9 : 0),
-    intro: () => "体の衰えから、これからの医療について、考えた",
+    intro: () => "体の衰えから、これからの医療について考えた",
     question: () => ({
       title: "これからの医療",
-      prompt: "体の衰えと、どう向き合いますか？",
+      prompt: "体の衰えとどう向き合いますか？",
       options: [
-        opt("active", "積極的に、治療を受ける", (p) => (mark(p, "treatment"), addCash(p, -20), bump(p, { health: 8, joy: -2, money: -2 }), "積極的に治療を受け、体調を立て直そうとした"), { cost: () => 20, detail: () => "約20万円。体の調子は上向くが、通院や入院の負担がある。" }),
-        opt("calm", "穏やかに、自分らしく過ごす", (p) => (mark(p, "treatment"), bump(p, { joy: 6, health: -3 }), "無理な治療は選ばず、穏やかに過ごすことにした"), { auto: true, detail: () => "心は、おだやかになる。体の衰えは、早まることもある。" }),
-        opt("talk", "家族と話し合い、方針を決める", (p) => (mark(p, "treatment"), bump(p, { bonds: 6, joy: 3, health: 2 }), "家族と話し合い、これからの方針を決めた"), { detail: () => "家族との絆が、深まる。納得感がある。" }),
+        opt("active", "積極的に治療を受ける", (p) => (mark(p, "treatment"), addCash(p, -20), bump(p, { health: 8, joy: -2, money: -2 }), "積極的に治療を受け、体調を立て直そうとした"), { cost: () => 20, detail: () => "約20万円。体の調子は上向くが、通院や入院の負担がある。" }),
+        opt("calm", "穏やかに、自分らしく過ごす", (p) => (mark(p, "treatment"), bump(p, { joy: 6, health: -3 }), "無理な治療は選ばず、穏やかに過ごすことにした"), { auto: true, detail: () => "心はおだやかになる。体の衰えは早まることもある。" }),
+        opt("talk", "家族と話し合い、方針を決める", (p) => (mark(p, "treatment"), bump(p, { bonds: 6, joy: 3, health: 2 }), "家族と話し合い、これからの方針を決めた"), { detail: () => "家族との絆が深まる。納得感がある。" }),
       ],
     }),
   },
   {
     id: "facility",
     weight: (p) => (inAge(p, 76, 90) && p.stats.health < 45 && !recent(p, "facility", 8) ? 0.8 : 0),
-    intro: () => "これからの暮らしの場所を、考えた",
+    intro: () => "これからの暮らしの場所を考えた",
     question: () => ({
       title: "これからの暮らしの場所",
       prompt: "体が思うように動かなくなってきました。どこで暮らしますか？",
       options: [
-        opt("home", "住み慣れた家で、暮らし続ける", (p) => (mark(p, "facility"), bump(p, { joy: 4, health: -3 }), "住み慣れた家で、暮らし続けることにした"), { auto: true, detail: () => "安心感はある。体の負担や、家族の介護の負担が、増える。" }),
-        opt("kids", "子どもの家で、いっしょに暮らす", (p) => (mark(p, "facility"), bump(p, { bonds: 8, joy: 3, health: 2 }), "子どもの家で、いっしょに暮らし始めた"), { show: (p) => p.kids > 0, detail: () => "家族のそばで、安心できる。気をつかうこともある。" }),
+        opt("home", "住み慣れた家で暮らし続ける", (p) => (mark(p, "facility"), bump(p, { joy: 4, health: -3 }), "住み慣れた家で暮らし続けることにした"), { auto: true, detail: () => "安心感はある。体の負担や、家族の介護の負担が増える。" }),
+        opt("kids", "子どもの家でいっしょに暮らす", (p) => (mark(p, "facility"), bump(p, { bonds: 8, joy: 3, health: 2 }), "子どもの家でいっしょに暮らし始めた"), { show: (p) => p.kids > 0, detail: () => "家族のそばで、安心できる。気をつかうこともある。" }),
         opt("facility", "介護つきの施設に入る", (p) => (mark(p, "facility"), addCash(p, -150), bump(p, { health: 6, joy: -2, money: -3 }), "介護つきの施設に入り、手厚い世話を受けることになった"), { cost: () => 150, detail: () => "入居に約150万円。専門の介護が受けられ、体は守られる。" }),
       ],
     }),
@@ -1342,14 +1342,14 @@ export const eventQuestions: EventQuestionDef[] = [
   {
     id: "last_place",
     weight: (p) => (inAge(p, 80, 90) && !recent(p, "lastPlace", 20) ? 0.4 : 0),
-    intro: () => "人生の最期を、どこで迎えたいかを、考えた",
+    intro: () => "人生の最期を、どこで迎えたいかを考えた",
     question: () => ({
       title: "最期の迎え方",
       prompt: "人生の最期を、どこで迎えたいですか？",
       options: [
-        opt("home", "住み慣れた家で、迎えたい", (p) => (mark(p, "lastPlace"), bump(p, { joy: 6, bonds: 4 }), "最期は、住み慣れた家で迎えたいと、家族に伝えた"), { auto: true, detail: () => "家族や在宅の医療に、支えてもらうことになる。" }),
-        opt("hospital", "病院や施設で、迎えたい", (p) => (mark(p, "lastPlace"), bump(p, { health: 3, joy: 1 }), "最期は、病院や施設で迎えたいと、家族に伝えた"), { detail: () => "家族の負担は、軽くなる。" }),
-        opt("undecided", "まだ決めない", (p) => (mark(p, "lastPlace"), ""), { detail: () => "考えが変わるまで、決めずにおく。" }),
+        opt("home", "住み慣れた家で迎えたい", (p) => (mark(p, "lastPlace"), bump(p, { joy: 6, bonds: 4 }), "最期は住み慣れた家で迎えたいと、家族に伝えた"), { auto: true, detail: () => "家族や在宅の医療に支えてもらうことになる。" }),
+        opt("hospital", "病院や施設で迎えたい", (p) => (mark(p, "lastPlace"), bump(p, { health: 3, joy: 1 }), "最期は病院や施設で迎えたいと、家族に伝えた"), { detail: () => "家族の負担は軽くなる。" }),
+        opt("undecided", "まだ決めない", (p) => (mark(p, "lastPlace"), ""), { detail: () => "考えが変わるまで決めずにおく。" }),
       ],
     }),
   },
@@ -1359,27 +1359,27 @@ export const eventQuestions: EventQuestionDef[] = [
     intro: () => "留学を終えた",
     question: (p) => ({
       title: "留学を終えて、どうする？",
-      prompt: `${p.abroad?.country ?? "現地"}での留学を終えました。これからの道を、選びます。`,
+      prompt: `${p.abroad?.country ?? "現地"}での留学を終えました。これからの道を選びます。`,
       options: [
-        opt("stay", "現地で就職して、残る", () => "", {
-          detail: () => "ビザや国籍の手続きが必要になる。どの在留資格を取るかも、次に選べる。",
+        opt("stay", "現地で就職する", () => "", {
+          detail: () => "ビザや国籍の手続きが必要になる。どの在留資格を取るかも次に選べる。",
           children: (): TurningQuestion => ({
-            title: "在留資格は、どうする？",
-            prompt: "現地で、働きながら暮らし続けるための、在留資格を選びます。",
+            title: "在留資格はどうする？",
+            prompt: "現地で働きながら暮らし続けるための、在留資格を選びます。",
             options: [
               {
                 id: "work",
                 label: "就労ビザで働く",
                 auto: true,
                 apply: () => "",
-                detail: () => "手続きは、いちばん手軽。ただし、更新が必要で、毎年約4%の確率で、更新が認められず、帰国することになる。あとで、働く業界と職種を選ぶ。",
+                detail: () => "手続きはいちばん手軽。ただし更新が必要で、毎年約4%の確率で更新が認められず、帰国することになる。あとで働く業界と職種を選ぶ。",
                 children: () => industryQuestion({ factor: 1, finish: (q, title) => (q.abroad && (q.abroad.visa = "work"), (q.employment = "regular"), `現地の会社に就職した。${title}として、就労ビザで働き始めた`) }),
               },
               {
                 id: "perm",
-                label: "永住権をめざして、働く",
+                label: "永住権をめざして働く",
                 apply: () => "",
-                detail: () => "永住権が認められるまで、約5年。それまでは、就労ビザと同じで、更新が認められないおそれもある。認められれば、更新を気にしなくてよくなる。あとで、働く業界と職種を選ぶ。",
+                detail: () => "永住権が認められるまで約5年。それまでは就労ビザと同じで、更新が認められないおそれもある。認められれば更新を気にしなくてよくなる。あとで働く業界と職種を選ぶ。",
                 children: () => industryQuestion({
                   factor: 1,
                   finish: (q, title) => {
@@ -1397,7 +1397,7 @@ export const eventQuestions: EventQuestionDef[] = [
                 id: "citizen",
                 label: "現地の国籍を取得する",
                 apply: () => "",
-                detail: () => "ビザの心配が、なくなる。国によっては、日本国籍を手放す必要がある。日本の家族と離れた感覚が、強まることもある。あとで、働く業界と職種を選ぶ。",
+                detail: () => "ビザの心配がなくなる。国によっては、日本国籍を手放す必要がある。日本の家族と離れた感覚が強まることもある。あとで働く業界と職種を選ぶ。",
                 children: () => industryQuestion({
                   factor: 1,
                   finish: (q, title) => {
@@ -1415,8 +1415,8 @@ export const eventQuestions: EventQuestionDef[] = [
         opt("home", "日本に帰国して、職を探す", (q, r, d) => {
           moveHome(q, r, d);
           bump(q, { bonds: 4, joy: 2 });
-          return "日本に帰国した。これから、職を探す";
-        }, { auto: true, detail: () => "家族や友人のそばで、あらためて、仕事を探す。海外で学んだことが、強みになることもある。" }),
+          return "日本に帰国した。これから職を探す";
+        }, { auto: true, detail: () => "家族や友人のそばで、あらためて仕事を探す。海外で学んだことが強みになることもある。" }),
         opt("more", "現地の大学院に進む(さらに2年)", (q) => {
           if (q.abroad) {
             q.abroad.study = { until: q.age + 2, kind: "grad" };
@@ -1424,7 +1424,7 @@ export const eventQuestions: EventQuestionDef[] = [
           }
           q.cashDelta -= 300 * 10000;
           bump(q, { learn: 8 });
-          return "現地の大学院に進み、さらに2年、学ぶことにした(費用は約300万円)";
+          return "現地の大学院に進み、さらに2年学ぶことにした(費用は約300万円)";
         }, { show: (q) => q.edu === "univ", cost: () => 300, detail: () => "専門性が高まり、現地での就職にも強くなる。費用は約300万円。" }),
       ],
     }),
@@ -1472,7 +1472,7 @@ export const eventQuestions: EventQuestionDef[] = [
             id: "other",
             label: "別の業界・職種を、自分で選んで転職する",
             apply: () => "",
-            detail: () => "業界を選び、その中の職種を選ぶ。未経験の業界では、年収が下がりやすい(前の職との比べ方は、いまの話と同じ割合で決まる)。",
+            detail: () => "業界を選び、その中の職種を選ぶ。未経験の業界では年収が下がりやすい(前の職との比べ方は、いまの話と同じ割合で決まる)。",
             children: (p0) => ({
               title: "どの業界へ？",
               prompt: "転職したい業界を選んでください。",
@@ -1484,7 +1484,7 @@ export const eventQuestions: EventQuestionDef[] = [
                   apply: () => "",
                   children: () => ({
                     title: `${OCC_LABEL[o]}の、どの職種へ？`,
-                    prompt: "職種を選んでください(資格が必要な職種は、ここには出ません)。",
+                    prompt: "職種を選んでください(資格が必要な職種はここには出ません)。",
                     options: allJobs.filter((j) => j.occ === o && !j.qual).map((j) => ({
                       id: j.id,
                       label: j.title,
@@ -1514,7 +1514,7 @@ export const eventQuestions: EventQuestionDef[] = [
             p.jobOfferJob = null;
             bump(p, { joy: 1 });
             return "転職は見送り、いまの仕事を続けることにした";
-          }, { detail: (p, env, data) => `年収の目安: いまの約${round10(incomeOf(p, data, env.econ))}万円のまま。幸福度+1。慣れた環境で、安定して働き続けられる。` }),
+          }, { detail: (p, env, data) => `年収の目安: いまの約${round10(incomeOf(p, data, env.econ))}万円のまま。幸福度+1。慣れた環境で安定して働き続けられる。` }),
         ],
       };
     },
@@ -1533,18 +1533,18 @@ export const eventQuestions: EventQuestionDef[] = [
           if (p.partner) p.partner.status = "married";
           bump(p, { bonds: 6, joy: 8 });
           return `${p.partner ? fullName(p.partner) + "さん" : "お相手"}と結婚した`;
-        }, { auto: true, detail: () => "家計が一つになり、支え合える。そのぶん、生活や自由は変わる。" }),
-        opt("wait", "いまはまだ、結婚しない", (p) => {
+        }, { auto: true, detail: () => "家計が一つになり、支え合える。そのぶん生活や自由は変わる。" }),
+        opt("wait", "いまはまだ結婚しない", (p) => {
           p.marriageBias *= 0.7;
           bump(p, { bonds: -1 });
-          return "結婚の話は、もう少し先に延ばすことにした";
+          return "結婚の話はもう少し先に延ばすことにした";
         }, { detail: () => "関係は続くが、話が自然に流れてしまうこともある。" }),
         opt("single", "結婚せず、ひとりで生きていく", (p) => {
           p.stayingSingle = true;
           if (p.partner) p.partner.status = "ex";
           bump(p, { bonds: -4, joy: -2, health: 1 });
           return "結婚せず、ひとりで生きていくことに決めた";
-        }, { detail: () => "自由と気ままさを守れる。老後は、自分で備える必要がある。" }),
+        }, { detail: () => "自由と気ままさを守れる。老後は自分で備える必要がある。" }),
       ],
     }),
   },
@@ -1552,21 +1552,21 @@ export const eventQuestions: EventQuestionDef[] = [
     id: "divorce_ask",
     // 夫婦の関係が冷えているほど、起きやすい(相性・つながり・年数)。一度聞かれたら、5年はあける。
     weight: (p) => (p.married && p.partner && inAge(p, 24, 66) && !(p.history.divorceAsk !== undefined && p.age - p.history.divorceAsk < 5) ? 0.35 * clash(partnerCompat(p)) * (p.stats.bonds < 35 ? 2.4 : p.stats.bonds < 55 ? 1.2 : 0.3) : 0),
-    intro: (p) => `${p.partner ? p.partner.given + "さん" : "パートナー"}との関係を、見つめ直す日が増えた`,
+    intro: (p) => `${p.partner ? p.partner.given + "さん" : "パートナー"}との関係を見つめ直す日が増えた`,
     question: (p) => ({
       title: "離婚するか？",
-      prompt: `${p.partner ? p.partner.family + p.partner.given + "さん" : "パートナー"}との暮らしが、すれ違いの多いものになっていきました。${p.kids > 0 ? `子ども(${p.kids}人)のことも、頭をよぎります。` : ""}これから先を、どう考えるだろう。`,
+      prompt: `${p.partner ? p.partner.family + p.partner.given + "さん" : "パートナー"}との暮らしがすれ違いの多いものになっていきました。${p.kids > 0 ? `子ども(${p.kids}人)のことも、頭をよぎります。` : ""}これから先をどう考えるだろう。`,
       options: [
-        opt("stay", "話し合って、やり直す", (p, r) => {
+        opt("stay", "話し合ってやり直す", (p, r) => {
           mark(p, "divorceAsk");
           if (r() < 0.6) return (bump(p, { bonds: 6, joy: 3 }), "時間をかけて話し合い、夫婦の関係を立て直した");
           bump(p, { bonds: -2, joy: -3 });
-          return "話し合いを重ねたが、溝は、すぐには埋まらなかった";
-        }, { auto: true, detail: () => "うまくいけば、絆は深まる。うまくいかないと、気まずさが続く。" }),
-        opt("apart", "しばらく、距離を置く", (p) => {
+          return "話し合いを重ねたが、溝はすぐには埋まらなかった";
+        }, { auto: true, detail: () => "うまくいけば絆は深まる。うまくいかないと、気まずさが続く。" }),
+        opt("apart", "しばらく距離を置く", (p) => {
           mark(p, "divorceAsk");
           bump(p, { bonds: -3, joy: -1, money: -1 });
-          return "しばらく、距離を置いて、気持ちを整理することにした";
+          return "しばらく距離を置いて、気持ちを整理することにした";
         }, { detail: () => "冷静に考える時間が持てる。そのあいだ、関係は宙に浮いたままになる。" }),
         opt("divorce", "離婚する", (p) => {
           mark(p, "divorceAsk");
@@ -1576,7 +1576,7 @@ export const eventQuestions: EventQuestionDef[] = [
           if (p.partner) p.partner.status = "ex";
           addCash(p, -60);
           bump(p, { bonds: -7, joy: -6, money: -4, health: -2 });
-          return `${who}離婚した${p.kids > 0 ? "。子どものことは、話し合って決めた" : ""}`;
+          return `${who}離婚した${p.kids > 0 ? "。子どものことは話し合って決めた" : ""}`;
         }, { detail: (p) => `財産分与や手続きで、約60万円がかかる${p.kids > 0 ? "(子どもがいる場合は、養育費の取り決めも必要)" : ""}。気持ちは重くなるが、新しい暮らしを始められる。` }),
       ],
     }),
@@ -1584,10 +1584,10 @@ export const eventQuestions: EventQuestionDef[] = [
   {
     id: "pm_disaster",
     weight: () => 0,
-    intro: (p) => `${DISASTERS[p.age % DISASTERS.length]}への対応を、迫られた`,
+    intro: (p) => `${DISASTERS[p.age % DISASTERS.length]}への対応を迫られた`,
     question: (p) => ({
       title: "災害への対応",
-      prompt: `${DISASTERS[p.age % DISASTERS.length]}が起き、多くの人が被害を受けています。総理大臣として、どう動くだろう。対応しだいで、国民の信用が大きく動きます。`,
+      prompt: `${DISASTERS[p.age % DISASTERS.length]}が起き、多くの人が被害を受けています。総理大臣としてどう動くだろう。対応しだいで国民の信用が大きく動きます。`,
       options: [
         opt("lead", "自ら現地に入り、先頭に立って対応する", (p, r) => {
           const ok = r() < 0.55 + p.intel / 400 + p.stats.bonds / 400 + (p.extra.trust >= 70 ? 0.08 : 0);
@@ -1600,7 +1600,7 @@ export const eventQuestions: EventQuestionDef[] = [
           p.extra.trust = Math.max(0, p.extra.trust - 6);
           bump(p, { health: -3, joy: -4 });
           return "先頭に立って対応したが、混乱が広がり、判断の遅れを批判された";
-        }, { auto: true, detail: () => "うまくいけば、信用が大きく上がる。体への負担が大きく、失敗すれば批判を浴びる。" }),
+        }, { auto: true, detail: () => "うまくいけば信用が大きく上がる。体への負担が大きく、失敗すれば批判を浴びる。" }),
         opt("delegate", "担当大臣に任せ、官邸から指揮をとる", (p, r) => {
           const ok = r() < 0.45 + p.intel / 500;
           if (ok) {
@@ -1609,8 +1609,8 @@ export const eventQuestions: EventQuestionDef[] = [
           }
           p.extra.trust = Math.max(0, p.extra.trust - 8);
           bump(p, { joy: -3 });
-          return "現場への指示が行き届かず、対応が後手に回ったと、厳しい批判を受けた";
-        }, { detail: () => "安定した対応になりやすいが、現場から遠いと見られると、信用を失う。" }),
+          return "現場への指示が行き届かず、対応が後手に回ったと厳しい批判を受けた";
+        }, { detail: () => "安定した対応になりやすいが、現場から遠いと見られると信用を失う。" }),
         opt("later", "ほかの政策を優先し、対応を後回しにする", (p, r) => {
           p.extra.trust = Math.max(0, p.extra.trust - 20);
           bump(p, { bonds: -4, joy: -6 });
@@ -1641,7 +1641,7 @@ export const eventQuestions: EventQuestionDef[] = [
   {
     id: "athlete_meet",
     weight: () => 0,
-    intro: (p) => `${sportById(p.sport)?.label ?? "競技"}の大会に、出場する機会があった`,
+    intro: (p) => `${sportById(p.sport)?.label ?? "競技"}の大会に出場する機会があった`,
     question: (p) => ({
       title: "大会に出るか",
       prompt: `${sportById(p.sport)?.label ?? "競技"}の大会です。いまの実績は${Math.round(p.extra.career)}、健康は${Math.round(p.stats.health)}。健康が高いほど勝ちやすく、勝てば実績を積めます。`,
@@ -1659,7 +1659,7 @@ export const eventQuestions: EventQuestionDef[] = [
           if (place) {
             q.extra.career = Math.min(100, q.extra.career + Math.round(m.gain / 3));
             bump(q, { joy: 2, health: -1 });
-            return `${name}の${m.label}で、上位に入った`;
+            return `${name}の${m.label}で上位に入った`;
           }
           q.extra.career = Math.min(100, q.extra.career + 1);
           bump(q, { joy: -2, health: r() < 0.12 ? -6 : -1 });
@@ -1668,17 +1668,17 @@ export const eventQuestions: EventQuestionDef[] = [
           show: (q) => q.extra.career >= m.minCareer,
           detail: (q) => `${m.field}。優勝できる目安は、約${Math.round(meetWinChance(q, m) * 100)}%(健康・実績・魅力で変わる)。${m.note}`,
         })),
-        opt("rest", "今年は、練習と休養に専念する", (q) => (bump(q, { health: 4, joy: 1 }), (q.extra.stress = Math.max(0, q.extra.stress - 4)), "今年は大会を見送り、練習と体づくりに専念した"), { auto: true, detail: () => "体を休められる。実績は、あまり伸びない。" }),
+        opt("rest", "今年は練習と休養に専念する", (q) => (bump(q, { health: 4, joy: 1 }), (q.extra.stress = Math.max(0, q.extra.stress - 4)), "今年は大会を見送り、練習と体づくりに専念した"), { auto: true, detail: () => "体を休められる。実績はあまり伸びない。" }),
       ],
     }),
   },
   {
     id: "athlete_olympic",
     weight: () => 0,
-    intro: (p) => `${sportById(p.sport)?.season === "winter" ? "冬季" : "夏季"}オリンピックの代表に、選ばれた`,
+    intro: (p) => `${sportById(p.sport)?.season === "winter" ? "冬季" : "夏季"}オリンピックの代表に選ばれた`,
     question: (p) => ({
       title: "オリンピックに出場するか",
-      prompt: `実績が90をこえ、${sportById(p.sport)?.label ?? "競技"}の日本代表に選ばれました。4年に一度の舞台です。実績・魅力・信用・健康が高いほど、メダルを狙えます。`,
+      prompt: `実績が90をこえ、${sportById(p.sport)?.label ?? "競技"}の日本代表に選ばれました。4年に一度の舞台です。実績・魅力・信用・健康が高いほどメダルを狙えます。`,
       options: [
         opt("go", "オリンピックに出場する", (q, r) => {
           const name = sportById(q.sport)?.label ?? "競技";
@@ -1710,14 +1710,14 @@ export const eventQuestions: EventQuestionDef[] = [
   {
     id: "crime_temptation",
     weight: () => 0,
-    intro: (p) => (p.history.scamVictim !== undefined && p.age - p.history.scamVictim <= 1 ? "だまされた悔しさと、追いつめられた気持ちが、頭を離れなくなった" : p.housingKind === "homeless" ? "その日の食べ物にも困り、追いつめられた" : "お金に困り、追いつめられた"),
+    intro: (p) => (p.history.scamVictim !== undefined && p.age - p.history.scamVictim <= 1 ? "だまされた悔しさと、追いつめられた気持ちが頭を離れなくなった" : p.housingKind === "homeless" ? "その日の食べ物にも困り、追いつめられた" : "お金に困り、追いつめられた"),
     question: (p) => {
       const scam = p.history.scamVictim !== undefined && p.age - p.history.scamVictim <= 1;
       const homeless = p.housingKind === "homeless";
       const why = scam ? "人にだまされ、お金を失いました。" : homeless ? "住まいを失い、その日の食べ物にも困っています。" : "お金がなく、暮らしが立ちゆきません。";
       return {
         title: scam ? "報復や、犯罪に手を染めるか" : "犯罪に手を染めるか",
-        prompt: `${why}どうするだろう。犯罪は、実際に検挙される確率があり、現行の法で裁かれます。懲役(拘禁刑)や罰金を受けると、前科がつき、就職や暮らしに長く響きます。`,
+        prompt: `${why}犯罪は実際に検挙される確率があり、現行の法で裁かれます。懲役(拘禁刑)や罰金を受けると、前科がつき、就職や暮らしに長く響きます。`,
         options: [
           opt("endure", "耐えて、相談窓口や公的な支援を頼る", (q, r) => {
             bump(q, { bonds: 2, joy: -1 });
@@ -1730,13 +1730,13 @@ export const eventQuestions: EventQuestionDef[] = [
           }, { auto: true, detail: () => "時間はかかるが、罪には問われない。生活保護や自治体の支援、弁護士の無料相談などの道がある。" }),
           ...(["assault", "theft", "fraud", "robbery"] as CrimeId[]).map((cid) => {
             const d = CRIMES[cid];
-            return opt(cid, cid === "assault" ? "だました相手に、報復する(暴力をふるう)" : cid === "theft" ? "盗みに手を染める(窃盗)" : cid === "fraud" ? "だます側にまわる(詐欺・闇バイトなど)" : "強盗に手を染める", (q, r) => {
+            return opt(cid, cid === "assault" ? "だました相手に報復する(暴力をふるう)" : cid === "theft" ? "盗みに手を染める(窃盗)" : cid === "fraud" ? "だます側にまわる(詐欺・闇バイトなど)" : "強盗に手を染める", (q, r) => {
               const arrest = r() < d.clearance;
               q.crime = { kind: cid, since: q.age, arrestAt: arrest ? q.age + yearsToArrest(r) : null, until: q.age + d.limit };
               if (d.gain[1] > 0) q.cashDelta += Math.round((d.gain[0] + r() * (d.gain[1] - d.gain[0])) * 10000);
               q.extra.stress = Math.min(100, q.extra.stress + 10);
               bump(q, { bonds: -4, joy: cid === "assault" ? 2 : -2 });
-              return cid === "assault" ? "怒りにまかせて、だました相手に暴力をふるった。警察に追われる身になった" : cid === "theft" ? "生きるために、盗みに手を染めた。警察に追われる身になった" : cid === "fraud" ? "だまされた側から、だます側にまわってしまった。警察に追われる身になった" : "強盗に手を染めた。警察に追われる身になった";
+              return cid === "assault" ? "怒りにまかせて、だました相手に暴力をふるった。警察に追われる身になった" : cid === "theft" ? "生きるために盗みに手を染めた。警察に追われる身になった" : cid === "fraud" ? "だまされた側から、だます側にまわってしまった。警察に追われる身になった" : "強盗に手を染めた。警察に追われる身になった";
             }, {
               show: (q) => (cid === "assault" ? scam : cid === "robbery" ? homeless || q.stats.money < 12 : true),
               detail: () => `${d.law}。検挙率は約${Math.round(d.clearance * 100)}%(${d.clearanceNote})。公訴時効は${d.limit}年。${d.gain[1] > 0 ? `手に入るお金は、${d.gain[0]}〜${d.gain[1]}万円ほど。` : ""}`,

@@ -41,8 +41,8 @@ export const weatherAt = (seed: number, age: number): Weather => weatherPath(see
 
 // 空模様が変わったときに、年表に添える一文。
 export const WEATHER_EVENT: Record<Weather, string> = {
-  clear: "空が晴れ渡る日々が、戻ってきた",
-  cloudy: "どんよりとした曇り空の日々が、続くようになった",
+  clear: "空が晴れ渡る日々が戻ってきた",
+  cloudy: "どんよりとした曇り空の日々が続くようになった",
   rain: "雨の降る日が多い、長雨の季節が続いた",
   snow: "雪の降る日が増え、街が白く染まった",
   thunder: "雷の鳴る、不安定な空模様が続いた",

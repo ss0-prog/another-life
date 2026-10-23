@@ -43,7 +43,7 @@ export function relationships(p: Person): Relation[] {
     if (pt.mbti && p.mbti) facts.push(`相性 ${c}%`);
     if (pt.status === "crush") {
       s = 25 + (c - 50) * 0.3 + (bonds - 50) * 0.2;
-      facts.push("まだ、気になっている段階");
+      facts.push("まだ気になっている段階");
     } else {
       const years = pt.status === "dating" ? p.age - (p.history.datingSince ?? p.age) : p.age - pt.since;
       if (years >= 0) facts.push(pt.status === "married" ? `結婚して${years}年` : `付き合って${years}年`);
@@ -51,22 +51,22 @@ export function relationships(p: Person): Relation[] {
       if (p.history.cohab !== undefined || pt.status === "married") { s += 6; facts.push("一緒に暮らしている"); }
       if (p.kids > 0 && pt.status === "married") { s += 3; facts.push("子どもがいる"); }
     }
-    if (recent(p, "conflict", 2)) { s -= 6; facts.push("最近、いざこざがあった"); }
-    if (recent(p, "overtime", 2) && working) { s -= 5; facts.push("仕事の忙しさで、すれちがいがち"); }
-    if (p.extra.stress > 70) { s -= 6; facts.push("ストレスで、余裕がない"); }
-    if (bonds >= 70) facts.push("つながりが強く、支えあえている");
-    if (bonds < 30) facts.push("つながりが弱く、気持ちが離れがち");
+    if (recent(p, "conflict", 2)) { s -= 6; facts.push("最近いざこざがあった"); }
+    if (recent(p, "overtime", 2) && working) { s -= 5; facts.push("仕事の忙しさですれちがいがち"); }
+    if (p.extra.stress > 70) { s -= 6; facts.push("ストレスで余裕がない"); }
+    if (bonds >= 70) facts.push("つながりが強く支えあえている");
+    if (bonds < 30) facts.push("つながりが弱く気持ちが離れがち");
     const sc = clamp(s);
     out.push({ id: "partner", role: pt.status === "married" ? "配偶者" : pt.status === "dating" ? "恋人" : "気になる人", name, score: sc, label: pt.status === "crush" ? (sc >= 30 ? "気になる" : "まだ遠い") : relationLabel(sc), tone: toneOf(sc), facts });
   } else if (pt && pt.status === "ex") {
-    out.push({ id: "ex", role: "別れた人", name: `${pt.given}さん`, score: 5, label: "疎遠", tone: "gone", facts: ["別れてから、連絡は取っていない"] });
+    out.push({ id: "ex", role: "別れた人", name: `${pt.given}さん`, score: 5, label: "疎遠", tone: "gone", facts: ["別れてからは連絡は取っていない"] });
   }
 
   // 両親
   for (const [who, key] of [["母", "mother"], ["父", "father"]] as const) {
     const dead = p.age >= p.parentDeath[key];
     if (dead) {
-      out.push({ id: key, role: who, name: who, score: 0, label: "亡くなった", tone: "gone", facts: [`${p.parentDeath[key]}歳のときに、亡くなった`] });
+      out.push({ id: key, role: who, name: who, score: 0, label: "亡くなった", tone: "gone", facts: [`${p.parentDeath[key]}歳のときに亡くなった`] });
       continue;
     }
     const facts: string[] = [];
@@ -74,9 +74,9 @@ export function relationships(p: Person): Relation[] {
     if (p.withParents) { s += 6; facts.push("一緒に暮らしている"); }
     else if (p.region !== p.birthRegion || p.abroad) { s -= 6; facts.push(p.abroad ? "海外で暮らし、なかなか会えない" : "離れて暮らしている"); }
     if (p.age >= p.parentDeath[key] - 2) { s += 4; facts.push("病気で入院している(気にかけている)"); }
-    if (p.age < 18) facts.push("親として、守ってもらっている");
-    if (working && recent(p, "overtime", 2)) { s -= 4; facts.push("忙しくて、顔を見せられていない"); }
-    if (p.age >= 13 && p.age <= 17) { s -= 8; facts.push("反抗期で、ぶつかりやすい"); }
+    if (p.age < 18) facts.push("親として守ってもらっている");
+    if (working && recent(p, "overtime", 2)) { s -= 4; facts.push("忙しくて顔を見せられていない"); }
+    if (p.age >= 13 && p.age <= 17) { s -= 8; facts.push("反抗期でぶつかりやすい"); }
     const sc = clamp(s);
     out.push({ id: key, role: who, name: who, score: sc, label: relationLabel(sc), tone: toneOf(sc), facts });
   }
@@ -87,10 +87,10 @@ export function relationships(p: Person): Relation[] {
     const facts: string[] = [`${age}歳`];
     let s = 62 + (bonds - 50) * 0.3 + jitter(`kid${i}${k.bornAge}`);
     if (working && recent(p, "overtime", 2)) { s -= 6; facts.push("仕事で、一緒に過ごす時間が少ない"); }
-    if (age >= 13 && age <= 17) { s -= 12; facts.push("思春期で、距離ができている"); }
+    if (age >= 13 && age <= 17) { s -= 12; facts.push("思春期で距離ができている"); }
     if (age >= 18 && p.age >= 40) { s -= 4; facts.push("独り立ちして、別々に暮らす"); }
     if (age < 6) { s += 6; facts.push("手がかかるぶん、そばにいる時間が長い"); }
-    if (p.extra.stress > 70) { s -= 5; facts.push("ストレスで、ゆとりがない"); }
+    if (p.extra.stress > 70) { s -= 5; facts.push("ストレスでゆとりがない"); }
     const sc = clamp(s);
     out.push({ id: `kid${i}`, role: k.sex === "boy" ? "息子" : k.sex === "girl" ? "娘" : "子ども", name: k.name || `${i + 1}人め`, score: sc, label: relationLabel(sc), tone: toneOf(sc), facts });
   });

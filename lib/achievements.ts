@@ -45,15 +45,15 @@ const years = (s: GameState, pred: (p: NonNullable<GameState["series"]>[number])
 export const ACHIEVEMENTS: Achievement[] = [
   // ---- 長寿 ----
   { id: "age100", name: "百寿者", desc: "100歳まで生きた。", mark: "寿", rarity: "rare", trivia: "2025年9月時点で、日本の百歳以上は99,763人。調査が始まった1963年は153人だった。その約88%(87,784人)が、女性。", source: SRC_CENT, check: (s) => ageNow(s) >= 100 },
-  { id: "age105", name: "105歳の壁を越えた", desc: "105歳まで生きた。", mark: "寿", rarity: "rare", trivia: "日本人の平均寿命は、男性81.35歳・女性87.33歳(2025年)。105歳は、平均より、20年前後も長く生きたことになる。", source: SRC_LIFE, check: (s) => ageNow(s) >= 105 },
-  { id: "age110", name: "超百寿者", desc: "110歳まで生きた。", mark: "超", rarity: "rare", trivia: "国内の百歳以上は約10万人いるが、110歳をこえる人は、そのごく一部。2025年9月時点の、国内の女性の最高齢は114歳だった。", source: SRC_CENT, check: (s) => ageNow(s) >= 110 },
-  { id: "age115", name: "歴史に残る長寿", desc: "115歳まで生きた。", mark: "史", rarity: "legend", trivia: "2025年9月時点で、国内の最高齢(女性)は114歳。115歳は、それを上回る年齢。", source: SRC_CENT, check: (s) => ageNow(s) >= 115 },
-  { id: "age120", name: "人類の最長老に並ぶ", desc: "120歳まで生きた。", mark: "極", rarity: "legend", trivia: "確認されている世界最高齢の記録は、122歳(1997年没)。120歳をこえた人は、記録のうえでも、ほぼ、いない。", source: SRC_GWR, check: (s) => ageNow(s) >= 120 },
-  { id: "age123", name: "最大寿命", desc: "このゲームの最大寿命、123歳まで生き抜いた。", mark: "限", rarity: "legend", secret: true, trivia: "確認されている世界最高齢の記録は、122歳。このゲームの上限の123歳は、それを1歳こえる、設計上の上限です。", source: SRC_GWR, check: (s) => ageNow(s) >= 123 },
+  { id: "age105", name: "105歳の壁を越えた", desc: "105歳まで生きた。", mark: "寿", rarity: "rare", trivia: "日本人の平均寿命は、男性81.35歳・女性87.33歳(2025年)。105歳は、平均より20年前後も長く生きたことになる。", source: SRC_LIFE, check: (s) => ageNow(s) >= 105 },
+  { id: "age110", name: "超百寿者", desc: "110歳まで生きた。", mark: "超", rarity: "rare", trivia: "国内の百歳以上は約10万人いるが、110歳をこえる人はそのごく一部。2025年9月時点の国内の女性の最高齢は114歳だった。", source: SRC_CENT, check: (s) => ageNow(s) >= 110 },
+  { id: "age115", name: "歴史に残る長寿", desc: "115歳まで生きた。", mark: "史", rarity: "legend", trivia: "2025年9月時点で、国内の最高齢(女性)は114歳。115歳はそれを上回る年齢。", source: SRC_CENT, check: (s) => ageNow(s) >= 115 },
+  { id: "age120", name: "人類の最長老に並ぶ", desc: "120歳まで生きた。", mark: "極", rarity: "legend", trivia: "確認されている世界最高齢の記録は122歳(1997年没)。120歳をこえた人は記録のうえでもほぼいない。", source: SRC_GWR, check: (s) => ageNow(s) >= 120 },
+  { id: "age123", name: "最大寿命", desc: "このゲームの最大寿命、123歳まで生き抜いた。", mark: "限", rarity: "legend", secret: true, trivia: "確認されている世界最高齢の記録は122歳。", source: SRC_GWR, check: (s) => ageNow(s) >= 123 },
 
   // ---- 暮らし・引っ越し ----
-  { id: "move5", name: "引っ越し上手", desc: "暮らす場所を、5回以上変えた。", mark: "移", rarity: "common", check: (s) => homes(s).length >= 6 },
-  { id: "move10", name: "根なし草", desc: "暮らす場所を、10回以上変えた。", mark: "旅", rarity: "rare", check: (s) => homes(s).length >= 11 },
+  { id: "move5", name: "引っ越し上手", desc: "暮らす場所を5回以上変えた。", mark: "移", rarity: "common", check: (s) => homes(s).length >= 6 },
+  { id: "move10", name: "根なし草", desc: "暮らす場所を10回以上変えた。", mark: "旅", rarity: "rare", check: (s) => homes(s).length >= 11 },
   {
     id: "abroad",
     name: "海の向こうで暮らした",
@@ -65,7 +65,7 @@ export const ACHIEVEMENTS: Achievement[] = [
   {
     id: "northsouth",
     name: "北から南まで",
-    desc: "北海道と、九州・沖縄の両方で、暮らした。",
+    desc: "北海道と、九州・沖縄の両方で暮らした。",
     mark: "縦",
     rarity: "rare",
     check: (s) => {
@@ -78,56 +78,56 @@ export const ACHIEVEMENTS: Achievement[] = [
   { id: "kids3", name: "にぎやかな食卓", desc: "子どもが3人以上になった。", mark: "家", rarity: "common", check: (s) => s.person.kids >= 3 },
   { id: "kids5", name: "大家族", desc: "子どもが5人以上になった。", mark: "族", rarity: "rare", check: (s) => s.person.kids >= 5 },
   { id: "kids7", name: "子だくさん", desc: "子どもが7人以上になった。", mark: "宝", rarity: "legend", check: (s) => s.person.kids >= 7 },
-  { id: "golden", name: "金婚式", desc: "結婚して、50年を、ともに過ごした。", mark: "金", rarity: "rare", check: (s) => years(s, (p) => !!p.mar) >= 50 },
+  { id: "golden", name: "金婚式", desc: "結婚して、50年をともに過ごした。", mark: "金", rarity: "rare", check: (s) => years(s, (p) => !!p.mar) >= 50 },
 
   // ---- 資産 ----
-  { id: "money1k", name: "資産1,000万円", desc: "資産が、1,000万円を超えた。", mark: "蓄", rarity: "common", check: (s) => maxNet(s) >= 1000 },
-  { id: "money5k", name: "資産5,000万円", desc: "資産が、5,000万円を超えた。", mark: "貯", rarity: "common", check: (s) => maxNet(s) >= 5000 },
-  { id: "money1o", name: "億り人", desc: "資産が、1億円を超えた。", mark: "億", rarity: "rare", check: (s) => maxNet(s) >= 10000 },
-  { id: "money5o", name: "資産5億円", desc: "資産が、5億円を超えた。", mark: "財", rarity: "legend", check: (s) => maxNet(s) >= 50000 },
-  { id: "money10o", name: "大富豪", desc: "資産が、10億円を超えた。", mark: "富", rarity: "legend", check: (s) => maxNet(s) >= 100000 },
-  { id: "money100o", name: "桁ちがいの資産家", desc: "資産が、100億円を超えた。", mark: "覇", rarity: "legend", check: (s) => maxNet(s) >= 1000000 },
-  { id: "money1cho", name: "一兆円", desc: "資産が、1兆円を超えた。", mark: "兆", rarity: "legend", secret: true, check: (s) => maxNet(s) >= 100000000 },
-  { id: "lottery", name: "宝くじ当せん", desc: "宝くじで、まとまったお金が当たった。", mark: "当", rarity: "rare", check: (s) => hasEvent(s, /宝くじで、.+が当たった/) },
-  { id: "debtfree", name: "借金を返しきった", desc: "借金を、すべて返した。", mark: "返", rarity: "common", check: (s) => s.person.history.debtCleared !== undefined },
-  { id: "backfromzero", name: "どん底からの再起", desc: "住まいを失ったあと、もう一度、暮らしを立て直した。", mark: "立", rarity: "rare", check: (s) => s.person.history.homelessEnd !== undefined },
+  { id: "money1k", name: "資産1,000万円", desc: "資産が1,000万円を超えた。", mark: "蓄", rarity: "common", check: (s) => maxNet(s) >= 1000 },
+  { id: "money5k", name: "資産5,000万円", desc: "資産が5,000万円を超えた。", mark: "貯", rarity: "common", check: (s) => maxNet(s) >= 5000 },
+  { id: "money1o", name: "億り人", desc: "資産が1億円を超えた。", mark: "億", rarity: "rare", check: (s) => maxNet(s) >= 10000 },
+  { id: "money5o", name: "資産5億円", desc: "資産が5億円を超えた。", mark: "財", rarity: "legend", check: (s) => maxNet(s) >= 50000 },
+  { id: "money10o", name: "大富豪", desc: "資産が10億円を超えた。", mark: "富", rarity: "legend", check: (s) => maxNet(s) >= 100000 },
+  { id: "money100o", name: "桁ちがいの資産家", desc: "資産が100億円を超えた。", mark: "覇", rarity: "legend", check: (s) => maxNet(s) >= 1000000 },
+  { id: "money1cho", name: "一兆円", desc: "資産が1兆円を超えた。", mark: "兆", rarity: "legend", secret: true, check: (s) => maxNet(s) >= 100000000 },
+  { id: "lottery", name: "宝くじ当せん", desc: "宝くじでまとまったお金が当たった。", mark: "当", rarity: "rare", check: (s) => hasEvent(s, /宝くじで、.+が当たった/) },
+  { id: "debtfree", name: "借金を返しきった", desc: "借金をすべて返した。", mark: "返", rarity: "common", check: (s) => s.person.history.debtCleared !== undefined },
+  { id: "backfromzero", name: "どん底からの再起", desc: "住まいを失ったあと、もう一度暮らしを立て直した。", mark: "立", rarity: "rare", check: (s) => s.person.history.homelessEnd !== undefined },
   { id: "bankrupt", name: "転んでも、また", desc: "自己破産を経験した。", mark: "破", rarity: "common", check: (s) => s.person.bankrupt !== null && s.person.bankrupt !== undefined },
   { id: "selfmade", name: "成り上がり", desc: "家計が苦しい家に生まれて、資産が1億円を超えた。", mark: "昇", rarity: "legend", check: (s) => s.person.background === "tight" && maxNet(s) >= 10000 },
 
   // ---- 年収 ----
-  { id: "inc500", name: "年収500万円", desc: "年収が、500万円に届いた。", mark: "収", rarity: "common", trivia: "民間企業で働く人の平均給与は、年に478万円(2024年分)。", source: SRC_NTA, check: (s) => maxInc(s) >= 500 },
-  { id: "inc1000", name: "年収1,000万円", desc: "年収が、1,000万円に届いた。", mark: "千", rarity: "rare", trivia: "民間企業で働く人の平均給与は、年に478万円(2024年分)。その2倍をこえる水準。", source: SRC_NTA, check: (s) => maxInc(s) >= 1000 },
-  { id: "inc2000", name: "年収2,000万円", desc: "年収が、2,000万円に届いた。", mark: "弐", rarity: "rare", trivia: "民間企業で働く人の平均給与(478万円・2024年分)の、4倍ほど。", source: SRC_NTA, check: (s) => maxInc(s) >= 2000 },
-  { id: "inc5000", name: "年収5,000万円", desc: "年収が、5,000万円に届いた。", mark: "参", rarity: "legend", trivia: "民間企業で働く人の平均給与(478万円・2024年分)の、10倍をこえる。", source: SRC_NTA, check: (s) => maxInc(s) >= 5000 },
-  { id: "inc10000", name: "年収1億円", desc: "年収が、1億円に届いた。", mark: "頂", rarity: "legend", check: (s) => maxInc(s) >= 10000 },
+  { id: "inc500", name: "年収500万円", desc: "年収が500万円に届いた。", mark: "収", rarity: "common", trivia: "民間企業で働く人の平均給与は、年に478万円(2024年分)。", source: SRC_NTA, check: (s) => maxInc(s) >= 500 },
+  { id: "inc1000", name: "年収1,000万円", desc: "年収が1,000万円に届いた。", mark: "千", rarity: "rare", trivia: "民間企業で働く人の平均給与は、年に478万円(2024年分)。その2倍をこえる水準。", source: SRC_NTA, check: (s) => maxInc(s) >= 1000 },
+  { id: "inc2000", name: "年収2,000万円", desc: "年収が2,000万円に届いた。", mark: "弐", rarity: "rare", trivia: "民間企業で働く人の平均給与(478万円・2024年分)の4倍ほど。", source: SRC_NTA, check: (s) => maxInc(s) >= 2000 },
+  { id: "inc5000", name: "年収5,000万円", desc: "年収が5,000万円に届いた。", mark: "参", rarity: "legend", trivia: "民間企業で働く人の平均給与(478万円・2024年分)の10倍をこえる。", source: SRC_NTA, check: (s) => maxInc(s) >= 5000 },
+  { id: "inc10000", name: "年収1億円", desc: "年収が1億円に届いた。", mark: "頂", rarity: "legend", check: (s) => maxInc(s) >= 10000 },
 
   // ---- 心と体 ----
-  { id: "joy95", name: "幸福の絶頂", desc: "幸福度が、95を超えた年があった。", mark: "福", rarity: "rare", check: (s) => maxOf(s, (p) => p.joy) >= 95 },
+  { id: "joy95", name: "幸福の絶頂", desc: "幸福度が95を超えた年があった。", mark: "福", rarity: "rare", check: (s) => maxOf(s, (p) => p.joy) >= 95 },
   { id: "healthy80", name: "元気な80代", desc: "80歳を過ぎても、健康が80以上だった。", mark: "健", rarity: "rare", check: (s) => series(s).some((p) => p.age >= 80 && p.health >= 80) },
 
   // ---- 仕事・夢 ----
   { id: "pm", name: "総理大臣", desc: "日本の総理大臣になった。", mark: "首", rarity: "legend", check: (s) => s.person.history.pm !== undefined },
-  { id: "olympic_medal", name: "オリンピックのメダリスト", desc: "オリンピックで、メダルを獲得した。", mark: "輪", rarity: "legend", trivia: "日本代表のうち、メダルを獲得した選手は約1割(東京2020は583人で58個、パリ2024は409人で45個)。", check: (s) => !!s.person.medals && s.person.medals.gold + s.person.medals.silver + s.person.medals.bronze > 0 },
-  { id: "olympic_gold", name: "オリンピックの金メダル", desc: "オリンピックで、金メダルを獲得した。", mark: "金", rarity: "legend", check: (s) => !!s.person.medals && s.person.medals.gold > 0 },
-  { id: "summit", name: "頂点に立った", desc: "それぞれの世界の、頂点に立った。", mark: "頂", rarity: "legend", check: (s) => s.person.history.summit !== undefined },
+  { id: "olympic_medal", name: "オリンピックのメダリスト", desc: "オリンピックでメダルを獲得した。", mark: "輪", rarity: "legend", trivia: "日本代表のうち、メダルを獲得した選手は約1割(東京2020は583人で58個、パリ2024は409人で45個)。", check: (s) => !!s.person.medals && s.person.medals.gold + s.person.medals.silver + s.person.medals.bronze > 0 },
+  { id: "olympic_gold", name: "オリンピックの金メダル", desc: "オリンピックで金メダルを獲得した。", mark: "金", rarity: "legend", check: (s) => !!s.person.medals && s.person.medals.gold > 0 },
+  { id: "summit", name: "頂点に立った", desc: "それぞれの世界の頂点に立った。", mark: "頂", rarity: "legend", check: (s) => s.person.history.summit !== undefined },
 
   // ---- 学び ----
   { id: "grad", name: "大学院を修了", desc: "大学院を出た。", mark: "院", rarity: "common", check: (s) => s.person.edu === "grad" },
-  { id: "learn100", name: "学びの達人", desc: "「学び」の能力値が、100に達した。", mark: "学", rarity: "rare", check: (s) => maxOf(s, (p) => p.learn) >= 100 },
+  { id: "learn100", name: "学びの達人", desc: "「学び」の能力値が100に達した。", mark: "学", rarity: "rare", check: (s) => maxOf(s, (p) => p.learn) >= 100 },
 
   // ---- 夢の職業(なかなか就けない仕事) ----
-  { id: "job_doctor", name: "医師になった", desc: "医師として、働いた。", mark: "医", rarity: "rare", check: (s) => job(s, "doctor") },
-  { id: "job_lawyer", name: "弁護士になった", desc: "弁護士・司法書士・弁理士として、働いた。", mark: "法", rarity: "rare", check: (s) => job(s, "lawyer", "judge") },
-  { id: "job_pilot", name: "空を飛ぶ仕事", desc: "パイロットとして、働いた。", mark: "空", rarity: "rare", check: (s) => job(s, "pilot") },
-  { id: "job_astronaut", name: "宇宙飛行士", desc: "宇宙飛行士になった。日本の宇宙飛行士は、選抜の倍率が、きわめて高い。", mark: "宇", rarity: "legend", check: (s) => job(s, "astronaut") },
+  { id: "job_doctor", name: "医師になった", desc: "医師として働いた。", mark: "医", rarity: "rare", check: (s) => job(s, "doctor") },
+  { id: "job_lawyer", name: "弁護士になった", desc: "弁護士・司法書士・弁理士として働いた。", mark: "法", rarity: "rare", check: (s) => job(s, "lawyer", "judge") },
+  { id: "job_pilot", name: "空を飛ぶ仕事", desc: "パイロットとして働いた。", mark: "空", rarity: "rare", check: (s) => job(s, "pilot") },
+  { id: "job_astronaut", name: "宇宙飛行士", desc: "宇宙飛行士になった。日本の宇宙飛行士は選抜の倍率がきわめて高い。", mark: "宇", rarity: "legend", check: (s) => job(s, "astronaut") },
   { id: "job_shogi", name: "プロ棋士", desc: "将棋・囲碁のプロになった。", mark: "棋", rarity: "legend", check: (s) => job(s, "shogi") },
-  { id: "job_pro", name: "プロスポーツ選手", desc: "プロのスポーツ選手として、働いた。", mark: "技", rarity: "rare", check: (s) => job(s, "athlete", "esports") },
+  { id: "job_pro", name: "プロスポーツ選手", desc: "プロのスポーツ選手として働いた。", mark: "技", rarity: "rare", check: (s) => job(s, "athlete", "esports") },
   { id: "job_star", name: "スポットライトの下で", desc: "俳優・声優・アイドル・歌手など、表舞台の仕事に就いた。", mark: "星", rarity: "rare", check: (s) => job(s, "actor", "voice_actor", "idol", "singer", "comedian", "model", "entertainer") },
-  { id: "job_creator", name: "作品を世に出した", desc: "漫画家・小説家・作曲家・映画監督などとして、働いた。", mark: "創", rarity: "rare", check: (s) => job(s, "manga", "novelist", "composer", "film_director", "game_creator") },
+  { id: "job_creator", name: "作品を世に出した", desc: "漫画家・小説家・作曲家・映画監督などとして働いた。", mark: "創", rarity: "rare", check: (s) => job(s, "manga", "novelist", "composer", "film_director", "game_creator") },
   { id: "job_founder", name: "起業家", desc: "自分で会社を起こした。", mark: "創", rarity: "common", check: (s) => job(s, "founder", "ceo") },
   { id: "job_professor", name: "大学の教授", desc: "大学や高専の教授になった。", mark: "授", rarity: "rare", check: (s) => job(s, "prof") },
   { id: "job_politician", name: "国政の場へ", desc: "政治家(議員)になった。", mark: "政", rarity: "rare", check: (s) => job(s, "politician") || !!s.person.office },
-  { id: "job_diplomat", name: "外交官", desc: "外交官や、国の官僚になった。", mark: "官", rarity: "rare", check: (s) => job(s, "diplomat", "bureaucrat") },
+  { id: "job_diplomat", name: "外交官", desc: "外交官や国の官僚になった。", mark: "官", rarity: "rare", check: (s) => job(s, "diplomat", "bureaucrat") },
 ];
 
 // 一つの人生で、達成した実績の id。

@@ -33,7 +33,7 @@ export function livingCosts(p: Person, data: CountryData): { items: CostItem[]; 
   add("food", "食費", food);
   add("utilities", "光熱・水道", p.withParents ? 0 : (12 + 5 * (n - 1)) * factor);
   const car = p.region === "rural" ? 22 : p.region === "local" ? 18 : 0;
-  add("transport", "通信・交通", (28 + car + 10 * (adults - 1) + 3 * kids.length) * factor, car > 0 ? "地方では、車の維持費(ガソリン・保険・税)がかかる" : "スマートフォン・インターネット・電車やバスなど");
+  add("transport", "通信・交通", (28 + car + 10 * (adults - 1) + 3 * kids.length) * factor, car > 0 ? "地方では車の維持費(ガソリン・保険・税)がかかる" : "スマートフォン・インターネット・電車やバスなど");
   const health = (12 + 3 * kids.length + (p.ailment !== "none" ? 8 : 0) + (p.age >= 65 ? 8 : p.age >= 50 ? 3 : 0)) * factor;
   add("health", "医療・保険", health, "医療費の自己負担や、民間の保険料");
   add("daily", "衣類・日用品", (15 + 8 * (n - 1)) * factor);

@@ -66,7 +66,7 @@ const gearItems = (): ShopItem[] =>
       id: `gear:${lid}`,
       group: "趣味・習い事の道具",
       label: `${label}の${name}`,
-      note: "道具をそろえると、続けるあいだ、効果がふえる(約1.35倍)。",
+      note: "道具をそろえると、続けるあいだ効果がふえる(約1.35倍)。",
       costMan: () => cost,
       visible: (p) => p.lessons.some((l) => l.id === lid) && !has(p, `gear:${lid}`),
       apply: (p) => (inc(p, { joy: 3 }), `${label}の${name}をそろえた`),
@@ -170,13 +170,13 @@ export const SHOP: ShopItem[] = [
   // ---- 宝くじ ----
   {
     id: "lottery10", group: "宝くじ", label: "宝くじを買う(10枚・3,000円)",
-    note: "1枚300円。1等7億円が当たるのは、2,000万枚に1枚。当せん金の総額は、買った額の約半分で、買うほど、平均では減っていく。1年に買えるのは100枚まで。",
+    note: "1枚300円。1等7億円が当たるのは2,000万枚に1枚。当せん金の総額は買った額の約半分で、買うほど平均では減っていく。1年に買えるのは100枚まで。",
     costMan: () => 0.3, visible: (p) => adult(p) && lotLeft(p) >= 10,
     apply: (p) => buyLottery(p, 10), keep: false,
   },
   {
     id: "lottery100", group: "宝くじ", label: "宝くじをまとめて買う(100枚・3万円)",
-    note: "1枚300円。3等以上(100万円以上)は、5万枚に1枚ほどの確率。1年に買えるのは100枚まで。",
+    note: "1枚300円。3等以上(100万円以上)は5万枚に1枚ほどの確率。1年に買えるのは100枚まで。",
     costMan: () => 3, visible: (p) => adult(p) && lotLeft(p) >= 100,
     apply: (p) => buyLottery(p, 100), keep: false,
   },
@@ -203,7 +203,7 @@ export const SHOP: ShopItem[] = [
     id: "treat", group: "暮らしの買い物", label: "ごちそうを食べに行く",
     note: "ささやかなごほうび。",
     costMan: () => 2, visible: (p) => adult(p),
-    apply: (p) => (inc(p, { joy: 2 }), "ちょっと良いお店で、ごちそうを食べた"), keep: false,
+    apply: (p) => (inc(p, { joy: 2 }), "ちょっと良いお店でごちそうを食べた"), keep: false,
   },
   {
     id: "brand", group: "暮らしの買い物", label: "ブランドの時計やバッグを買う",
@@ -227,7 +227,7 @@ export const SHOP: ShopItem[] = [
     id: "donate", group: "暮らしの買い物", label: "寄付をする",
     note: "だれかの役に立つ。",
     costMan: () => 5, visible: (p) => adult(p),
-    apply: (p) => (inc(p, { joy: 2, bonds: 2 }), "寄付をして、少し誇らしい気持ちになった"), keep: false,
+    apply: (p) => (inc(p, { joy: 2, bonds: 2 }), "寄付をして、ほんの少し誇らしい気持ちになった"), keep: false,
   },
   // ---- 家族・人との関わり ----
   {

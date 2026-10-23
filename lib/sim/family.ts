@@ -42,7 +42,7 @@ export function lessonBlock(p: Person, costMan: number): string | null {
   if (p.age >= 18) return null;
   if (p.background === "poverty") return "家計に余裕がなく、習い事や塾には通えません。";
   if (p.background === "tight") {
-    if (costMan > 12) return "月謝が、家計では厳しそうです。";
+    if (costMan > 12) return "月謝が家計では厳しそうです。";
     if (p.lessons.length >= 1) return "家計に余裕がなく、習い事はひとつまでです。";
   }
   return null;

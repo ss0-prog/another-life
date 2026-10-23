@@ -20,8 +20,8 @@ export const SURVEY: SurveyQuestion[] = [
     key: "feel",
     stat: "joy",
     node: "幸福度",
-    q: "いまの暮らしに、どれくらい満足していますか？",
-    prompt: "「幸福度」の、はじまりの値になります。感じたままで大丈夫です。",
+    q: "いまの暮らしにどれくらい満足していますか？",
+    prompt: "「幸福度」のはじまりの値になります。感じたままで大丈夫です。",
     options: [
       { value: "great", label: "とても満足している", score: 85 },
       { value: "good", label: "まあ満足している", score: 68 },
@@ -34,8 +34,8 @@ export const SURVEY: SurveyQuestion[] = [
     key: "tie",
     stat: "bonds",
     node: "つながり",
-    q: "悩みを話せる人は、どれくらいいますか？",
-    prompt: "家族・友人・同僚など。「つながり」の、はじまりの値になります。",
+    q: "悩みを話せる人はどれくらいいますか？",
+    prompt: "家族・友人・同僚など。「つながり」のはじまりの値になります。",
     options: [
       { value: "many", label: "何人もいる", score: 80 },
       { value: "some", label: "数人いる", score: 62 },
@@ -47,8 +47,8 @@ export const SURVEY: SurveyQuestion[] = [
     key: "body",
     stat: "health",
     node: "健康",
-    q: "いまの体の調子は、どうですか？",
-    prompt: "持病とは別に、ふだんの体力や調子です。「健康」の、はじまりの値になります。",
+    q: "いまの体の調子はどうですか？",
+    prompt: "持病とは別に、ふだんの体力や調子です。「健康」のはじまりの値になります。",
     options: [
       { value: "great", label: "とても元気", score: 88 },
       { value: "good", label: "おおむね元気", score: 72 },
@@ -61,8 +61,8 @@ export const SURVEY: SurveyQuestion[] = [
     key: "wealth",
     stat: "money",
     node: "経済",
-    q: "家計や暮らしの、お金のゆとりは？",
-    prompt: "貯金の額とは別の、暮らしのゆとりの感覚です。「経済」の、はじまりの値になります。",
+    q: "家計や暮らしのお金のゆとりは？",
+    prompt: "貯金の額とは別の、暮らしのゆとりの感覚です。「経済」のはじまりの値になります。",
     options: [
       { value: "plenty", label: "ゆとりがある", score: 80 },
       { value: "ok", label: "ふつうに暮らせる", score: 60 },
@@ -75,7 +75,7 @@ export const SURVEY: SurveyQuestion[] = [
     stat: "learn",
     node: "学び",
     q: "新しいことを学んだり、考えたりする習慣は？",
-    prompt: "勉強・読書・資格・仕事での学びなど。「学び」の、はじまりの値になります。",
+    prompt: "勉強・読書・資格・仕事での学びなど。「学び」のはじまりの値になります。",
     options: [
       { value: "often", label: "よくしている", score: 78 },
       { value: "some", label: "ときどきしている", score: 58 },

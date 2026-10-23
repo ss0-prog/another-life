@@ -13,37 +13,37 @@ const pn = (p: Person) => (p.partner ? `${p.partner.given}さん` : "気にな�
 const EVENTS: Record<ConcernKind, Ev[]> = {
   romance: [
     { text: () => "友人に誘われた飲み会で、気になる人に出会った", delta: { joy: 3, bonds: 2 }, when: noPartner, effect: (p, r, d) => ((p.partner = randomPartner(r, d, p.age, "crush", p.mbti, p)), null) },
-    { text: (p) => `${pn(p)}と、連絡を取り合うようになった`, delta: { joy: 4, bonds: 3 }, when: (p) => p.partner?.status === "crush" },
+    { text: (p) => `${pn(p)}と連絡を取り合うようになった`, delta: { joy: 4, bonds: 3 }, when: (p) => p.partner?.status === "crush" },
     { text: () => "マッチングアプリで何人かとやりとりしたが、ピンとくる人はいなかった", delta: { joy: -2, bonds: 1 }, when: (p) => noPartner(p) && yearOf(p) >= SINCE.matching },
-    { text: () => "気になる人に声をかけられず、後悔した", delta: { joy: -3 }, when: noPartner },
+    { text: () => "気になる人に声をかけられずに後悔した", delta: { joy: -3 }, when: noPartner },
     { text: (p) => `${pn(p)}と、はじめて二人で出かけた`, delta: { joy: 5, bonds: 3 }, when: (p) => p.partner?.status === "crush" || p.partner?.status === "dating" },
-    { text: () => "恋愛と、仕事や勉強の時間の使い方で、迷った", delta: { joy: -1, health: -1 }, when: (p) => p.occ !== null },
-    { text: (p) => `${pn(p)}と、すれちがいが続き、気持ちが沈んだ`, delta: { joy: -4, bonds: -1 }, when: (p) => p.partner?.status === "dating" },
-    { text: () => "友人の恋愛の話を聞いて、うらやましくなった", delta: { joy: -2 }, when: noPartner },
+    { text: () => "恋愛と仕事や勉強の時間の使い方で無為に迷った", delta: { joy: -1, health: -1 }, when: (p) => p.occ !== null },
+    { text: (p) => `${pn(p)}とすれちがいが続き、気持ちが沈んだ`, delta: { joy: -4, bonds: -1 }, when: (p) => p.partner?.status === "dating" },
+    { text: () => "友人の恋愛の話を聞いてうらやましくなった", delta: { joy: -2 }, when: noPartner },
   ],
   friends: [
-    { text: () => "久しぶりに、友人と会って、夜まで語り合った", delta: { joy: 5, bonds: 4 } },
-    { text: () => "友人との約束が、続けて流れて、少しさみしくなった", delta: { joy: -3, bonds: -1 } },
-    { text: () => "気の合う新しい友人が、できた", delta: { joy: 4, bonds: 5 } },
-    { text: () => "友人とのささいな行き違いで、気まずくなった", delta: { joy: -4, bonds: -2 } },
-    { text: () => "友人の悩みを、夜遅くまで聞いた", delta: { bonds: 4, health: -1 } },
-    { text: () => "友人たちと、旅行の計画を立てた", delta: { joy: 5, bonds: 3 } },
+    { text: () => "久しぶりに友人と会って夜まで語り合った", delta: { joy: 5, bonds: 4 } },
+    { text: () => "友人との約束が続けて流れて少しさみしくなった", delta: { joy: -3, bonds: -1 } },
+    { text: () => "気の合う新しい友人ができた", delta: { joy: 4, bonds: 5 } },
+    { text: () => "友人とのささいな行き違いで気まずくなった", delta: { joy: -4, bonds: -2 } },
+    { text: () => "友人の悩みを夜遅くまで聞いた", delta: { bonds: 4, health: -1 } },
+    { text: () => "友人たちと旅行の計画を立てた", delta: { joy: 5, bonds: 3 } },
   ],
   family: [
-    { text: () => "実家に帰って、家族とゆっくり食卓を囲んだ", delta: { joy: 4, bonds: 4 } },
-    { text: () => "家族と、将来のことで意見がぶつかった", delta: { joy: -4, bonds: -2 } },
-    { text: () => "家族に、いままで言えなかった気持ちを話せた", delta: { joy: 3, bonds: 5 } },
+    { text: () => "実家に帰って家族とゆっくり食卓を囲んだ", delta: { joy: 4, bonds: 4 } },
+    { text: () => "家族と将来のことで意見がぶつかった", delta: { joy: -4, bonds: -2 } },
+    { text: () => "家族にいままで言えなかった気持ちを話せた", delta: { joy: 3, bonds: 5 } },
     { text: () => "家族の体調が気になって、連絡の回数が増えた", delta: { bonds: 3, joy: -1 } },
-    { text: () => "家族と、昔の話をして、笑い合った", delta: { joy: 4, bonds: 3 } },
-    { text: () => "忙しさで、家族との連絡が、途切れがちになった", delta: { bonds: -3, joy: -2 }, when: (p) => p.occ !== null },
+    { text: () => "家族と昔の話をして笑い合った", delta: { joy: 4, bonds: 3 } },
+    { text: () => "忙しさで家族との連絡が途切れがちになった", delta: { bonds: -3, joy: -2 }, when: (p) => p.occ !== null },
   ],
   work: [
-    { text: () => "職場の同僚と、昼食をともにして、打ち解けた", delta: { bonds: 3, joy: 3 }, when: (p) => p.occ !== null },
+    { text: () => "職場の同僚と昼食をともにして、打ち解けた", delta: { bonds: 3, joy: 3 }, when: (p) => p.occ !== null },
     { text: () => "上司の言い方が気になり、一人で悩んだ", delta: { joy: -4, bonds: -1, health: -1 }, when: (p) => p.occ !== null },
-    { text: () => "同僚の仕事を手伝ったことで、感謝された", delta: { bonds: 4, joy: 3 }, when: (p) => p.occ !== null },
-    { text: () => "チームの中で、意見がうまく伝わらず、もどかしかった", delta: { joy: -3 }, when: (p) => p.occ !== null },
-    { text: () => "職場の人と、仕事のあとに、食事に行った", delta: { bonds: 4, joy: 2 }, when: (p) => p.occ !== null },
-    { text: () => "苦手な人とも、一言ずつ、話をするよう心がけた", delta: { bonds: 2, joy: 1 }, when: (p) => p.occ !== null },
+    { text: () => "同僚の仕事を手伝ったことで感謝された", delta: { bonds: 4, joy: 3 }, when: (p) => p.occ !== null },
+    { text: () => "チームの中で意見がうまく伝わらず、もどかしかった", delta: { joy: -3 }, when: (p) => p.occ !== null },
+    { text: () => "職場の人と、仕事のあとに食事に行った", delta: { bonds: 4, joy: 2 }, when: (p) => p.occ !== null },
+    { text: () => "苦手な人とも、一言ずつ話をするよう心がけた", delta: { bonds: 2, joy: 1 }, when: (p) => p.occ !== null },
   ],
 };
 
@@ -66,11 +66,11 @@ export function concernResolved(p: Person): string | null {
   const bonds = p.stats.bonds;
   // 少なくとも4年は、向き合う(すぐには解決しない)。
   if (years < 4) return null;
-  if (c.kind === "romance" && p.partner && (p.partner.status === "married" || (p.partner.status === "dating" && p.age - (p.history.datingSince ?? p.age) >= 2))) return "大切に思える人と、安定した関係を築けるようになった。恋愛への迷いは、ひと区切りついた";
+  if (c.kind === "romance" && p.partner && (p.partner.status === "married" || (p.partner.status === "dating" && p.age - (p.history.datingSince ?? p.age) >= 2))) return "大切に思える人と、安定した関係を築けるようになった。恋愛への迷いはひと区切りついた";
   if (c.kind === "friends" && bonds >= 78) return "気の置けない友人たちに囲まれて、人との関わりに満たされるようになった";
   if (c.kind === "family" && bonds >= 78) return "家族との距離が縮まり、心から安心できる関係になった";
   if (c.kind === "work" && bonds >= 74) return "職場の人との関係が落ち着き、働きやすくなった";
-  if (years >= 12) return "長いあいだ向き合ってきた悩みが、少しずつ、気にならなくなった";
+  if (years >= 12) return "長いあいだ向き合ってきた悩みが、少しずつ気にならなくなった";
   return null;
 }
 

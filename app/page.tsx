@@ -29,11 +29,11 @@ type Phase =
 function SectionTitle({ id, children }: { id?: string; children: React.ReactNode }) {
   return (
     <h2 id={id} className="flex w-full items-center justify-center gap-3 text-base font-bold tracking-[0.2em] text-warm sm:tracking-[0.35em] drop-shadow-[0_0_14px_rgba(240,201,148,0.3)] sm:gap-4 sm:text-lg">
-      <span aria-hidden className="h-px w-8 bg-gradient-to-r from-transparent to-warm/60 sm:w-16" />
+      <span aria-hidden className="h-0.5 w-8 shadow-[0_0_8px_rgba(240,201,148,0.55)] bg-gradient-to-r from-warm/10 to-warm sm:w-16" />
       <span aria-hidden className="h-2 w-2 shrink-0 rotate-45 border border-warm/80" />
       <span className="shrink-0">{children}</span>
       <span aria-hidden className="h-2 w-2 shrink-0 rotate-45 border border-warm/80" />
-      <span aria-hidden className="h-px w-8 bg-gradient-to-l from-transparent to-warm/60 sm:w-16" />
+      <span aria-hidden className="h-0.5 w-8 shadow-[0_0_8px_rgba(240,201,148,0.55)] bg-gradient-to-l from-warm/10 to-warm sm:w-16" />
     </h2>
   );
 }
@@ -200,9 +200,9 @@ export default function Home() {
               {/* タイトルまわりの3行は、いちばん幅の広い行にそろえて、左右の頭をそろえる */}
               <div className="flex w-fit max-w-full flex-col items-stretch">
               <motion.p className="flex items-center justify-between gap-2 whitespace-nowrap text-[15px] font-bold tracking-[0.18em] text-warm drop-shadow-[0_0_14px_rgba(240,201,148,0.3)] min-[360px]:text-base min-[360px]:tracking-[0.2em] min-[400px]:gap-3 min-[400px]:text-[19px] sm:gap-5 sm:text-2xl sm:tracking-[0.4em]" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.1, duration: 0.8 }}>
-                <span aria-hidden className="h-px min-w-3 flex-1 bg-gradient-to-r from-transparent to-warm/60 sm:w-9 sm:flex-none" />
+                <span aria-hidden className="h-0.5 min-w-3 flex-1 shadow-[0_0_8px_rgba(240,201,148,0.55)] bg-gradient-to-r from-warm/10 to-warm sm:w-9 sm:flex-none" />
                 <span className="-mr-[0.18em] min-[360px]:-mr-[0.2em] sm:-mr-[0.4em]">{t.home.eyebrow}</span>
-                <span aria-hidden className="h-px min-w-3 flex-1 bg-gradient-to-l from-transparent to-warm/60 sm:w-9 sm:flex-none" />
+                <span aria-hidden className="h-0.5 min-w-3 flex-1 shadow-[0_0_8px_rgba(240,201,148,0.55)] bg-gradient-to-l from-warm/10 to-warm sm:w-9 sm:flex-none" />
               </motion.p>
               {/* タイトルの行: ロゴ「if」を、タイトルの左に、同じ高さで置く。上の「もうひとつの人生を見届ける」と、左右の頭と尻をそろえる */}
               <motion.div

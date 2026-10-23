@@ -226,7 +226,7 @@ export const lifeEvents: AutoEvent[] = [
   }, 42),
   ev("award", (p) => (working(p) && p.stats.learn > 45 ? 0.7 : 0), (s) => (bump(s.person, { money: 3, learn: 2 }), "仕事の成果が認められ、表彰された"), 55),
   ev("mistake", (p) => (working(p) ? 0.8 : 0), (s) => (bump(s.person, { money: -1, bonds: -1 }), "大きなミスをして、頭を下げることになった"), 42),
-  ev("mentor", (p) => (working(p) && inAge(p, 28, 55) ? 1.0 : 0), (s) => (bump(s.person, { learn: 2, bonds: 2 }), "後輩の指導を任された"), 38),
+  ev("mentor", (p) => (hasBoss(p) && inAge(p, 28, 55) ? 1.0 : 0), (s) => (bump(s.person, { learn: 2, bonds: 2 }), "後輩の指導を任された"), 38),
   ev("colleague_left", (p) => (hasBoss(p) ? 1.0 : 0), (s, r) => {
     bump(s.person, { bonds: -2 });
     return `${pickOne(r, ["キャリアアップを目指して", "家庭の事情で", "職場の雰囲気に疲れて", "地元に戻ることになって"])}、仲のよかった同僚が、会社を去っていった`;
@@ -241,7 +241,7 @@ export const lifeEvents: AutoEvent[] = [
   ev("exam_pass", (p) => (working(p) && inAge(p, 22, 55) && p.lessons.some((l) => l.id === "qualification") ? 0.8 : 0), (s) => (s.person.payMult *= 1.02, bump(s.person, { learn: 4 }), "資格試験に合格した"), 48),
 
   // ---- 家族 ----
-  ev("child_fever", (p) => (p.kids > 0 && p.age < 62 ? 2.0 : 0), (s) => (bump(s.person, { health: -2, bonds: 2 }), `${kidName(s.person)}が熱を出し、看病で眠れない夜が続いた`), 36),
+  ev("child_fever", (p) => (p.kidList.some((k) => p.age - k.bornAge <= 12) ? 2.0 : 0), (s) => (bump(s.person, { health: -2, bonds: 2 }), `${kidName(s.person)}が熱を出し、看病で眠れない夜が続いた`), 36),
   ev("spouse_fight", (p) => (p.married ? 1.2 * clash(partnerCompat(p)) : 0), (s, r) => {
     const p = s.person;
     bump(p, { bonds: -3 });
@@ -322,7 +322,7 @@ export const lifeEvents: AutoEvent[] = [
     bump(p, { bonds: 2, money: 1 });
     return `${call}が、実務的に、こまごまと助けてくれた`;
   }, 34),
-  ev("home_visit", (p) => (inAge(p, 20, 80) && !p.withParents ? 1.0 : 0), (s) => (bump(s.person, { bonds: 3 }), "久しぶりに実家に帰り、家族と食卓を囲んだ"), 32),
+  ev("home_visit", (p) => (inAge(p, 20, 80) && !p.withParents && p.age < Math.max(p.parentDeath.mother, p.parentDeath.father) ? 1.0 : 0), (s) => (bump(s.person, { bonds: 3 }), "久しぶりに実家に帰り、家族と食卓を囲んだ"), 32),
 
   // ---- 友人 ----
   ev("friend_wedding", (p) => (inAge(p, 24, 40) ? 2.4 : 0), (s, r, d) => (money(s, -3), bump(s.person, { bonds: 2 }), `友人の${friendName(s.person, "friend", r, d)}の結婚式に招かれた(ご祝儀3万円)`), 42),
@@ -466,7 +466,7 @@ export const lifeEvents: AutoEvent[] = [
     bump(p, { bonds: -15, joy: -25, health: -6 });
     return `${who}が亡くなり、ひとりで残された`;
   }, 74),
-  ev("child_accident", (p) => (p.kids > 0 && p.age < 60 ? 0.25 : 0), (s, r) => {
+  ev("child_accident", (p) => (p.kidList.some((k) => p.age - k.bornAge <= 17) ? 0.25 : 0), (s, r) => {
     const nm = kidName(s.person);
     money(s, -(10 + r() * 50));
     bump(s.person, { bonds: -1, joy: -8, health: -2 });
@@ -1915,7 +1915,7 @@ export const eventQuestions: EventQuestionDef[] = [
   },
   {
     id: "early_retire",
-    weight: (p, e) => (working(p) && !isResponsible(p) && p.sector === "private" && p.employment !== "self" && inAge(p, 45, 60) ? (e < 0 ? 1.0 : 0.3) : 0),
+    weight: (p, e) => (hasBoss(p) && p.sector === "private" && p.employment === "regular" && inAge(p, 45, 60) ? (e < 0 ? 1.0 : 0.3) : 0),
     intro: () => "会社が、早期退職者を募集し始めた",
     question: () => ({
       title: "早期退職の募集",
@@ -1961,7 +1961,7 @@ export const eventQuestions: EventQuestionDef[] = [
   },
   {
     id: "overseas_post",
-    weight: (p) => (working(p) && !isResponsible(p) && p.sector === "private" && p.employment !== "self" && p.firm !== "small" && inAge(p, 28, 55) && !p.abroad ? 0.5 : 0),
+    weight: (p) => (hasBoss(p) && p.sector === "private" && p.employment === "regular" && p.firm !== "small" && inAge(p, 28, 55) && !p.abroad ? 0.5 : 0),
     intro: () => "会社から、海外赴任の打診があった",
     question: () => ({
       title: "海外赴任の打診",

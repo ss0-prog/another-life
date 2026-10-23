@@ -121,7 +121,7 @@ export function SiteFooter() {
         <div className="font-gothic mt-10 border-t border-line/60 pt-6">
           <p className="text-xs tracking-[0.35em] text-warm">このシミュレーションについて</p>
           <p className="mt-3 text-left text-xs leading-6 tracking-wider text-haze sm:text-[13px] sm:leading-7">
-            このシミュレーションの結果は、あなたを肯定したり否定したりするものではありません。占いや予言でもなく、あなたの価値や将来を示すものでもない、あくまでゲームです。選ばなかった道の先を、気軽に楽しんでください。
+            このシミュレーションの結果は、あなたを肯定したり否定したりするものではありません。占いや予言でもなく、あなたの価値や将来を示すものでもない、あくまでゲームです。
           </p>
         </div>
 

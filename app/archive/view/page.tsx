@@ -43,11 +43,10 @@ function ArchiveEntry() {
     <div className="mx-auto w-full max-w-[120rem] px-6 sm:px-12 pb-24 pt-12">
       <p className="text-center text-xs tracking-[0.3em] text-haze">公開された人生</p>
       <h1 className="mt-4 text-center text-xl leading-9 tracking-[0.2em] text-mist">{entry.branchLabel}</h1>
-      <p className="mt-2 text-center text-sm tracking-wider text-haze">{entry.branchAge}歳で分かれた二つの人生</p>
+      <p className="mt-2 text-center text-sm tracking-wider text-haze">{entry.branchAge}歳のターニングポイント</p>
 
-      <div className="mx-auto mt-14 grid max-w-7xl gap-10 md:grid-cols-2 md:gap-y-0">
-        <LifeCard t={t} heading={t.realHeading} life={entry.real} delay={0.3} accent="cool" />
-        <LifeCard t={t} heading={t.altHeading} life={entry.alt} delay={0.6} accent="warm" />
+      <div className="mx-auto mt-14 max-w-3xl">
+        <LifeCard t={t} heading="この人生" life={entry.alt} delay={0.3} accent="warm" />
       </div>
 
       <p className="mx-auto mt-14 max-w-md w-fit text-left text-xs leading-6 tracking-wider text-dim">{t.disclaimer}</p>
@@ -60,7 +59,7 @@ function ArchiveEntry() {
       )}
 
       <div className="mt-10 flex flex-col items-center gap-5">
-        <ShareButtons text={`${entry.branchLabel}(${entry.branchAge}歳)で分かれた二つの人生。`} />
+        <ShareButtons text={`${entry.branchLabel}(${entry.branchAge}歳)のターニングポイントの先の人生。`} />
         {mine && (
           <button
             type="button"

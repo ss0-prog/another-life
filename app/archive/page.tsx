@@ -20,14 +20,9 @@ const splitLabel = (label: string) => {
 
 function EntryCard({ e }: { e: ArchiveEntry }) {
   const [open, setOpen] = useState(false);
-  const ageDiff = e.alt.deathAge - e.real.deathAge;
-  const assetDiff = e.alt.assets.total - e.real.assets.total;
   const date = e.createdAt ? new Date(e.createdAt).toLocaleDateString("ja-JP", { year: "numeric", month: "numeric", day: "numeric" }) : null;
   const tp = splitLabel(e.branchLabel);
-  const lives = [
-    { label: "いまのまま", life: e.real, color: "var(--color-cool)" },
-    { label: "分岐した", life: e.alt, color: "var(--color-warm)" },
-  ];
+  const lives = [{ label: "この人生", life: e.alt, color: "var(--color-warm)" }];
   // 年表から、ターニングポイントのあとの出来事を、ひとつ紹介する(人生の中ほどのもの)。
   const tl = e.alt.echo.timeline;
   const highlight = tl.length > 1 ? tl[Math.floor(tl.length / 2)] : tl[0];
@@ -43,8 +38,8 @@ function EntryCard({ e }: { e: ArchiveEntry }) {
         <span className="mt-1 block text-sm leading-7 tracking-wider text-mist">{tp.option}</span>
         <span className="mt-3 flex flex-wrap items-center justify-between gap-x-5 gap-y-1 text-xs tracking-wider">
           <span className="flex flex-wrap gap-x-5 gap-y-1">
-            <span className="keep" style={{ color: diffColor(ageDiff) }}>寿命 {signed(ageDiff, "歳")}</span>
-            <span className="keep" style={{ color: diffColor(assetDiff) }}>資産 {signed(assetDiff, "万円")}</span>
+            <span className="keep text-mist">{e.alt.deathAge}歳で人生を終えた</span>
+            <span className="keep text-mist">資産 {e.alt.assets.total.toLocaleString("ja-JP")}万円</span>
           </span>
           <span className="keep text-haze sm:hidden">{open ? "閉じる ▲" : "ひらく ▼"}</span>
         </span>
@@ -52,7 +47,7 @@ function EntryCard({ e }: { e: ArchiveEntry }) {
 
       {/* 詳しい内容(スマホでは、ひらいたときだけ。PC では、いつも表示) */}
       <div className={`${open ? "flex" : "hidden"} flex-1 flex-col border-t border-line/70 px-5 pb-5 pt-4 sm:flex sm:px-6 sm:pb-6`}>
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 gap-4">
           {lives.map(({ label, life: l, color }) => (
             <div key={label} className="min-w-0">
               <p className="text-xs tracking-[0.2em]" style={{ color }}>
@@ -148,7 +143,7 @@ const AGE_BANDS: [string, string, (a: number) => boolean][] = [
 ];
 
 const haystack = (e: ArchiveEntry) =>
-  [e.branchLabel, e.alt.deathCause, e.real.deathCause, e.alt.echo.status.occupation, e.real.echo.status.occupation, e.alt.echo.status.city, e.real.echo.status.city, e.alt.echo.status.living, ...e.alt.echo.timeline.map((t) => t.event)]
+  [e.branchLabel, e.alt.deathCause, e.alt.echo.status.occupation, e.alt.echo.status.city, e.alt.echo.status.living, ...e.alt.echo.timeline.map((t) => t.event)]
     .filter(Boolean)
     .join(" ");
 
@@ -159,12 +154,10 @@ function matches(e: ArchiveEntry, f: Filters, hay: string): boolean {
     const band = AGE_BANDS.find((b) => b[0] === f.age);
     if (band && !band[2](e.branchAge)) return false;
   }
-  const ageDiff = e.alt.deathAge - e.real.deathAge;
-  if (f.life === "longer" && ageDiff <= 0) return false;
-  if (f.life === "shorter" && ageDiff >= 0) return false;
-  const assetDiff = e.alt.assets.total - e.real.assets.total;
-  if (f.asset === "richer" && assetDiff <= 0) return false;
-  if (f.asset === "poorer" && assetDiff >= 0) return false;
+  if (f.life === "longer" && e.alt.deathAge < 85) return false;
+  if (f.life === "shorter" && e.alt.deathAge >= 70) return false;
+  if (f.asset === "richer" && e.alt.assets.total < 5000) return false;
+  if (f.asset === "poorer" && e.alt.assets.total >= 500) return false;
   if (f.cause && e.alt.deathCause !== f.cause) return false;
   return true;
 }
@@ -227,14 +220,14 @@ export default function ArchivePage() {
           <div className="flex flex-wrap items-center gap-2">
             <span className="keep w-full shrink-0 sm:w-28 text-xs tracking-wider text-haze">寿命</span>
             <button type="button" onClick={() => set({ life: "" })} className={chip(f.life === "")}>すべて</button>
-            <button type="button" onClick={() => set({ life: f.life === "longer" ? "" : "longer" })} className={chip(f.life === "longer")}>長くなった</button>
-            <button type="button" onClick={() => set({ life: f.life === "shorter" ? "" : "shorter" })} className={chip(f.life === "shorter")}>短くなった</button>
+            <button type="button" onClick={() => set({ life: f.life === "longer" ? "" : "longer" })} className={chip(f.life === "longer")}>85歳以上</button>
+            <button type="button" onClick={() => set({ life: f.life === "shorter" ? "" : "shorter" })} className={chip(f.life === "shorter")}>70歳未満</button>
           </div>
           <div className="flex flex-wrap items-center gap-2">
             <span className="keep w-full shrink-0 sm:w-28 text-xs tracking-wider text-haze">資産</span>
             <button type="button" onClick={() => set({ asset: "" })} className={chip(f.asset === "")}>すべて</button>
-            <button type="button" onClick={() => set({ asset: f.asset === "richer" ? "" : "richer" })} className={chip(f.asset === "richer")}>増えた</button>
-            <button type="button" onClick={() => set({ asset: f.asset === "poorer" ? "" : "poorer" })} className={chip(f.asset === "poorer")}>減った</button>
+            <button type="button" onClick={() => set({ asset: f.asset === "richer" ? "" : "richer" })} className={chip(f.asset === "richer")}>5,000万円以上</button>
+            <button type="button" onClick={() => set({ asset: f.asset === "poorer" ? "" : "poorer" })} className={chip(f.asset === "poorer")}>500万円未満</button>
           </div>
           {causes.length > 0 && (
             <div className="flex flex-wrap items-center gap-2">

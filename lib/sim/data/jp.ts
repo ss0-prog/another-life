@@ -48,7 +48,8 @@ export const jpData: CountryData = {
 
   regionLabel: { tokyo: "東京23区", metro: "大都市", local: "地方都市", rural: "郊外・農村部" },
   occLabel: { ...OCC_LABEL, retired: "仕事を退いた暮らし", student: "学生" },
-  jobs: JOBS,
+  // 政治家は、選挙に出て、当選してはじめてなれる職。職業の選択肢には出さない(出馬は、活動の「出馬」から)。
+  jobs: JOBS.filter((j) => j.id !== "politician"),
   cities: {
     tokyo: ["東京・世田谷区", "東京・江戸川区", "東京・杉並区", "東京・足立区", "東京・板橋区", "東京・練馬区", "東京・大田区"],
     metro: ["大阪府・吹田市", "愛知県・名古屋市", "福岡県・福岡市", "兵庫県・西宮市", "神奈川県・川崎市", "埼玉県・さいたま市", "北海道・札幌市", "宮城県・仙台市"],

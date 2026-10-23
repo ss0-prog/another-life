@@ -384,7 +384,7 @@ const occTree = (occ: Occ): TurningOption => ({
   auto: occ === "office",
   apply: () => "",
   detail: (p, env, d) => `${OCC_OFFICIAL[occ]}。${payText(p, env, d, { occ, job: JOB_DEFAULT[occ], payMult: jobById(JOB_DEFAULT[occ])?.mult ?? 1 })}`,
-  children: () => occQuestion(occ, JOBS.filter((j) => j.occ === occ)),
+  children: () => occQuestion(occ, JOBS.filter((j) => j.occ === occ && j.id !== "politician")),
 });
 
 

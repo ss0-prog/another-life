@@ -50,10 +50,10 @@ export default function ConceptPage() {
       <Section title="大切にしていること">
         <ul className="list-disc space-y-3 pl-6">
           <li>
-            <strong className="text-warm">評価しない。</strong>どちらの人生が良い、悪いとは言いません。違いを並べるだけです。
+            <strong className="text-warm">評価しない。</strong>どんな人生が良い、悪いとは言いません。起きたことを、ありのままに書くだけです。
           </li>
           <li>
-            <strong className="text-warm">景気は同じ、運命は別々。</strong>景気や空模様、株価の動きは、二つの人生で共通です。一方、寿命や事故・急病といった運命のいたずらは、それぞれの人生で別々に決まります。若くして亡くなる人生も、起こりえます。
+            <strong className="text-warm">運命は、人生ごとに別々。</strong>寿命や事故・急病といった運命のいたずらは、人生ごとに別々に決まります。若くして亡くなる人生も、起こりえます。
           </li>
           <li>
             <strong className="text-warm">出典を示す。</strong>もとにした統計と、仮定が含まれることは、<Link href="/sources" className="underline underline-offset-4 hover:text-warm">データについて</Link>のページに書いています。

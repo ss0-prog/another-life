@@ -19,7 +19,8 @@ export type ArchiveEntry = {
   branchLabel: string;
   branchAge: number;
   alt: PublicLife;
-  real: PublicLife;
+  // 昔に公開されたものには、もうひとつの人生も入っている(いまは、公開しない・表示しない)。
+  real?: PublicLife;
   owner?: string;
   // 公開した本人が、その人生にそえたひとこと。
   comment?: string;
@@ -34,9 +35,9 @@ export const branchLabelOf = (setup: Setup) => {
 };
 
 // 本人が公開を選んだ結果から、アーカイブの1件をつくる。
-export function entryFrom(id: string, setup: Setup, alt: LifeSummary, real: LifeSummary, owner: string, comment = ""): ArchiveEntry {
+export function entryFrom(id: string, setup: Setup, alt: LifeSummary, owner: string, comment = ""): ArchiveEntry {
   const note = comment.trim().slice(0, COMMENT_MAX);
-  return { id, createdAt: new Date().toISOString(), sample: false, branchLabel: branchLabelOf(setup), branchAge: setup.branch.age, alt: toPublic(alt), real: toPublic(real), owner, ...(note ? { comment: note } : {}) };
+  return { id, createdAt: new Date().toISOString(), sample: false, branchLabel: branchLabelOf(setup), branchAge: setup.branch.age, alt: toPublic(alt), owner, ...(note ? { comment: note } : {}) };
 }
 
 export const archiveEnabled = firebaseEnabled;

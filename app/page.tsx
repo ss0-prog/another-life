@@ -129,7 +129,7 @@ export default function Home() {
     if (user) {
       const saved = await cloudEchoStore.save(user.uid, item);
       if (!saved) return "failed";
-      if (publish && !(await publishEntry(entryFrom(item.id, setup, phase.alt, phase.real, user.uid, comment)))) return "publishFailed";
+      if (publish && !(await publishEntry(entryFrom(item.id, setup, phase.alt, user.uid, comment)))) return "publishFailed";
       return "cloud";
     }
     return echoStore.save(item) ? "local" : "failed";

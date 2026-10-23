@@ -1,4 +1,5 @@
 import type { Rng } from "@/lib/sim/rng";
+import { isResponsible } from "@/lib/sim/helpers";
 import type { Person } from "@/lib/sim/types";
 
 // 「ひとこま」: 数字にならない、心に残る場面。
@@ -21,6 +22,8 @@ const kidAge = (p: Person, i: number) => p.age - p.kidList[i].bornAge;
 const kidIn = (p: Person, lo: number, hi: number) => p.kidList.findIndex((k) => !k.anon && p.age - k.bornAge >= lo && p.age - k.bornAge <= hi);
 const parentWord = (p: Person, r: Rng, rr: "mother" | "father" | "any") => (rr === "any" ? (alive(p, "mother") && (!alive(p, "father") || r() < 0.5) ? "母" : "父") : rr === "mother" ? "母" : "父");
 const working = (p: Person) => p.occ !== null && p.occ !== "retired";
+// 上司や同僚がいる、雇われる働き方か(自営・経営者・議員などには、いない)。
+const employed = (p: Person) => working(p) && p.employment !== "self" && !isResponsible(p) && !["shogi", "idol", "streamer", "athlete"].includes(p.job ?? "");
 
 const MOMENTS: Def[] = [
   // ───── 子ども時代(親・友だち) ─────
@@ -71,8 +74,8 @@ const MOMENTS: Def[] = [
   { id: "f_call", w: 0.8, cd: 20, ok: (p) => p.age >= 20, text: (p) => `親友${p.friendNames?.best ? `の${p.friendNames.best}` : ""}から前触れもなく電話があった。声を聞いただけで肩の力が少し抜けた`, joy: 2, bonds: 2 },
   { id: "f_old", w: 0.8, cd: 20, ok: (p) => p.age >= 35, text: (p) => `久しぶりに会った親友${p.friendNames?.best ? `の${p.friendNames.best}` : ""}は少し老けていた。お互いにそう思って笑った`, joy: 2, bonds: 2 },
   { id: "f_night", w: 0.8, cd: 20, ok: (p) => p.age >= 18 && p.age <= 35, text: () => "友人の部屋で朝まで話した。何を話したのかは覚えていない。笑ったことだけ覚えている", joy: 2, bonds: 2 },
-  { id: "w_praise", w: 0.8, cd: 20, ok: (p) => working(p) && p.employment !== "self" && p.age >= 22, text: () => "上司がさりげなく「助かったよ」と言った。たったそれだけで報われた気がした", joy: 2, bonds: 1 },
-  { id: "w_late", w: 0.8, cd: 20, ok: (p) => working(p) && p.employment !== "self" && p.extra.stress > 60, text: () => "終電の窓に疲れた顔が映っていた。同じ顔の人たちがとなりに並んで揺れていた", joy: -1, bonds: 0 },
+  { id: "w_praise", w: 0.8, cd: 20, ok: (p) => employed(p) && p.age >= 22, text: () => "上司がさりげなく「助かったよ」と言った。たったそれだけで報われた気がした", joy: 2, bonds: 1 },
+  { id: "w_late", w: 0.8, cd: 20, ok: (p) => employed(p) && p.extra.stress > 60, text: () => "終電の窓に疲れた顔が映っていた。同じ顔の人たちがとなりに並んで揺れていた", joy: -1, bonds: 0 },
   { id: "w_first_pay", w: 0.8, cd: 20, ok: (p) => working(p) && p.age >= 18 && p.age <= 24 && p.age - (p.history.firstJob ?? p.age) <= 1, text: () => "初めての給料で家族に何か買った。渡すときの手が少しふるえた", joy: 2, bonds: 2 },
 
   // ───── ペット ─────

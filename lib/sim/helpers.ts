@@ -35,7 +35,10 @@ export function leaveLocal(p: Person, data: CountryData) {
 }
 
 // 議員・総理大臣・会社の経営者など、責任ある立場にあるか(あるあいだは、引っ越しの話も、転職の話も出ない)。
-export const isResponsible = (p: Person) => !!p.office || ["ceo", "founder", "owner", "politician"].includes(p.job ?? "");
+// (頂点に立った人のうち、組織のトップ・役職についた人もふくむ: 取締役・社長・院長・学長・校長・看護部長など)
+const SUMMIT_LEADERS = ["manager", "doctor", "prof", "school_teacher", "lawyer", "pilot", "nurse", "accountant"];
+export const isResponsible = (p: Person) =>
+  !!p.office || ["ceo", "founder", "owner", "politician"].includes(p.job ?? "") || (p.history.summit !== undefined && SUMMIT_LEADERS.includes(p.job ?? ""));
 
 export function moveTo(p: Person, rng: Rng, data: CountryData, region: Region, city?: string): string {
   leaveLocal(p, data);

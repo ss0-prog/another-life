@@ -785,6 +785,7 @@ export function freeAction(
   opts: { text: string; tag: Tag | null; yen: number | null; month: number },
   data: CountryData = jpData,
 ): GameState | null {
+  if (state.person.prison) return null; // 服役中は、できない
   const text = opts.text.trim();
   if (!text || state.deathAge !== null) return null;
   const interp = interpret(text, data);
@@ -925,6 +926,7 @@ export function answer(state: GameState, tp: TurningPoint, choice: Choice, data:
 
 // 習い事を始める。同時にできるのは MAX_LESSONS つまで。始められなければ null。
 export function startLesson(state: GameState, id: string, data: CountryData = jpData): GameState | null {
+  if (state.person.prison) return null; // 服役中は、できない
   const def = data.lessons.find((l) => l.id === id);
   const p = state.person;
   if (!def || state.deathAge !== null) return null;
@@ -940,6 +942,7 @@ export function startLesson(state: GameState, id: string, data: CountryData = jp
 
 // アルバイトを始める(同時にひとつ)。始められなければ null。
 export function startPartTime(state: GameState, id: string, data: CountryData = jpData): GameState | null {
+  if (state.person.prison) return null; // 服役中は、できない
   const def = data.partTimes.find((x) => x.id === id);
   const p = state.person;
   if (!def || state.deathAge !== null || p.age < def.minAge || p.age >= 75) return null;
@@ -970,6 +973,7 @@ export function officeChance(p: Person, od: { win: number }): number {
 
 // 出馬する。供託金や選挙運動の費用がかかり、当選すれば議員などになる。出せなければ null。
 export function runForOffice(state: GameState, id: string, data: CountryData = jpData): GameState | null {
+  if (state.person.prison) return null; // 服役中は、できない
   const od = data.offices.find((x) => x.id === id);
   const p0 = state.person;
   if (!od || state.deathAge !== null || p0.age < od.minAge || p0.office || p0.age > 80) return null;
@@ -1015,6 +1019,7 @@ export function pmPolicyReady(state: GameState): boolean {
 }
 
 export function pmPolicy(state: GameState, id: string): GameState | null {
+  if (state.person.prison) return null; // 服役中は、できない
   const def = PM_POLICIES.find((x) => x.id === id);
   if (!def || !pmPolicyReady(state)) return null;
   const next = clone(state);
@@ -1052,6 +1057,7 @@ export function pmPolicy(state: GameState, id: string): GameState | null {
 
 // こどもNISA(子どもの将来のための積立)。親が積み立て、いちばん下の子が18歳になるとき、子どもの新しい道のために使われる。
 export function contributeKidFund(state: GameState, yen: number): GameState | null {
+  if (state.person.prison) return null; // 服役中は、できない
   const p = state.person;
   const youngest = p.kidList.some((k) => p.age - k.bornAge < 18);
   if (state.deathAge !== null || p.age < 18 || !youngest || yen <= 0 || state.wallet.cash < yen) return null;
@@ -1068,6 +1074,7 @@ export function contributeKidFund(state: GameState, yen: number): GameState | nu
 
 // 出会いの場に出かける(「活動する」から)。出かけた先で、選択の場面が出る。1年に3回まで。
 export function goMeet(state: GameState, id: string): GameState | null {
+  if (state.person.prison) return null; // 服役中は、できない
   const def = meetById(id);
   const p = state.person;
   if (!def || state.deathAge !== null || !def.show(p) || state.queue.length > 0) return null;
@@ -1086,6 +1093,7 @@ export function goMeet(state: GameState, id: string): GameState | null {
 
 // 売買: 買う。足りなければ null。
 export function shopBuy(state: GameState, id: string): GameState | null {
+  if (state.person.prison) return null; // 服役中は、できない
   const it = shopById(id);
   const p = state.person;
   if (!it || state.deathAge !== null || !it.visible(p) || it.id === "home_sell") return null;
@@ -1102,6 +1110,7 @@ export function shopBuy(state: GameState, id: string): GameState | null {
 
 // 売買: 手放す(売る)。
 export function shopSell(state: GameState, id: string): GameState | null {
+  if (state.person.prison) return null; // 服役中は、できない
   const it = shopById(id);
   const p = state.person;
   if (!it || !it.sellMan || !it.sellApply || state.deathAge !== null) return null;
@@ -1149,6 +1158,7 @@ export function borrowAndSpend(
   opts: { text: string; tag: Tag | null; yen: number; month: number },
   data: CountryData = jpData,
 ): GameState | null {
+  if (state.person.prison) return null; // 服役中は、できない
   const short = shortfallFor(state, opts.yen);
   if (short <= 0 || state.deathAge !== null) return null;
   const offer = lenderOffers(state, short, data).find((o) => o.id === lender);
@@ -1507,15 +1517,15 @@ export function tick(state: GameState, data: CountryData = jpData): GameState {
   if (p.withParents && a >= 24 && roll(seed, a, S.parents) < 0.06) p.withParents = false;
 
   const retire = p.retireAt ?? (p.workLong ? data.retireAge + 5 : data.retireAge);
-  if (a === retire && p.occ && !p.office && (p.employment !== "self" || p.retireAt !== null) && p.occ !== "retired") {
+  if (a === retire && p.occ && !isResponsible(p) && (p.employment !== "self" || p.retireAt !== null) && p.occ !== "retired") {
     p.occ = "retired";
     push("仕事を退いた", 55);
   }
   // 定年を過ぎても働いている人: 年齢が上がるほど、定年退職や、体調による退職を、せまられやすい。
   // 90歳をこえると、仕事は、続けられない。
   if (p.occ && p.occ !== "retired" && a >= retire) {
-    if (p.office && a < WORK_LIMIT) {
-      // 議員は、定年も、途中の退職もない(任期の終わりの選挙で、決まる)。
+    if (isResponsible(p) && a < WORK_LIMIT) {
+      // 議員・経営者など責任ある立場は、定年も、途中の退職もない(議員は、任期の終わりの選挙で決まる)。
     } else if (a >= WORK_LIMIT) {
       p.occ = "retired";
       p.parttime = null;
@@ -2113,7 +2123,7 @@ export function tick(state: GameState, data: CountryData = jpData): GameState {
     bump(p, { bonds: 2, health: 1 });
   }
   // 転職の話は、年のおわりの状態(昇進などのあと)で、年収の比べ方が正しくなるよう、いちばん最後に決める。
-  if (p.occ && p.occ !== "retired" && !isResponsible(p) && a - (p.jobSince ?? a - 3) >= 3 && !(p.job === "athlete" && p.sport && a < 38) && a < 60 && roll(seed, a, S.job) < interpolate(data.curves.jobChange, a) * mbtiJob * Math.max(0.3, 1 + 0.3 * economyAt(seed, a, p.birthYear))) {
+  if (p.occ && p.occ !== "retired" && !isResponsible(p) && p.employment !== "self" && a - (p.jobSince ?? a - 3) >= 3 && !(p.job === "athlete" && p.sport && a < 38) && a < 60 && roll(seed, a, S.job) < interpolate(data.curves.jobChange, a) * mbtiJob * Math.max(0.3, 1 + 0.3 * economyAt(seed, a, p.birthYear))) {
     // 転職は、勝手には決まらない。話が来たところで、選んでもらう(リストラは、この限りではない)。
     if (!next.queue.includes("job_change")) {
       const r = streamRng(seed, a, S.jobPick);
@@ -2191,6 +2201,7 @@ export function holdingsValue(state: GameState, month: number, data: CountryData
 
 // 積み立て投資の設定(1年の額・円)。0 で、やめる。
 export function setPlan(state: GameState, id: AssetId, yenPerYear: number): GameState | null {
+  if (state.person.prison) return null; // 服役中は、できない
   if (state.deathAge !== null || state.person.age < 18 || !state.wallet.stocks || !Number.isFinite(yenPerYear) || yenPerYear < 0) return null;
   const next = clone(state);
   const plans = (next.wallet.plans ??= {});
@@ -2203,6 +2214,7 @@ export function setPlan(state: GameState, id: AssetId, yenPerYear: number): Game
 
 // 売買する。yen > 0 で買う、yen < 0 で売る。足りなければ null。
 export function trade(state: GameState, id: AssetId, yen: number, month: number, data: CountryData = jpData): GameState | null {
+  if (state.person.prison) return null; // 服役中は、できない
   if (state.deathAge !== null || !Number.isFinite(yen) || yen === 0) return null;
   const price = priceAt(marketOf(state.seed, data), id, state.person.age, month);
   const next = clone(state);

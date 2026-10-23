@@ -46,6 +46,12 @@ export function ActivityPanel({ t, state, onStartLesson, onStopLesson, onStartPa
   const p = state.person;
   const dead = state.deathAge !== null;
   if (dead) return null;
+  if (p.prison)
+    return (
+      <div ref={root} className="mb-6 rounded-sm border border-line bg-panel/60 px-4 py-3 text-sm leading-7 tracking-wider text-haze">
+        服役中です({p.prison.until}歳で出所の予定)。出所するまで、活動や買い物はできません。
+      </div>
+    );
 
   const working = p.occ !== null && p.occ !== "retired";
   // 仕事に就いている間は、アルバイトの画面を開いたままにしない。

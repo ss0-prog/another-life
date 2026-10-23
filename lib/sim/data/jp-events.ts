@@ -21,6 +21,8 @@ import type { AutoEvent, CountryData, EventQuestionDef, GameState, Occ, Person, 
 // どれも「あなたの年齢・仕事・家族・地域・景気・健康」で、起きやすさが変わる。確率は設計上の仮定。
 
 const working = (p: Person) => p.occ !== null && p.occ !== "retired";
+// 上司や同僚がいる働き方か(自営・経営者・議員・フリーの職には、いない)。
+const hasBoss = (p: Person) => working(p) && p.employment !== "self" && !isResponsible(p) && !["shogi", "idol", "streamer", "athlete"].includes(p.job ?? "");
 const inAge = (p: Person, a: number, b: number) => p.age >= a && p.age <= b;
 const man = (n: number) => moneyText(n);
 const money = (s: GameState, manYen: number) => {
@@ -172,7 +174,7 @@ export const lifeEvents: AutoEvent[] = [
   ev("club_win", (p) => (inAge(p, 12, 17) ? 0.8 : 0), (s) => (bump(s.person, { health: 2, bonds: 4 }), "部活の大会で、県の舞台に立った"), 42),
 
   // ---- 仕事 ----
-  ev("promotion", (p, e) => (working(p) && p.employment === "regular" && inAge(p, 27, 58) && p.occ !== "mgmt" ? (0.9 * (p.stats.learn + 30)) / 80 * (e < -0.5 ? 0.5 : 1) * (bossCompat(p) >= 80 ? 1.25 : bossCompat(p) < 48 ? 0.8 : 1) : 0), (s, r, d) => {
+  ev("promotion", (p, e) => (hasBoss(p) && p.employment === "regular" && inAge(p, 27, 58) && p.occ !== "mgmt" ? (0.9 * (p.stats.learn + 30)) / 80 * (e < -0.5 ? 0.5 : 1) * (bossCompat(p) >= 80 ? 1.25 : bossCompat(p) < 48 ? 0.8 : 1) : 0), (s, r, d) => {
     const p = s.person;
     p.payMult *= 1.04;
     p.extra.career = Math.min(100, p.extra.career + 6);
@@ -191,7 +193,7 @@ export const lifeEvents: AutoEvent[] = [
     void d;
     return "昇格して、役職がついた";
   }, 62),
-  ev("demotion", (p, e) => (working(p) && p.employment === "regular" && p.age >= 35 ? 0.35 + (e < -0.4 ? 0.5 : 0) + (p.stats.health < 45 ? 0.3 : 0) : 0), (s) => {
+  ev("demotion", (p, e) => (hasBoss(p) && p.employment === "regular" && p.age >= 35 ? 0.35 + (e < -0.4 ? 0.5 : 0) + (p.stats.health < 45 ? 0.3 : 0) : 0), (s) => {
     const p = s.person;
     bump(p, { money: -3, bonds: -2, joy: -7 });
     const reason = p.econ < -0.4 ? "不況で会社の業績が悪化し" : p.stats.health < 45 ? "体調不良で、思うように成果が出せず" : recent(p, "conflict", 3) ? "職場でのいざこざが評価に響き" : "ミスが重なり、評価が下がって";
@@ -207,14 +209,14 @@ export const lifeEvents: AutoEvent[] = [
   }, 62),
   ev("raise", (p, e) => (working(p) && p.employment === "regular" ? 1.4 * (e > 0 ? 1.5 : 0.8) : 0), (s) => (s.person.payMult *= 1.012, "給料が上がった"), 38),
   ev("bonus_cut", (p, e) => (working(p) && p.employment === "regular" && e < -0.4 ? 1.8 : 0), (s) => (bump(s.person, { money: -3 }), "不況で、ボーナスが減らされた"), 45),
-  ev("transfer", (p) => (working(p) && p.firm !== "small" && inAge(p, 26, 56) ? 1.0 : 0), (s) => (bump(s.person, { learn: 2, bonds: -1 }), "異動で、新しい部署に移った"), 38),
+  ev("transfer", (p) => (hasBoss(p) && p.employment === "regular" && p.firm !== "small" && inAge(p, 26, 56) ? 1.0 : 0), (s) => (bump(s.person, { learn: 2, bonds: -1 }), "異動で、新しい部署に移った"), 38),
   ev("overtime", (p) => (working(p) && p.age < 60 ? 1.6 : 0), (s, r) => {
     const p = s.person;
     bump(p, { health: -3, money: 1 });
     mark(p, "overtime");
-    return `${pickOne(r, ["人手が足りず", "大きな案件が重なり", "締め切りが迫り", "同僚が辞めた穴を埋めるため"])}、残業の続く日々になった`;
+    return `${pickOne(r, hasBoss(p) ? ["人手が足りず", "大きな案件が重なり", "締め切りが迫り", "同僚が辞めた穴を埋めるため"] : ["仕事が立て込み", "大きな案件が重なり", "締め切りが迫り", "依頼が一度に重なって"])}、${p.employment === "self" || isResponsible(p) ? "夜まで働く" : "残業の続く"}日々になった`;
   }, 36),
-  ev("conflict", (p) => (working(p) ? 0.8 * clash(bossCompat(p)) : 0), (s, r) => {
+  ev("conflict", (p) => (hasBoss(p) ? 0.8 * clash(bossCompat(p)) : 0), (s, r) => {
     const p = s.person;
     const boss = npcMbti(p, "boss", r);
     const low = compat(p.mbti, boss) < 48;
@@ -225,11 +227,11 @@ export const lifeEvents: AutoEvent[] = [
   ev("award", (p) => (working(p) && p.stats.learn > 45 ? 0.7 : 0), (s) => (bump(s.person, { money: 3, learn: 2 }), "仕事の成果が認められ、表彰された"), 55),
   ev("mistake", (p) => (working(p) ? 0.8 : 0), (s) => (bump(s.person, { money: -1, bonds: -1 }), "大きなミスをして、頭を下げることになった"), 42),
   ev("mentor", (p) => (working(p) && inAge(p, 28, 55) ? 1.0 : 0), (s) => (bump(s.person, { learn: 2, bonds: 2 }), "後輩の指導を任された"), 38),
-  ev("colleague_left", (p) => (working(p) ? 1.0 : 0), (s, r) => {
+  ev("colleague_left", (p) => (hasBoss(p) ? 1.0 : 0), (s, r) => {
     bump(s.person, { bonds: -2 });
     return `${pickOne(r, ["キャリアアップを目指して", "家庭の事情で", "職場の雰囲気に疲れて", "地元に戻ることになって"])}、仲のよかった同僚が、会社を去っていった`;
   }, 35),
-  ev("power_harass", (p) => (working(p) && p.age < 60 ? 0.5 * (isT(p.npc?.boss) && isJ(p.npc?.boss) ? 1.8 : p.npc?.boss?.[2] === "F" ? 0.5 : 1) * clash(bossCompat(p)) : 0), (s, r) => {
+  ev("power_harass", (p) => (hasBoss(p) && p.age < 60 ? 0.5 * (isT(p.npc?.boss) && isJ(p.npc?.boss) ? 1.8 : p.npc?.boss?.[2] === "F" ? 0.5 : 1) * clash(bossCompat(p)) : 0), (s, r) => {
     const p = s.person;
     const boss = npcMbti(p, "boss", r);
     bump(p, { health: -5, bonds: -3, joy: -10 });
@@ -284,7 +286,7 @@ export const lifeEvents: AutoEvent[] = [
     return text;
   }, 36),
   // 上司のタイプによる、職場のちがい。
-  ev("boss_trait", (p) => (working(p) && p.employment !== "self" && p.age < 62 ? 0.7 : 0), (s, r) => {
+  ev("boss_trait", (p) => (hasBoss(p) && p.age < 62 ? 0.7 : 0), (s, r) => {
     const p = s.person;
     const boss = npcMbti(p, "boss", r);
     const c = compat(p.mbti, boss);
@@ -681,7 +683,7 @@ export const eventQuestions: EventQuestionDef[] = [
   // ---- 政治の世界から、声がかかる(ごくまれ) ----
   {
     id: "political_call",
-    weight: (p) => (working(p) && !p.office && inAge(p, 32, 66) && p.stats.bonds >= 45 && p.stats.learn >= 45 && p.intel >= 45 && !p.history.politicalCall ? 0.03 : 0),
+    weight: (p) => (working(p) && !isResponsible(p) && inAge(p, 32, 66) && p.stats.bonds >= 45 && p.stats.learn >= 45 && p.intel >= 45 && !p.history.politicalCall ? 0.03 : 0),
     intro: () => "地元の有力者から、選挙に出ないかと声がかかった",
     question: () => ({
       title: "選挙への出馬",
@@ -827,12 +829,12 @@ export const eventQuestions: EventQuestionDef[] = [
             bump(p, { bonds: 6, joy: 5, health: 1 });
             p.extra.career = Math.max(0, p.extra.career - 2);
             return "育児休業を、1年ほど取り、子どもとの時間を大切にした";
-          }, { show: (q) => working(q), detail: (q, env, d) => `休業中は、育児休業給付(賃金の67%、6か月をこえると50%)が出る。給付には所得税も住民税もかからず、休業中は社会保険料も免除されるので、手取りで見た減りは、1年で約${manText(leaveLoss(q, d, q.econ, 12))}万円。取得した人の割合は、令和5年度で、女性約84%・男性約30%(厚生労働省「雇用均等基本調査」)。`, children: (q) => careQuestion(q) }),
+          }, { show: (q) => working(q) && q.employment !== "self", detail: (q, env, d) => `休業中は、育児休業給付(賃金の67%、6か月をこえると50%)が出る。給付には所得税も住民税もかからず、休業中は社会保険料も免除されるので、手取りで見た減りは、1年で約${manText(leaveLoss(q, d, q.econ, 12))}万円。取得した人の割合は、令和5年度で、女性約84%・男性約30%(厚生労働省「雇用均等基本調査」)。`, children: (q) => careQuestion(q) }),
           opt("short", "自分が、短く取る(数か月)", (p, r, d) => {
             addCash(p, -Math.round(leaveLoss(p, d, p.econ, 4)));
             bump(p, { bonds: 3, joy: 2 });
             return "育児休業を短く取り、早めに仕事に復帰した";
-          }, { show: (q) => working(q), detail: (q, env, d) => `収入とキャリアへの影響は、小さくすむ。給付は税も保険料もかからず、4か月ほどの休業なら、手取りで見た減りは約${manText(leaveLoss(q, d, q.econ, 4))}万円。そのぶん、子どもとの時間は短くなる。`, children: (q) => careQuestion(q) }),
+          }, { show: (q) => working(q) && q.employment !== "self", detail: (q, env, d) => `収入とキャリアへの影響は、小さくすむ。給付は税も保険料もかからず、4か月ほどの休業なら、手取りで見た減りは約${manText(leaveLoss(q, d, q.econ, 4))}万円。そのぶん、子どもとの時間は短くなる。`, children: (q) => careQuestion(q) }),
           opt("partner", `${hasPartner ? pn : "パートナー"}が、育休を取る`, (p, r, d) => {
             addCash(p, -Math.round(leaveLoss(p, d, p.econ, 12) * 0.9));
             bump(p, { bonds: 6, joy: 4 });
@@ -846,13 +848,25 @@ export const eventQuestions: EventQuestionDef[] = [
             p.extra.stress = Math.max(0, p.extra.stress - 2);
             p.extra.career = Math.max(0, p.extra.career - 1);
             return `${pn}と、育児休業を分け合って取り、ふたりで子どもを見ることにした`;
-          }, { show: (q) => working(q) && !!q.partner && q.partner.status !== "ex" && partnerWorks(q), detail: (q, env, d) => `どちらの仕事への影響も、小さくすむ。収入は、手取りで見て世帯で約${manText(leaveLoss(q, d, q.econ, 6) * 2)}万円ほど減るが、二人の関係と、子どもとの時間が、増える。`, children: (q) => careQuestion(q) }),
+          }, { show: (q) => working(q) && q.employment !== "self" && !!q.partner && q.partner.status !== "ex" && partnerWorks(q), detail: (q, env, d) => `どちらの仕事への影響も、小さくすむ。収入は、手取りで見て世帯で約${manText(leaveLoss(q, d, q.econ, 6) * 2)}万円ほど減るが、二人の関係と、子どもとの時間が、増える。`, children: (q) => careQuestion(q) }),
           opt("none", "育休は取らず、働き続ける", (p) => {
             p.extra.stress = Math.min(100, p.extra.stress + 8);
             bump(p, { bonds: -2, health: -1 });
             p.extra.career = Math.min(100, p.extra.career + 1);
             return "育休は取らず、仕事を続けた。育児と仕事の両立で、慌ただしい日々が続く";
-          }, { auto: true, show: (q) => working(q), detail: () => "収入とキャリアは守れるが、体力とパートナーとの関係に、負担がかかる。", children: (q) => careQuestion(q) }),
+          }, { auto: true, show: (q) => working(q) && q.employment !== "self", detail: () => "収入とキャリアは守れるが、体力とパートナーとの関係に、負担がかかる。", children: (q) => careQuestion(q) }),
+          // 自営の人には、育児休業(給付)はない。仕事の量を調整するか、変えずに続けるかを選ぶ。
+          opt("self_adjust", "仕事の量を減らして、育児の時間をつくる", (p) => {
+            p.payMult *= 0.85;
+            bump(p, { bonds: 5, joy: 4, health: 1, money: -2 });
+            p.extra.stress = Math.max(0, p.extra.stress - 2);
+            return "仕事の量を減らし、子どもと過ごす時間をつくった(自営のため、育児休業の給付はない)";
+          }, { show: (q) => working(q) && q.employment === "self", detail: () => "収入は減る。育児休業給付は、雇われている人の制度で、自営の人は対象にならない。", children: (q) => careQuestion(q) }),
+          opt("self_keep", "仕事の量は変えずに、働き続ける", (p) => {
+            p.extra.stress = Math.min(100, p.extra.stress + 8);
+            bump(p, { bonds: -2, health: -1 });
+            return "仕事の量は変えず、働き続けた。育児と仕事の両立で、慌ただしい日々が続く";
+          }, { auto: true, show: (q) => working(q) && q.employment === "self", detail: () => "収入は守れるが、体力とパートナーとの関係に、負担がかかる。", children: (q) => careQuestion(q) }),
           // 自分が働いていないとき(パートナーが働いている)は、預け先だけを選ぶ。
           opt("care_only", "預け先を決める", () => "仕事に戻るときの、子どもの預け先を考えた", { auto: true, show: (q) => !working(q), detail: () => "パートナーが働いている間の、子どもの預け先を選びます。", children: (q) => careQuestion(q) }),
         ],
@@ -1188,16 +1202,19 @@ export const eventQuestions: EventQuestionDef[] = [
   {
     id: "work_end",
     weight: () => 0,
-    intro: (p) => (p.stats.health < 45 || p.sick ? "体調のことを考えて、仕事を続けるかどうかを、決めるときが来た" : "定年を迎え、仕事の区切りを考えるときが来た"),
+    // 定年があるのは、会社や役所に正社員で勤める人。自営の人や、契約・パートの人には、「定年」はなく、「仕事の区切り」を考える。
+    intro: (p) => (p.stats.health < 45 || p.sick ? "体調のことを考えて、仕事を続けるかどうかを、決めるときが来た" : p.employment === "regular" ? "定年を迎え、仕事の区切りを考えるときが来た" : "年齢を重ね、仕事の区切りを考えるときが来た"),
     question: (p) => {
       const frail = p.stats.health < 45 || p.sick;
+      const fixed = p.employment === "regular";
+      const self = p.employment === "self";
       return {
-        title: frail ? "体調と、仕事" : "定年のとき",
-        prompt: frail ? "体がきつくなってきました。この先も、いまの仕事を、続けますか？" : "定年を迎えました。この先の仕事を、どうしますか？",
+        title: frail ? "体調と、仕事" : fixed ? "定年のとき" : "仕事の区切り",
+        prompt: frail ? "体がきつくなってきました。この先も、いまの仕事を、続けますか？" : fixed ? "定年を迎えました。この先の仕事を、どうしますか？" : "年齢を重ねました。この先の仕事を、どうしますか？",
         options: [
-          opt("retire", "定年で、仕事を退く", (q) => ((q.occ = "retired"), (q.parttime = null), bump(q, { joy: -1, health: 2 }), "定年を迎え、長年の仕事を退いた"), { auto: true, show: (q) => !(q.stats.health < 45 || q.sick), detail: () => "給料はなくなり、年金や貯金が中心の暮らしになる。時間はたっぷりできる。" }),
+          opt("retire", fixed ? "定年で、仕事を退く" : self ? "仕事をたたんで、引退する" : "仕事を退く", (q) => ((q.occ = "retired"), (q.parttime = null), bump(q, { joy: -1, health: 2 }), q.employment === "regular" ? "定年を迎え、長年の仕事を退いた" : q.employment === "self" ? "長年続けた仕事をたたみ、引退した" : "長年の仕事を退いた"), { auto: true, show: (q) => !(q.stats.health < 45 || q.sick), detail: () => "給料や売り上げはなくなり、年金や貯金が中心の暮らしになる。時間はたっぷりできる。" }),
           opt("retire_health", "体調を優先して、退職する", (q) => ((q.occ = "retired"), (q.parttime = null), bump(q, { health: 5, joy: -2 }), "体調のことを考えて、仕事を退いた"), { auto: true, show: (q) => q.stats.health < 45 || !!q.sick, detail: () => "無理をしない暮らしになる。収入は、年金や貯金が中心になる。" }),
-          opt("rehire", "再雇用・嘱託で、もう少し働く", (q) => ((q.payMult *= 0.6), (q.workLong = true), bump(q, { money: 2, health: -1, bonds: 1 }), "再雇用で、もうしばらく、働くことにした"), { show: (q) => q.age < 80 && !(q.stats.health < 45 || q.sick), detail: () => "収入は、これまでの6割ほどに下がる。体力の続くかぎり、働ける。" }),
+          opt("rehire", fixed ? "再雇用・嘱託で、もう少し働く" : self ? "規模を小さくして、もう少し続ける" : "契約を更新して、もう少し働く", (q) => ((q.payMult *= 0.6), (q.workLong = true), bump(q, { money: 2, health: -1, bonds: 1 }), q.employment === "regular" ? "再雇用で、もうしばらく、働くことにした" : q.employment === "self" ? "規模を小さくして、もうしばらく、続けることにした" : "契約を更新して、もうしばらく、働くことにした"), { show: (q) => q.age < 80 && !(q.stats.health < 45 || q.sick), detail: () => "収入は、これまでの6割ほどに下がる。体力の続くかぎり、働ける。" }),
           opt("push", "無理をしてでも、働きつづける", (q) => (bump(q, { health: -7, joy: -2, money: 2 }), "体にむち打って、働きつづけることにした"), { show: (q) => q.age < 80 && (q.stats.health < 45 || !!q.sick), detail: () => "収入は続くが、体への負担が大きい。また、退職をせまられることがある。" }),
         ],
       };
@@ -1222,7 +1239,7 @@ export const eventQuestions: EventQuestionDef[] = [
   },
   {
     id: "grandchild_role",
-    weight: (p) => (p.kidList.length > 0 && inAge(p, 58, 82) && !recent(p, "grandRole", 10) ? 0.6 : 0),
+    weight: (p) => (p.history.grandchild !== undefined && inAge(p, 58, 90) && !recent(p, "grandRole", 10) ? 0.6 : 0),
     intro: () => "孫との関わり方を、考えた",
     question: () => ({
       title: "孫との関わり",
@@ -1845,7 +1862,8 @@ export const eventQuestions: EventQuestionDef[] = [
   },
   {
     id: "crime",
-    weight: (p) => (inAge(p, 20, 60) && p.stats.money < 28 ? 0.45 : 0),
+    // 犯罪に手を染めるかは、「crime_temptation」(だまされた・貧しい・住まいがないとき)で、検挙・裁きまで含めて扱う。ここは、使わない。
+    weight: () => 0,
     intro: () => "お金に困り、道を踏み外しそうな誘いがあった",
     question: () => ({
       title: "追い詰められて",
@@ -1878,7 +1896,7 @@ export const eventQuestions: EventQuestionDef[] = [
   },
   {
     id: "abroad",
-    weight: (p) => (inAge(p, 19, 32) && p.stats.learn > 45 ? 0.5 : 0),
+    weight: (p) => (inAge(p, 19, 32) && !p.abroad && !isResponsible(p) && p.stats.learn > 45 ? 0.5 : 0),
     intro: () => "海外留学の機会が巡ってきた",
     question: () => ({
       title: "留学のチャンス",
@@ -1918,7 +1936,7 @@ export const eventQuestions: EventQuestionDef[] = [
   },
   {
     id: "relocation",
-    weight: (p) => (working(p) && p.firm === "large" && p.sector === "private" && inAge(p, 28, 55) ? 0.6 : 0),
+    weight: (p) => (working(p) && !isResponsible(p) && p.employment === "regular" && p.firm === "large" && p.sector === "private" && inAge(p, 28, 55) ? 0.6 : 0),
     intro: () => "転勤の辞令が出た",
     question: () => ({
       title: "転勤の辞令",
@@ -1943,7 +1961,7 @@ export const eventQuestions: EventQuestionDef[] = [
   },
   {
     id: "overseas_post",
-    weight: (p) => (working(p) && p.sector === "private" && p.employment !== "self" && p.firm !== "small" && inAge(p, 28, 55) && !p.abroad ? 0.5 : 0),
+    weight: (p) => (working(p) && !isResponsible(p) && p.sector === "private" && p.employment !== "self" && p.firm !== "small" && inAge(p, 28, 55) && !p.abroad ? 0.5 : 0),
     intro: () => "会社から、海外赴任の打診があった",
     question: () => ({
       title: "海外赴任の打診",
@@ -1977,18 +1995,18 @@ export const eventQuestions: EventQuestionDef[] = [
   },
   {
     id: "burnout_leave",
-    weight: (p) => (working(p) && p.stats.health < 46 ? 1.2 : 0),
+    weight: (p) => (working(p) && !isResponsible(p) && p.stats.health < 46 ? 1.2 : 0),
     intro: () => "心身が限界に近づいた",
-    question: () => ({
+    question: (p0) => ({
       title: "限界のサイン",
       prompt: "無理を重ねた体と心が、悲鳴をあげています。",
       options: [
-        opt("leave", "休職して、休む", (p) => ((p.payMult *= 0.94), bump(p, { health: 10, money: -2 }), "休職して、しばらく静かに過ごした"), { auto: true, detail: () => "収入は一時的に下がるが、回復のための時間が持てる。" }),
+        opt("leave", p0.employment === "self" ? "仕事を減らして、休む" : "休職して、休む", (p) => ((p.payMult *= 0.94), bump(p, { health: 10, money: -2 }), p.employment === "self" ? "仕事を減らして、しばらく静かに過ごした" : "休職して、しばらく静かに過ごした"), { auto: true, detail: () => "収入は一時的に下がるが、回復のための時間が持てる。" }),
         opt("push", "無理して、続ける", (p, r) => {
           if (r() < 0.45) return (bump(p, { health: -12, money: -3 }), "無理を続けたあげく、倒れて入院した");
           return (bump(p, { health: -4 }), "なんとか踏ん張って、働き続けた");
         }, { detail: () => "倒れるおそれが高まる。" }),
-        opt("quit", "仕事を辞める", (p) => ((p.payMult *= 0.8), (p.employment = "nonregular"), bump(p, { health: 6, money: -4 }), "仕事を辞めて、体と心を立て直すことにした")),
+        opt("quit", p0.employment === "self" ? "事業をたたむ" : "仕事を辞める", (p) => ((p.payMult *= 0.8), p.employment === "self" ? undefined : (p.employment = "nonregular"), bump(p, { health: 6, money: -4 }), p.employment === "self" ? "事業を縮めて、体と心を立て直すことにした" : "仕事を辞めて、体と心を立て直すことにした")),
       ],
     }),
   },

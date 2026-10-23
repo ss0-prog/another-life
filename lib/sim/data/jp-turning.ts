@@ -1233,13 +1233,14 @@ export const turningPoints: TurningPoint[] = [
           title: "どう続ける？",
           prompt: "同じ仕事でも、向き合い方で道が分かれます。",
           options: [
-            opt("rise", "昇進をめざして、成果を出す", (p) => ((p.payMult *= 1.05), bump(p, { money: 4, health: -2, bonds: -1 }), "昇進をめざして、成果を出すことに力を注いだ"), { detail: () => "責任と収入は増えるが、休みと時間は減りやすい。" }),
+            opt("rise", "昇進をめざして、成果を出す", (p) => ((p.payMult *= 1.05), bump(p, { money: 4, health: -2, bonds: -1 }), "昇進をめざして、成果を出すことに力を注いだ"), { show: (p) => p.employment === "regular", detail: () => "責任と収入は増えるが、休みと時間は減りやすい。" }),
             opt("steady", "無理せず、自分のペースで続ける", (p) => (bump(p, { health: 3, bonds: 2 }), "無理せず、自分のペースで働き続けることにした"), { auto: true, detail: () => "収入の伸びは緩やか。そのぶん、暮らしの時間と健康を保てる。" }),
           ],
         }),
       },
       {
         id: "switch",
+        show: (p) => p.employment !== "self",
         label: "転職する",
         apply: () => "",
         detail: (p, env) => `転職の成否は、景気に左右される。いまは${env.econLabel}。${env.econ < -0.4 ? "求人は少なく、条件のよい転職は難しい時期。" : env.econ > 0.6 ? "求人が多く、条件を上げやすい時期。" : ""}`,
@@ -1271,6 +1272,7 @@ export const turningPoints: TurningPoint[] = [
       },
       {
         id: "indep",
+        show: (p) => p.employment !== "self",
         label: "独立して挑戦する",
         apply: () => "",
         detail: (p, env) => `収入は大きく上下する。景気の影響を、もっとも受ける働き方。いまは${env.econLabel}。副業の収入は、年に20万円をこえると確定申告が要る。独立すると、会社が半分払っていた社会保険料を、全額自分で払うことになり、手取りの割合は下がりやすい。`,
@@ -1353,6 +1355,8 @@ export const turningPoints: TurningPoint[] = [
     age: 35,
     title: "住まいを考える",
     prompt: "これからの住まいを、どうするだろう。",
+    // 持ち家の人や、海外で暮らす人には、聞かない(家を買う・賃貸のまま、が合わない)。
+    when: (p) => !p.owned && !p.abroad,
     options: [
       { id: "buy", label: "家を買う", apply: () => "", detail: (p, env, data) => `${data.regionLabel[p.region]}の新築マンションの価格の目安は約${Math.round(HOME_PRICE[p.region] / 10) * 10}万円。ローンを組めるかは、世帯の年収しだい。`, children: homeQuestion },
       opt("rent", "賃貸のまま、身軽に暮らす", (p) => ((p.homeBias = 0.6), bump(p, { money: 2 }), "賃貸のまま、身軽に暮らすことにした"), { auto: true, detail: (p) => `家賃は年に約${p.region === "tokyo" ? 120 : p.region === "metro" ? 90 : 70}〜${p.region === "tokyo" ? 180 : p.region === "metro" ? 130 : 100}万円。引っ越しの自由は保てるが、住居費は払い続ける。` }),
@@ -1370,6 +1374,7 @@ export const turningPoints: TurningPoint[] = [
     options: [
       {
         id: "lead",
+        show: (p) => p.employment === "regular" && p.occ !== "mgmt",
         label: "責任ある立場を目指す",
         apply: () => "",
         detail: (p, env, data) => `いまの年収は約${round10(incomeOf(p, data, env.econ))}万円。管理職になると、1〜2割上がることが多い。`,
@@ -1377,12 +1382,12 @@ export const turningPoints: TurningPoint[] = [
           title: "どんな立場を目指す？",
           prompt: "同じ昇進でも、道が分かれます。",
           options: [
-            opt("manager", "管理職として、組織を率いる", (p) => ((p.payMult *= 1.15), bump(p, { money: 4, health: -4, bonds: -2 }), "管理職として、組織を率いるようになった"), { detail: () => "収入と責任が増え、人の問題に時間を取られる。" }),
+            opt("manager", "管理職として、組織を率いる", (p) => ((p.payMult *= 1.15), bump(p, { money: 4, health: -4, bonds: -2 }), "管理職として、組織を率いるようになった"), { show: (p) => p.occ !== "mgmt" && p.job !== "manager", detail: () => "収入と責任が増え、人の問題に時間を取られる。" }),
             opt("expert", "専門職として、第一人者を目指す", (p) => ((p.payMult *= 1.07), bump(p, { learn: 6, money: 2 }), "専門を極めて、頼られる存在になっていった"), { auto: true, detail: () => "収入の伸びは緩やかだが、仕事の満足度は高い。" }),
           ],
         }),
       },
-      opt("side", "副業や独立に踏み出す", (p, r) => (bump(p, { money: Math.round((r() - 0.4) * 20), learn: 3 }), "副業を始め、働き方を広げた"), { detail: (p, env) => `景気しだいで収入は大きく変わる。いまは${env.econLabel}。` }),
+      opt("side", "副業や独立に踏み出す", (p, r) => (bump(p, { money: Math.round((r() - 0.4) * 20), learn: 3 }), "副業を始め、働き方を広げた"), { show: (p) => p.employment !== "self", detail: (p, env) => `景気しだいで収入は大きく変わる。いまは${env.econLabel}。` }),
       opt("slow", "仕事を減らして、暮らしを大切にする", (p) => ((p.payMult *= 0.85), bump(p, { money: -5, health: 6, bonds: 5 }), "仕事を減らして、暮らしの時間を増やした"), { detail: (p, env, data) => `年収は約${round10(incomeOf(p, data, env.econ) * 0.85)}万円ほどに下がる。そのぶん、時間と健康に余裕が生まれる。` }),
     ],
   },
@@ -1391,6 +1396,8 @@ export const turningPoints: TurningPoint[] = [
     age: 50,
     title: "親のこと",
     prompt: "年を重ねた親と、どう向き合うだろう。",
+    // 親が、ふたりとも亡くなっていたら、聞かない。
+    when: (p) => p.age < Math.max(p.parentDeath.mother, p.parentDeath.father),
     options: [
       opt("care", "仕事を調整して、介護に向き合う", (p) => ((p.caregiving = true), (p.payMult *= 0.92), bump(p, { money: -5, bonds: 4, health: -4 }), "仕事を調整しながら、親の介護に向き合った"), { detail: () => "介護の費用は月に数万〜十数万円。仕事を減らすと、収入にも響く。" }),
       opt("service", "施設やサービスに頼る", (p) => (bump(p, { money: -6 }), "親のために、施設やサービスを頼ることにした"), { auto: true, detail: () => "施設の費用は月に約10〜20万円。自分の仕事と時間は守れる。" }),
@@ -1404,11 +1411,12 @@ export const turningPoints: TurningPoint[] = [
     prompt: "仕事をいつまで続けるか、そろそろ考えるときです。",
     when: (p) => p.occ !== null && !isResponsible(p) && p.jobSince !== undefined && p.age - p.jobSince >= 3 && p.occ !== "retired",
     options: [
-      opt("r60", "60歳で退職して、早めにゆっくり暮らす", (p) => ((p.retireAt = 60), bump(p, { health: 4, joy: 3 }), "60歳で仕事を退くことに決めた"), { detail: (p, env, data) => `収入は早く止まり、年金も満額ではない。そのぶん、自由な時間と体力が残る。いまの収入では、${takeText(p, data, env.econ)}退職後も、国民健康保険料や住民税は、かかり続ける。` }),
-      opt("retire", "定年(65歳)まで勤め、その後はゆっくり暮らす", (p) => ((p.retireAt = 65), bump(p, { health: 3 }), "65歳の定年まで働くことに決めた"), { auto: true, detail: (p, env, data) => `65歳以降は年金が中心。${pensionText(p, data, 1)}貯金の取り崩しが必要になることもある。` }),
+      opt("r60", "60歳で仕事を退いて、早めにゆっくり暮らす", (p) => ((p.retireAt = 60), bump(p, { health: 4, joy: 3 }), "60歳で仕事を退くことに決めた"), { detail: (p, env, data) => `収入は早く止まり、年金も満額ではない。そのぶん、自由な時間と体力が残る。いまの収入では、${takeText(p, data, env.econ)}退職後も、国民健康保険料や住民税は、かかり続ける。` }),
+      opt("retire", "定年(65歳)まで勤め、その後はゆっくり暮らす", (p) => ((p.retireAt = 65), bump(p, { health: 3 }), "65歳の定年まで働くことに決めた"), { auto: true, show: (p) => p.employment === "regular", detail: (p, env, data) => `65歳以降は年金が中心。${pensionText(p, data, 1)}貯金の取り崩しが必要になることもある。` }),
+      opt("retire_flex", "65歳まで働き、その後はゆっくり暮らす", (p) => ((p.retireAt = 65), bump(p, { health: 3 }), "65歳まで働くことに決めた"), { auto: true, show: (p) => p.employment !== "regular", detail: (p, env, data) => `65歳以降は年金が中心。${pensionText(p, data, 1)}貯金の取り崩しが必要になることもある。` }),
       opt("r70", "70歳まで働く", (p) => ((p.retireAt = 70), bump(p, { money: 4, health: -2 }), "70歳まで働き続けることに決めた"), { detail: (p, env, data) => `70歳まで収入が続く。体力との相談になる。いまの収入では、${takeText(p, data, env.econ)}厚生年金の保険料は、70歳まで払い続ける。` }),
       opt("r75", "75歳まで、生涯現役をめざす", (p) => ((p.retireAt = 75), bump(p, { money: 6, health: -4, joy: 2 }), "75歳まで、生涯現役でいることに決めた"), { detail: (p, env, data) => `収入は長く続くが、体への負担は大きい。いまの収入では、${takeText(p, data, env.econ)}` }),
-      opt("shop", "地元で小さな商いや畑を始める", (p) => ((p.occ = "agri"), (p.job = "farmer"), (p.employment = "self"), (p.sector = "private"), (p.payMult = 0.6), (p.region = p.birthRegion), (p.city = p.birthPlace), bump(p, { money: -3, health: 4 }), `地元の${p.city}で、小さな商いや畑を始めた`), { detail: () => "収入は多くないが、暮らしの費用は低く、体を動かす日々になる。" }),
+      opt("shop", "地元で小さな商いや畑を始める", (p) => ((p.occ = "agri"), (p.job = "farmer"), (p.employment = "self"), (p.sector = "private"), (p.payMult = 0.6), (p.region = p.birthRegion), (p.city = p.birthPlace), bump(p, { money: -3, health: 4 }), `地元の${p.city}で、小さな商いや畑を始めた`), { show: (p) => p.employment !== "self", detail: () => "収入は多くないが、暮らしの費用は低く、体を動かす日々になる。" }),
     ],
   },
   {

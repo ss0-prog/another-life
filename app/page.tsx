@@ -250,7 +250,7 @@ export default function Home() {
                   </button>
                 </div>
               )}
-              {/* 「別の人生をシミュレートする」は、アニメーションで出さず、はじめから、表示しておく */}
+              {/* 「もうひとつの人生をはじめる」は、アニメーションで出さず、はじめから、表示しておく */}
               <div className="flex w-full justify-center mt-12">
                 <button type="button" onClick={() => { setPrefill(null); setPhase({ name: "wizard" }); }} className={`${primaryButtonClass} w-full lg:whitespace-nowrap lg:w-[calc((100%-2rem)/3)] lg:px-3 lg:text-[15px] lg:tracking-[0.15em]`}>
                   <span className="absolute inset-0 border border-warm/60 bg-warm/5 transition-colors group-hover:border-warm group-hover:bg-warm/10" />
@@ -283,7 +283,7 @@ export default function Home() {
                   ))}
                 </ul>
               </motion.section>
-              {/* 「無数のifの先へ」の上にも、「別の人生をシミュレートする」を置く */}
+              {/* 「無数のifの先へ」の上にも、「もうひとつの人生をはじめる」を置く */}
               <div className="flex w-full justify-center mt-14">
                 <button type="button" onClick={() => { setPrefill(null); setPhase({ name: "wizard" }); }} className={`${primaryButtonClass} w-full lg:whitespace-nowrap lg:w-[calc((100%-2rem)/3)] lg:px-3 lg:text-[15px] lg:tracking-[0.15em]`}>
                   <span className="absolute inset-0 border border-warm/60 bg-warm/5 transition-colors group-hover:border-warm group-hover:bg-warm/10" />

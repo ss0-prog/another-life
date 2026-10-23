@@ -589,7 +589,7 @@ button:disabled,
   cursor: not-allowed;
 }
 
-/* 昼は、主なボタン(「別の人生をシミュレートする」など)の背景を、しっかり塗って、空の色に埋もれないようにする */
+/* 昼は、主なボタン(「もうひとつの人生をはじめる」など)の背景を、しっかり塗って、空の色に埋もれないようにする */
 .group > span.absolute.inset-0[class*="border-warm/60"] {
   background-color: var(--surf-btn);
   box-shadow: 0 2px 10px var(--surf-btnsh);

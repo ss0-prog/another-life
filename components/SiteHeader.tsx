@@ -22,7 +22,7 @@ const NAV = [
 
 // スマホのメニューに出す、ページへのリンク(ひとこと説明つき)。
 const DRAWER_LINKS = [
-  { href: "/", label: "はじめる", desc: "ターニングポイントから人生をやり直す" },
+  { href: "/", label: "もうひとつの人生をはじめる", desc: "ターニングポイントから人生をやり直す" },
   { href: "/concept", label: t.nav.concept, desc: "このサイトでできること・遊び方" },
   { href: "/archive", label: t.nav.archive, desc: "ほかの人の一生を見る・探す" },
   { href: "/collection", label: "コレクション", desc: "達成した実績を集めてならべる" },
@@ -81,7 +81,15 @@ export function SiteHeader() {
               </span>
             ) : (
             <Link key={n.href} href={n.href} onClick={() => setMenuOpen(false)} aria-current={active(n.href) ? "page" : undefined} className={active(n.href) ? "text-warm" : "text-haze hover:text-mist"}>
-              {n.label}
+              {n.href === "/" && !drawer ? (
+                <>
+                  {/* 横ならびのメニューは、幅がせまいと、はみ出すので、広い画面(1536px〜)だけ、全部を書く */}
+                  <span className="2xl:hidden">はじめる</span>
+                  <span className="max-2xl:hidden">{n.label}</span>
+                </>
+              ) : (
+                n.label
+              )}
             </Link>
             ),
           )}
@@ -122,7 +130,7 @@ export function SiteHeader() {
           <IfMark className="h-7 w-auto shrink-0 text-mist sm:h-8" />
           <span className="min-w-0">
             <span className="block truncate text-[15px] leading-5 tracking-[0.06em] text-mist sm:text-base sm:tracking-[0.25em] lg:overflow-visible lg:whitespace-nowrap">{t.meta.title}</span>
-            <span className="block whitespace-nowrap text-[9px] leading-4 tracking-[0.02em] text-dim min-[400px]:text-[10px] min-[400px]:tracking-[0.06em] sm:text-[11px] sm:tracking-[0.12em] lg:max-xl:hidden">あなたの別の人生をシミュレート</span>
+            <span className="block whitespace-nowrap text-[9px] leading-4 tracking-[0.02em] text-dim min-[400px]:text-[10px] min-[400px]:tracking-[0.06em] sm:text-[11px] sm:tracking-[0.12em] lg:max-xl:hidden">あなたのもうひとつの人生</span>
           </span>
         </Link>
         {/* スマホ: メニューボタン(ひらくと、リンクが縦にならぶ) */}

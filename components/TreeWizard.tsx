@@ -722,7 +722,7 @@ export function TreeWizard({ t, onSubmit, onRandom, auth, prefill }: Props) {
     return text !== "" && Number.isInteger(n) && n >= (step.min ?? -Infinity) && n <= (step.max ?? Infinity);
   };
 
-  // 「別の人生をシミュレートする」を押したら、文字がふわっと消え、枝が、いちばん先から根もとへ、さかのぼっていく。
+  // 「もうひとつの人生をはじめる」を押したら、文字がふわっと消え、枝が、いちばん先から根もとへ、さかのぼっていく。
   // 最後まで戻ったら、遊ぶ画面へ入る。
   const [rewinding, setRewinding] = useState(false);
   const [full, setFull] = useState(false); // さかのぼりの間は、木を、画面いっぱいに広げる

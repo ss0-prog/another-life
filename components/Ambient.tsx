@@ -321,11 +321,11 @@ function TokyoTower({ cx, base, color, night }: { cx: number; base: number; colo
 }
 
 // 街のシルエットの色と、窓の灯り。朝焼け・夕焼けの空では、少し紫がかった色になる。
-const CITY_COLORS: Record<Phase, { far: string; near: string; lit: boolean }> = {
-  night: { far: "#080b11", near: "#040609", lit: true },
-  dusk: { far: "#2a2540", near: "#1c1a30", lit: true },
-  dawn: { far: "#2d2a46", near: "#1f1d34", lit: true },
-  day: { far: "#8aa0b8", near: "#667d97", lit: false },
+const CITY_COLORS: Record<Phase, { far: string; near: string; forest: string; lit: boolean }> = {
+  night: { far: "#080b11", near: "#040609", forest: "#04100c", lit: true },
+  dusk: { far: "#2a2540", near: "#1c1a30", forest: "#13271f", lit: true },
+  dawn: { far: "#2d2a46", near: "#1f1d34", forest: "#15291f", lit: true },
+  day: { far: "#8aa0b8", near: "#667d97", forest: "#4a6d5a", lit: false },
 };
 
 // タワーの足もとに、ぽつんと建つ、小さな建物(窓の灯りは、決まった並び)。
@@ -347,6 +347,34 @@ const frontBuilding: Building[] = (() => {
   // タワーの足もとの、低い建物(3つ)
   return [make(897, 46, 44, 3, 2, 2, "#ffd35a", 0), make(858, 60, 104, 4, 4, 3, null, 1), make(922, 62, 92, 4, 3, 1, "#ff9fb6", 2)];
 })();
+
+// 観覧車の下の3分の1を、手前でかくす、森。木を1本ずつ見せず、こんもりした樹冠(まるい葉のかたまり)を、びっしり重ねて、ひとつづきの森の影にする。
+const FOREST = (() => {
+  const rng = createRng(77);
+  const r1 = (v: number) => Math.round(v * 10) / 10;
+  const out: { x: number; y: number; r: number }[] = [];
+  // 奥(高い列)から、手前(低い列)へ。重ねるほど、こんもりする。
+  for (const [row, yBase, rMin, rMax] of [[0, 244, 9, 14], [1, 256, 8, 13], [2, 268, 8, 12]] as const) {
+    for (let x = 468 + row * 4; x < 656; ) {
+      const r = rMin + rng() * (rMax - rMin);
+      const edge = Math.min(x - 468, 656 - x) / 34; // 両はしは、低くなだらかに
+      out.push({ x: r1(x), y: r1(yBase + (1 - Math.min(1, 0.3 + edge)) * 22 + (rng() - 0.5) * 8), r: r1(r) });
+      x += r * (0.7 + rng() * 0.5);
+    }
+  }
+  return out;
+})();
+
+function Forest({ color }: { color: string }) {
+  return (
+    <g style={{ fill: color, transition: "fill 5s ease" }} aria-hidden>
+      {FOREST.map((t, i) => (
+        <circle key={i} cx={t.x} cy={t.y} r={t.r} />
+      ))}
+      <rect x={470} y={270} width={184} height={30} />
+    </g>
+  );
+}
 
 // 観覧車: ゆっくり回る。ゴンドラは、いつも下を向く。夜は、縁のランプが、色を変えながら、きらめく。
 function FerrisWheel({ cx, base, night }: { cx: number; base: number; night: boolean }) {
@@ -454,6 +482,8 @@ function SkylineSvg({ phase, mode = "all" }: { phase: Phase; mode?: "all" | "cit
       <FerrisWheel cx={560} base={290} night={c.lit} />
       {/* 観覧車の右下を、少しだけ隠す建物 */}
       <CityLayer buildings={wheelFront} color={c.near} base={290} night={c.lit} near />
+      {/* 観覧車の下の3分の1を、かくす森 */}
+      <Forest color={c.forest} />
       <TokyoTower cx={920} base={290} color={c.near} night={c.lit} />
       {/* タワーの前に、ひとつ、小さな建物 */}
       <CityLayer buildings={frontBuilding} color={c.near} base={290} night={c.lit} near />

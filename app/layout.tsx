@@ -82,7 +82,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         {/* 前回えらんだ昼・夜を、最初の表示の前に反映する(暗い画面から、はじまらないように)。最初だけ、色の変化はつけない */}
         <script
           dangerouslySetInnerHTML={{
-            __html: `try{var v=localStorage.getItem("betsu-uchu:time");if(v==="day"||v==="night"||v==="evening"){var d=document.documentElement;d.dataset.tod=v;d.dataset.phase=v==="evening"?"dusk":v;if(v==="day")d.classList.add("no-anim")}}catch(e){}`,
+            __html: `try{var v=localStorage.getItem("betsu-uchu:time");if(v==="day"||v==="night"||v==="evening"){var d=document.documentElement;d.dataset.tod=v;d.dataset.phase=v==="evening"?"dusk":v;if(v==="day")d.classList.add("no-anim")}else{var e=document.documentElement;e.dataset.tod="evening";e.dataset.phase="dusk"}}catch(e){}`,
           }}
         />
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />

@@ -13,10 +13,11 @@ const KEY = "betsu-uchu:time";
 // 一つの段階にかける時間(ミリ秒)。空の色は、この時間をかけて、なめらかに変わる。
 export const PHASE_MS = 5000;
 
-let current: TimeOfDay = "night";
-let phase: Phase = "night";
+// はじめて来た人(まだ昼夜をえらんでいない人)には、夕方の空を見せる。
+let current: TimeOfDay = "evening";
+let phase: Phase = "dusk";
 // ひとつ前の段階(昼から夕方へ、など、どこから移ってきたかで、色の移り変わる時機を変えるため)。
-let prevPhase: Phase = "night";
+let prevPhase: Phase = "dusk";
 let loaded = false;
 let timer: ReturnType<typeof setTimeout> | null = null;
 // 切り替えの途中(空が移り変わっているあいだ)は、新しい切り替えを、受けつけない。
@@ -49,12 +50,12 @@ export function loadTimeOfDay() {
       current = v;
       phase = v === "evening" ? "dusk" : v;
       prevPhase = phase;
-      emit();
     }
+    emit();
     // 最初の表示だけは、色の変化をつけない(layout の最初のスクリプトが、つけた印を、はずす)。
     window.setTimeout(() => document.documentElement.classList.remove("no-anim"), 500);
   } catch {
-    /* 保存できない環境では、夜のまま */
+    /* 保存できない環境では、夕方のまま */
   }
 }
 
@@ -101,8 +102,8 @@ const subscribe = (cb: () => void) => {
   return () => listeners.delete(cb);
 };
 
-export const useTimeOfDay = (): TimeOfDay => useSyncExternalStore(subscribe, () => current, () => "night");
+export const useTimeOfDay = (): TimeOfDay => useSyncExternalStore(subscribe, () => current, () => "evening");
 export const useSkyAnimated = (): boolean => useSyncExternalStore(subscribe, () => skyAnimated, () => false);
 export const useTimeLocked = (): boolean => useSyncExternalStore(subscribe, () => locked, () => false);
-export const usePrevPhase = (): Phase => useSyncExternalStore(subscribe, () => prevPhase, () => "night");
-export const usePhase = (): Phase => useSyncExternalStore(subscribe, () => phase, () => "night");
+export const usePrevPhase = (): Phase => useSyncExternalStore(subscribe, () => prevPhase, () => "dusk");
+export const usePhase = (): Phase => useSyncExternalStore(subscribe, () => phase, () => "dusk");

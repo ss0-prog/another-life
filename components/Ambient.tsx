@@ -426,13 +426,14 @@ function Forest({ color }: { color: string }) {
 }
 
 // 観覧車: ゆっくり回る。ゴンドラは、いつも下を向く。夜は、縁のランプが、色を変えながら、きらめく。
-function FerrisWheel({ cx, base, night }: { cx: number; base: number; night: boolean }) {
+function FerrisWheel({ cx, base, night, color }: { cx: number; base: number; night: boolean; color: string }) {
   const R = 64;
   const cy = base - 86;
   const r2 = (v: number) => Math.round(v * 100) / 100;
   const gondolas = Array.from({ length: 12 }, (_, i) => (i / 12) * Math.PI * 2);
   const lampColors = ["#ff7ab0", "#7ad7ff", "#ffd36a", "#a6ff9e", "#c59bff"];
-  const frame = night ? "#4a5070" : "#546b86";
+  // 光(縁のランプ・ゴンドラの灯り)いがいは、建物と同じ色にする。
+  const frame = color;
   return (
     <g transform={`translate(${cx} ${cy})`} aria-hidden>
       {/* 支柱(A字) */}
@@ -539,7 +540,7 @@ function SkylineSvg({ phase, mode = "all" }: { phase: Phase; mode?: "all" | "cit
       <CityLayer buildings={nearFg} color={c.near} base={290} night={c.lit} near />
       {/* 電車の手前に立つ、低い建物(電車が、ところどころ、建物にかくれる) */}
       <CityLayer buildings={nearFront} color={c.near} base={290} night={c.lit} near />
-      <FerrisWheel cx={560} base={290} night={c.lit} />
+      <FerrisWheel cx={560} base={290} night={c.lit} color={c.near} />
       {/* 観覧車の下の3分の1を、かくす森 */}
       <Forest color={c.near} />
       {/* 観覧車の右下を、少しだけ隠す建物 */}

@@ -309,18 +309,23 @@ export function AssetPanel({ t, state, month, onTrade, onStartStocks, onPlan, on
       </div>
 
       {state.wallet.debts.length > 0 && (
-        <div className="mt-4 rounded-sm border px-4 py-3 text-center" style={{ borderColor: "var(--color-s-bonds)" }}>
-          <p className="text-xs tracking-[0.2em]" style={{ color: "var(--color-s-bonds)" }}>{t.debt}</p>
-          <p className="mt-1 text-xl tabular-nums sm:text-2xl" style={{ color: "var(--color-s-bonds)" }}>
-            -{man(debtTotal(state.wallet.debts))}
-            <span className="ml-1 text-xs">{t.unit}</span>
-          </p>
-          <p className="text-xs tabular-nums text-dim">{yenText(debtTotal(state.wallet.debts))}</p>
-          <ul className="mt-2 space-y-0.5 text-xs leading-6 tracking-wider text-haze">
+        <div className="mt-4 rounded-sm border px-3 py-3 sm:px-4" style={{ borderColor: "var(--color-s-bonds)" }}>
+          <div className="flex items-baseline justify-between gap-2">
+            <p className="text-xs tracking-[0.2em]" style={{ color: "var(--color-s-bonds)" }}>{t.debt}</p>
+            <p className="text-xl tabular-nums sm:text-2xl" style={{ color: "var(--color-s-bonds)" }}>
+              -{man(debtTotal(state.wallet.debts))}
+              <span className="ml-1 text-xs">{t.unit}</span>
+            </p>
+          </div>
+          <p className="text-right text-xs tabular-nums text-dim">{yenText(debtTotal(state.wallet.debts))}</p>
+          <ul className="mt-2 divide-y divide-line/60 border-t border-line/60 text-xs tracking-wider text-haze">
             {state.wallet.debts.map((d) => (
-              <li key={d.lender}>
-                {{ family: "家族", friend: "友人", bank: "銀行", card: "カードローン", shark: "闇金" }[d.lender]} {manText(d.amount / 10000)}
-                {d.rate > 0 ? `(${t.interest} 年${Math.round(d.rate * 100)}%)` : ""}
+              <li key={d.lender} className="flex items-baseline justify-between gap-2 py-1.5">
+                <span>
+                  {{ family: "家族", friend: "友人", bank: "銀行", card: "カードローン", shark: "闇金" }[d.lender]}
+                  {d.rate > 0 && <span className="ml-2 text-dim">{t.interest} 年{Math.round(d.rate * 100)}%</span>}
+                </span>
+                <span className="tabular-nums">{manText(d.amount / 10000)}</span>
               </li>
             ))}
           </ul>

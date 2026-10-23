@@ -28,11 +28,11 @@ type Phase =
 // トップ画面の見出し(遊び方・このサイトでできること)。両脇に細い線と、小さな菱形をつける。
 function SectionTitle({ id, children }: { id?: string; children: React.ReactNode }) {
   return (
-    <h2 id={id} className="flex w-full items-center justify-center gap-3 text-base font-bold tracking-[0.35em] text-warm drop-shadow-[0_0_14px_rgba(240,201,148,0.3)] sm:gap-4 sm:text-lg">
+    <h2 id={id} className="flex w-full items-center justify-center gap-3 text-base font-bold tracking-[0.2em] text-warm sm:tracking-[0.35em] drop-shadow-[0_0_14px_rgba(240,201,148,0.3)] sm:gap-4 sm:text-lg">
       <span aria-hidden className="h-px w-8 bg-gradient-to-r from-transparent to-warm/60 sm:w-16" />
-      <span aria-hidden className="h-1.5 w-1.5 rotate-45 border border-warm/80" />
+      <span aria-hidden className="h-2 w-2 shrink-0 rotate-45 border border-warm/80" />
       <span className="shrink-0">{children}</span>
-      <span aria-hidden className="h-1.5 w-1.5 rotate-45 border border-warm/80" />
+      <span aria-hidden className="h-2 w-2 shrink-0 rotate-45 border border-warm/80" />
       <span aria-hidden className="h-px w-8 bg-gradient-to-l from-transparent to-warm/60 sm:w-16" />
     </h2>
   );

@@ -132,7 +132,7 @@ function makeCity(seed: number, minH: number, maxH: number, windowRate: number, 
   while (x < 1640) {
     let w = (28 + rng() * (rng() < 0.5 ? 46 : 84)) * 1.11; // 建物の数を、1割へらす
     // 高さは、ランダムに、ゆるやかな「ひとかたまり」をかさねる(新宿のように、高いビルが固まる所と、低い街並みが続く所ができる)。
-    const wave = Math.abs((((x / 420 + seed * 0.37) % 2) + 2) % 2 - 1); // 三角波(サーバーとブラウザで、計算結果が、ずれないよう、sinは使わない)
+    const wave = Math.abs((((x / 190 + seed * 0.37) % 2) + 2) % 2 - 1); // 三角波(サーバーとブラウザで、計算結果が、ずれないよう、sinは使わない)
     let h = minH + Math.min(1, rng() * 0.62 + wave * 0.5) * (maxH - minH);
     // 東京タワーのまわりは、建物を低くして、タワーが、くっきり見えるようにする。
     if (clearX !== undefined) {

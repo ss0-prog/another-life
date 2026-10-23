@@ -712,7 +712,7 @@ export const eventQuestions: EventQuestionDef[] = [
           const back = r() < 0.55;
           if (back) addCash(p, od.depositMan);
           return `${od.label}に立候補したが、落選した(選挙運動に約${od.campaignMan}万円を使い、供託金${od.depositMan}万円は${back ? "戻った" : "没収された"})`;
-        }, { detail: () => "供託金や選挙運動の費用がかかり、落選すると戻らない。当選すれば、議員になる。" }),
+        }, { cost: () => 130, detail: () => "供託金や選挙運動の費用(最低でも約130万円)がかかり、落選すると戻らない。当選すれば、議員になる。" }),
         opt("no", "今の仕事を続ける", (p) => (mark(p, "politicalCall"), "声はかかったが、今の仕事を続けることにした"), { auto: true }),
       ],
     }),

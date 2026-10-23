@@ -76,7 +76,7 @@ function drawLife(ctx: CanvasRenderingContext2D, life: LifeSummary, heading: str
 }
 
 // 比較結果を1枚の画像(PNG)にする。
-export async function renderCard(real: LifeSummary, alt: LifeSummary): Promise<Blob | null> {
+export async function renderCard(alt: LifeSummary): Promise<Blob | null> {
   await document.fonts.ready;
   const canvas = document.createElement("canvas");
   canvas.width = W;
@@ -101,11 +101,10 @@ export async function renderCard(real: LifeSummary, alt: LifeSummary): Promise<B
   ctx.fillText("別の宇宙のあなた", W / 2, 130);
   ctx.font = `500 26px ${font}`;
   ctx.fillStyle = "#bcc1ca";
-  ctx.fillText("ふたつの人生", W / 2, 180);
+  ctx.fillText("ひとつの人生", W / 2, 180);
 
-  const colW = 440;
-  drawLife(ctx, real, "現実のあなた", "#9bbdf0", 70, 270, colW);
-  drawLife(ctx, alt, "分岐した、もうひとりのあなた", "#f0c994", 570, 270, colW);
+  const colW = 640;
+  drawLife(ctx, alt, "もうひとりのあなた", "#f0c994", (W - colW) / 2, 270, colW);
 
   ctx.textAlign = "center";
   ctx.fillStyle = "#8b919c";

@@ -57,28 +57,25 @@ export function CompareResult({ t, real, alt, onSave, canPublish, publishEnabled
       </FadeIn>
 
       {/* 一番はじめに、それぞれの人生のまとめ(なぜ亡くなったのか・どんな人生だったのか) */}
-      <FadeIn delay={0.4} className="mx-auto mt-10 grid max-w-7xl gap-6 md:grid-cols-2">
-        <LifeStory t={t} heading={t.realHeading} life={real} accent="cool" />
+      <FadeIn delay={0.4} className="mx-auto mt-10 max-w-3xl">
         <LifeStory t={t} heading={t.altHeading} life={alt} accent="warm" />
       </FadeIn>
 
       <FadeIn delay={0.6} className="mx-auto mt-12 max-w-7xl">
-        <SeriesChart real={real} alt={alt} altLabel={altLabel} others={others} />
+        <SeriesChart alt={alt} altLabel={altLabel} others={others} />
       </FadeIn>
 
       <FadeIn delay={0.8}>
         <StatsCompare
           lines={[
-            { label: "現実のあなた", color: "var(--color-cool)", series: real.series ?? [], deathAge: real.deathAge },
-            { label: others.length ? `宇宙1: ${altLabel ?? "分岐したあなた"}` : "分岐したあなた", color: "var(--color-warm)", series: alt.series ?? [], deathAge: alt.deathAge },
+            { label: others.length ? `宇宙1: ${altLabel ?? "あなた"}` : "あなた", color: "var(--color-warm)", series: alt.series ?? [], deathAge: alt.deathAge },
             ...others.map((o, i) => ({ label: `宇宙${i + 2}: ${o.label}`, color: OTHER_COLORS[i % OTHER_COLORS.length], series: o.life.series ?? [], deathAge: o.life.deathAge })),
           ]}
         />
       </FadeIn>
 
-      <div className="mx-auto mt-16 grid max-w-7xl gap-16 md:grid-cols-2 md:gap-x-10 md:gap-y-0">
-        <LifeCard t={t} heading={t.realHeading} life={real} delay={0.8} accent="cool" />
-        <LifeCard t={t} heading={t.altHeading} life={alt} delay={1.2} accent="warm" />
+      <div className="mx-auto mt-16 max-w-3xl">
+        <LifeCard t={t} heading={t.altHeading} life={alt} delay={0.8} accent="warm" />
       </div>
 
       {others.length > 0 && (
@@ -172,7 +169,7 @@ export function CompareResult({ t, real, alt, onSave, canPublish, publishEnabled
           <button
             type="button"
             onClick={async () => {
-              const blob = await renderCard(real, alt);
+              const blob = await renderCard(alt);
               if (blob) downloadBlob(blob, "betsu-uchu-card.png");
             }}
             className="border border-line px-6 py-3 text-mist transition-colors hover:border-haze"
@@ -371,11 +368,10 @@ function FadeIn({ delay, className, children }: { delay: number; className?: str
 
 const OTHER_COLORS = ["var(--color-s-bonds)", "var(--color-s-health)", "var(--color-s-joy)"];
 
-// 人生の、資産と幸福度の移り変わり。現実のあなたと、分岐したあなた(複数の宇宙)を、重ねて見られる。
-function SeriesChart({ real, alt, altLabel, others }: { real: LifeSummary; alt: LifeSummary; altLabel?: string; others: { label: string; life: LifeSummary }[] }) {
+// 人生の、資産と幸福度の移り変わり。複数の宇宙を試したときは、重ねて見られる。
+function SeriesChart({ alt, altLabel, others }: { alt: LifeSummary; altLabel?: string; others: { label: string; life: LifeSummary }[] }) {
   const lines = [
-    { label: "現実のあなた", color: "var(--color-cool)", series: real.series ?? [] },
-    { label: others.length ? `宇宙1: ${altLabel ?? "分岐したあなた"}` : "分岐したあなた", color: "var(--color-warm)", series: alt.series ?? [] },
+    { label: others.length ? `宇宙1: ${altLabel ?? "あなた"}` : "あなた", color: "var(--color-warm)", series: alt.series ?? [] },
     ...others.map((o, i) => ({ label: `宇宙${i + 2}: ${o.label}`, color: OTHER_COLORS[i % OTHER_COLORS.length], series: o.life.series ?? [] })),
   ];
   const all = lines.flatMap((l) => l.series);

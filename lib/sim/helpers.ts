@@ -66,7 +66,7 @@ export function assignJob(p: Person, occ: Occ, rng: Rng, data: CountryData, jobI
 
 // 画面に出す職業名(職種があれば職種、なければ大分類)。
 export function jobLabel(p: Person, data: CountryData): string {
-  if (p.occ === null) return data.occLabel.student;
+  if (p.occ === null) return p.age < 23 ? data.occLabel.student : data.stageLabel(p.age, null);
   if (p.occ === "retired") return data.occLabel.retired;
   return jobById(p.job)?.title ?? data.occLabel[p.occ];
 }

@@ -177,18 +177,28 @@ function makeCity(seed: number, minH: number, maxH: number, windowRate: number, 
       //  ・点いている階は、ひと続きで、白っぽい黄色。まれに、青白い灯りや、橙色の灯り
       const cols = Math.max(2, Math.floor((w - 8) / 7));
       const rows = Math.max(3, Math.floor((h - 14) / 10));
-      const kind = winRng(); // <0.38: まばら / <0.78: 階ごとに、まとまる / それ以外: 全体が明るい
+      // 明るさの型は、乱数ではなく、黄金比の数列で配る(どの区間にも、まばら・階ごと・全体が明るい、がまんべんなく混ざり、灯りが、かたよらない)。
+      const kind = ((out.length + 1) * 0.6180339 + (seed % 7) * 0.13) % 1; // <0.3: まばら / <0.72: 階ごとに、まとまる / それ以外: 全体が明るい
       const coolBuilding = winRng() < 0.22;
-      const rowOn = Array.from({ length: rows }, () => winRng() < (kind < 0.78 ? 0.45 : 0.8));
+      const rowOn = Array.from({ length: rows }, () => winRng() < (kind < 0.72 ? 0.5 : 0.8));
       const colOff = Array.from({ length: cols }, () => winRng() < 0.18);
       for (let c = 0; c < cols; c++)
         for (let r = 0; r < rows; r++) {
-          const p = kind < 0.38 ? 0.2 : kind < 0.78 ? (rowOn[r] ? 0.82 : 0.04) : colOff[c] ? 0.12 : rowOn[r] ? 0.9 : 0.4;
+          const p = kind < 0.3 ? 0.27 : kind < 0.72 ? (rowOn[r] ? 0.82 : 0.08) : colOff[c] ? 0.14 : rowOn[r] ? 0.9 : 0.4;
           const lit = winRng() < p;
           const t = winRng();
           const tone: 0 | 1 | 2 = coolBuilding ? (t < 0.75 ? 2 : 1) : t < 0.58 ? 1 : t < 0.93 ? 0 : 2;
           windows.push({ x: 5 + c * 7, y: 8 + r * 10, lit, warm: tone !== 2, tone, flicker: winRng() < 0.05, delay: winRng() * 8 });
         }
+      // どのビルにも、最低でも、窓の16%は、灯りをともす(灯りが、ほとんどないビルを、なくす)。
+      const need = Math.ceil(windows.length * 0.16) - windows.filter((w) => w.lit).length;
+      for (let k = 0, left = need; left > 0 && k < windows.length * 4; k++) {
+        const w = windows[Math.floor(winRng() * windows.length)];
+        if (!w.lit) {
+          w.lit = true;
+          left--;
+        }
+      }
     }
     const roofPick = rng();
     const signColors = ["#ff6fa5", "#6fe3ff", "#ffd35a", "#9bff9b"];

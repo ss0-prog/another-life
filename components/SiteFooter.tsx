@@ -117,6 +117,14 @@ export function SiteFooter() {
         {/* 入力した情報は、このサービス以外には、絶対に使わない */}
         <p className="mt-10 rounded-sm border border-warm/50 bg-warm/5 px-4 py-4 text-left text-[15px] leading-8 tracking-[0.08em] text-mist sm:px-5 sm:text-base sm:leading-9">入力していただいた情報はこのサービスの中だけで使用します。ほかのサービスやほかの目的には絶対に使用しません。</p>
 
+        {/* このシミュレーションの結果について(あくまでゲームであること) */}
+        <div className="font-gothic mt-10 border-t border-line/60 pt-6">
+          <p className="text-xs tracking-[0.35em] text-warm">このシミュレーションについて</p>
+          <p className="mt-3 text-left text-xs leading-6 tracking-wider text-haze sm:text-[13px] sm:leading-7">
+            このシミュレーションの結果は、あなたを肯定したり否定したりするものではありません。占いや予言でもなく、あなたの価値や将来を示すものでもない、あくまでゲームです。選ばなかった道の先を、気軽に楽しんでください。
+          </p>
+        </div>
+
         {/* データの扱い */}
         <div className="font-gothic mt-10 border-t border-line/60 pt-6">
           <p className="text-xs tracking-[0.35em] text-warm">データの扱い</p>

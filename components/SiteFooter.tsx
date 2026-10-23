@@ -59,7 +59,7 @@ export function SiteFooter() {
         <div className="grid gap-10 md:grid-cols-[1.4fr_1fr_1fr_1.6fr]">
           {/* ブランド */}
           <div>
-            <p className="text-lg tracking-[0.3em] text-mist">{t.footer.copy}</p>
+            <p className="text-base tracking-[0.3em] text-mist">{t.footer.copy}</p>
             <p className="mt-3 text-xs leading-6 tracking-wider text-haze">選ばなかった道の先でもうひとりのあなたが生きている。<br />一年ずつ見届ける人生シミュレーション。</p>
             <div className="mt-4 flex items-center gap-2 text-warm" aria-hidden>
               <span className="h-px w-8 bg-warm/60" />
@@ -74,7 +74,7 @@ export function SiteFooter() {
           <div className="grid grid-cols-2 gap-6 md:contents">
           <nav aria-label="遊ぶ">
             <p className="text-xs tracking-[0.35em] text-warm">遊ぶ</p>
-            <ul className="mt-3 space-y-2 text-sm tracking-[0.12em] text-haze">
+            <ul className="mt-3 space-y-2 text-xs tracking-[0.12em] text-haze sm:text-sm">
               {PLAY.map((l) => (
                 <li key={l.href}>
                   <Link href={l.href} className="hover:text-mist">
@@ -88,7 +88,7 @@ export function SiteFooter() {
           {/* このサイトについて */}
           <nav aria-label="このサイトについて">
             <p className="text-xs tracking-[0.35em] text-warm">サイトについて</p>
-            <ul className="mt-3 space-y-2 text-sm tracking-[0.12em] text-haze">
+            <ul className="mt-3 space-y-2 text-xs tracking-[0.12em] text-haze sm:text-sm">
               {ABOUT.map((l) => (
                 <li key={l.href}>
                   <Link href={l.href} className="hover:text-mist">

@@ -203,7 +203,7 @@ function LifeStory({ t, heading, life, accent }: { t: Messages["result"]; headin
   return (
     <section className="rounded-sm border border-line bg-panel/80 px-5 py-7 text-left sm:px-7" style={{ borderTop: `2px solid var(--color-${accent})` }}>
       <p className="text-sm tracking-[0.3em]" style={{ color: `var(--color-${accent})` }}>{heading}のまとめ</p>
-      <h3 className="mt-3 text-base font-bold leading-8 tracking-wider text-mist">{life.deathAge}歳で、{cause ? `${cause}により、` : ""}人生を終えた</h3>
+      <h3 className="mt-3 text-sm font-bold leading-8 tracking-wider text-mist sm:text-base">{life.deathAge}歳で、{cause ? `${cause}により、` : ""}人生を終えた</h3>
       {reasons.length > 0 && (
         <p data-no-og className="mt-2 text-sm leading-8 tracking-wider text-haze">{reasons.map((x) => soften(x)).join("。")}。</p>
       )}
@@ -242,8 +242,8 @@ export function LifeCard({ t, heading, life, delay, accent }: { t: Messages["res
       {/* 以下の行は、左右の人生で、同じ高さにそろえる(内容が少ないほうは、空の行になる) */}
       <FadeIn delay={delay}>{life.death ? <DeathExplain death={life.death} /> : null}</FadeIn>
       <FadeIn delay={delay}>
-        <p data-no-og className="mx-auto mt-6 w-full text-left text-base leading-8 tracking-wider text-mist text-justify [text-justify:inter-character]">{soften(echo.status.summary)}</p>
-        <dl className="mt-4 space-y-1 text-center text-base leading-7 tracking-wider text-haze">
+        <p data-no-og className="mx-auto mt-6 w-full text-left text-sm leading-8 tracking-wider text-mist sm:text-base text-justify [text-justify:inter-character]">{soften(echo.status.summary)}</p>
+        <dl className="mt-4 space-y-1 text-center text-sm leading-7 tracking-wider text-haze sm:text-base">
           <dd>{echo.status.occupation}</dd>
           <dd>{echo.status.city}</dd>
           <dd>{echo.status.living}</dd>

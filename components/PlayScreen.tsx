@@ -275,7 +275,7 @@ export function PlayScreen({ t, initial, birthYear, selfAge, ghost, dev = false,
         <div className="mt-5 flex items-start justify-between gap-3 lg:block">
           <div className="min-w-0">
             <div className="text-4xl font-bold tabular-nums tracking-widest text-mist sm:text-5xl drop-shadow-[0_0_24px_rgba(240,201,148,0.35)]">{p.age}<span className="ml-2 text-lg font-medium text-haze sm:text-xl">歳</span></div>
-            <p className="mt-1 text-base tabular-nums tracking-[0.2em] text-warm sm:text-lg">{birthYear + p.age}年</p>
+            <p className="mt-1 text-sm tabular-nums tracking-[0.2em] text-warm sm:text-lg">{birthYear + p.age}年</p>
             <p className="mt-2 text-[13px] tracking-[0.12em] text-haze sm:mt-3 sm:text-sm sm:tracking-[0.15em]">
               {lifeLabel(p, jpData)} / {p.city}
             </p>
@@ -301,10 +301,10 @@ export function PlayScreen({ t, initial, birthYear, selfAge, ghost, dev = false,
 
         <div className="mt-6 grid grid-cols-2 gap-x-6 gap-y-4">
           <NoteBlock label={t.econ} note={t.notes.econ}>
-            <p className="mt-1 text-base sm:text-lg" style={{ color: econColor }}>{env.econLabel}</p>
+            <p className="mt-1 text-sm sm:text-lg" style={{ color: econColor }}>{env.econLabel}</p>
           </NoteBlock>
           <NoteBlock right label={t.income} note={t.notes.income}>
-            <p className="mt-1 text-base tabular-nums text-mist sm:text-lg">{income === null ? "—" : `${income.toLocaleString("ja-JP")}${t.unitMan}`}</p>
+            <p className="mt-1 text-sm tabular-nums text-mist sm:text-lg">{income === null ? "—" : `${income.toLocaleString("ja-JP")}${t.unitMan}`}</p>
           </NoteBlock>
         </div>
 
@@ -375,10 +375,10 @@ export function PlayScreen({ t, initial, birthYear, selfAge, ghost, dev = false,
                 <span>速度 ×{speed}</span>
                 <span aria-hidden className={`text-[9px] text-warm transition-transform ${speedOpen ? "rotate-180" : ""}`}>▼</span>
               </button>
-              <button type="button" onClick={() => window.dispatchEvent(new Event("betsu-uchu:open-activity"))} className="keep min-w-0 flex-1 border border-warm/50 bg-warm/5 px-1 py-1.5 text-center text-mist hover:border-warm">
+              <button type="button" onClick={() => window.dispatchEvent(new Event("betsu-uchu:open-activity"))} className="keep min-w-0 flex-1 border border-warm/50 bg-warm/5 px-1 py-1.5 text-center text-sm text-mist hover:border-warm">
                 活動する
               </button>
-              <button type="button" onClick={() => window.dispatchEvent(new Event("betsu-uchu:open-spend"))} className="keep min-w-0 flex-1 border border-warm/50 bg-warm/5 px-1 py-1.5 text-center text-mist hover:border-warm">
+              <button type="button" onClick={() => window.dispatchEvent(new Event("betsu-uchu:open-spend"))} className="keep min-w-0 flex-1 border border-warm/50 bg-warm/5 px-1 py-1.5 text-center text-sm text-mist hover:border-warm">
                 資産の使い方
               </button>
             </div>
@@ -620,7 +620,7 @@ export function PlayScreen({ t, initial, birthYear, selfAge, ghost, dev = false,
                   <span className="flex items-start gap-3">
                     <span aria-hidden className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-warm/60 text-xs font-bold tabular-nums text-warm">{i + 1}</span>
                     <span className="min-w-0 flex-1">
-                      <span className="block text-base font-bold leading-7 text-mist">{soften(o.label)}</span>
+                      <span className="block text-sm font-bold leading-7 text-mist sm:text-base">{soften(o.label)}</span>
                       {lockReason(o) && <span className="mt-1 block text-xs font-bold leading-6 tracking-wider" style={{ color: "var(--color-down)" }}>{lockReason(o)}</span>}
                       {o.detail && <span className="mt-1 block text-[13px] leading-6 tracking-wider text-haze">{soften(o.detail(p, env, jpData))}</span>}
                     </span>
@@ -821,7 +821,7 @@ function RelationPanel({ p }: { p: GameState["person"] }) {
       <ul className="mt-2 space-y-3">
         {list.map((r) => (
           <li key={r.id}>
-            <div className="flex items-baseline justify-between gap-3 text-sm tracking-wider">
+            <div className="flex items-baseline justify-between gap-3 text-xs tracking-wider sm:text-sm">
               <span className="text-mist">
                 <span className="text-haze">{r.role}</span>{r.name !== r.role ? ` ${r.name}` : ""}
               </span>
@@ -850,7 +850,7 @@ function FamilyStatus({ t, p }: { t: Messages["play"]["family"]; p: GameState["p
   const apartOf = (who: "母" | "父") => Boolean(p.soloParent) && absentWho(p) === who;
   const mother = p.age >= p.parentDeath.mother ? t.gone : p.age >= p.parentDeath.mother - 2 ? t.ill : `${apartOf("母") ? "離れて暮らしている" : t.alive}(${p.age + p.parentOffset.mother}歳)`;
   const father = p.age >= p.parentDeath.father ? t.gone : p.age >= p.parentDeath.father - 2 ? t.ill : `${apartOf("父") ? "離れて暮らしている" : t.alive}(${p.age + p.parentOffset.father}歳)`;
-  const row = "flex items-baseline justify-between gap-3 text-sm leading-7 tracking-wider";
+  const row = "flex items-baseline justify-between gap-3 text-xs leading-7 tracking-wider sm:text-sm";
   return (
     <div className="mt-6 rounded-sm border border-line bg-panel/60 px-4 py-3">
       <p className="text-xs tracking-[0.3em] text-warm">{t.title}</p>

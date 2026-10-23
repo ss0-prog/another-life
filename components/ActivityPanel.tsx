@@ -73,7 +73,7 @@ export function ActivityPanel({ t, state, onStartLesson, onStopLesson, onStartPa
 
   return (
     <div ref={root} className="mb-6 scroll-mt-28">
-      <button type="button" onClick={() => { setOpen((o) => !o); if (open) setView(null); }} className="w-full border border-warm/60 bg-warm/10 px-4 py-2.5 text-base font-bold tracking-[0.3em] text-mist hover:border-warm">
+      <button type="button" onClick={() => { setOpen((o) => !o); if (open) setView(null); }} className="w-full border border-warm/60 bg-warm/10 px-4 py-2.5 text-sm font-bold tracking-[0.3em] text-mist hover:border-warm sm:text-base">
         {open ? "活動をとじる" : "活動する"}
       </button>
       {!open && <p className="mx-auto mt-1 w-fit text-left text-[11px] leading-4 tracking-wider text-dim">習い事・趣味(あわせて5つまで)・アルバイトなどを始められます</p>}

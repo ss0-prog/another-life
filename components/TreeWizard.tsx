@@ -908,13 +908,13 @@ export function TreeWizard({ t, onSubmit, onRandom, auth, prefill }: Props) {
         {choosing ? (
           <motion.div initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} className="w-full text-center">
             <p className="text-xs tracking-[0.4em] text-warm">はじめに</p>
-            <h2 className="cq mt-3 text-xl font-bold leading-9 tracking-[0.12em] text-mist sm:text-2xl"><span className="fit-line [--fit:17.9]">どのくらいくわしく答えますか？</span></h2>
+            <h2 className="cq mt-3 text-lg font-bold leading-9 tracking-[0.12em] text-mist sm:text-2xl"><span className="fit-line [--fit:17.9]">どのくらいくわしく答えますか？</span></h2>
             <p className="mt-2 text-sm leading-7 tracking-wider text-haze">答えなかった項目はふつうの値でおぎないます。あとからいつでも変えられます。</p>
             <p className="font-gothic mt-1 text-[11px] leading-5 tracking-wider text-dim">{PRIVACY_NOTE}</p>
             <div className="mt-6 grid gap-3 sm:grid-cols-3">
               {LEVELS.map((l) => (
                 <button key={l.level} type="button" onClick={() => setLevel(l.level)} className="group relative flex flex-col items-center border border-line bg-panel/95 px-4 py-5 text-center transition-colors hover:border-warm">
-                  <span className="text-lg font-bold tracking-[0.2em] text-mist">{l.name}</span>
+                  <span className="text-base font-bold tracking-[0.2em] text-mist sm:text-lg">{l.name}</span>
                   <span className="font-gothic mt-1 text-sm font-bold tracking-wider text-warm">{l.sub}</span>
                   <span className="font-gothic mt-3 text-xs leading-6 tracking-wider text-haze">{l.note}</span>
                   <span className="mt-4 flex gap-1" aria-hidden>
@@ -927,7 +927,7 @@ export function TreeWizard({ t, onSubmit, onRandom, auth, prefill }: Props) {
               ))}
             </div>
             <button type="button" onClick={startRandom} disabled={rewinding} className="group mt-4 flex w-full flex-col items-center border border-warm/60 bg-warm/5 px-4 py-4 text-center transition-colors hover:border-warm hover:bg-warm/10 disabled:opacity-50">
-              <span className="text-lg font-bold tracking-[0.2em] text-mist">ランダムで始める</span>
+              <span className="text-base font-bold tracking-[0.2em] text-mist sm:text-lg">ランダムで始める</span>
               <span className="font-gothic mt-1 text-xs leading-6 tracking-wider text-haze">年齢・仕事・ターニングポイントまで、すべてランダムに決めて、すぐに始めます。</span>
             </button>
           </motion.div>
@@ -937,7 +937,7 @@ export function TreeWizard({ t, onSubmit, onRandom, auth, prefill }: Props) {
             <motion.div key={`${step.id}-${answers.length}`} initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.5 }} className="w-full text-center">
               <p className="text-xs tracking-[0.4em] text-warm">{step.node}</p>
               <h2 className="mt-3 text-xl font-bold leading-9 tracking-[0.12em] text-mist sm:text-2xl">{soften(step.q)}</h2>
-              {step.prompt && <p className="mt-2 text-sm leading-7 tracking-wider text-haze">{soften(step.prompt)}</p>}
+              {step.prompt && <p className="mt-2 text-xs leading-7 tracking-wider text-haze sm:text-sm">{soften(step.prompt)}</p>}
 
               {step.input === "chips" && (
                 <div className="mt-6 flex flex-wrap justify-center gap-3">
@@ -1078,12 +1078,12 @@ export function TreeWizard({ t, onSubmit, onRandom, auth, prefill }: Props) {
         {!choosing && step && !rewinding && (
           <div className="font-gothic mt-8 flex flex-col items-center gap-3">
             {canUnsure && (
-              <button type="button" onClick={unsure} className="border border-line bg-panel/90 px-5 py-2 text-sm tracking-[0.15em] text-haze hover:border-haze hover:text-mist">
+              <button type="button" onClick={unsure} className="border border-line bg-panel/90 px-5 py-2 text-xs tracking-[0.15em] text-haze hover:border-haze hover:text-mist sm:text-sm">
                 わからない・その他(おまかせで決める)
               </button>
             )}
             {answers.length > 0 && (
-              <button type="button" onClick={startHere} className="border border-warm/70 bg-panel/90 px-5 py-2 text-sm tracking-[0.15em] text-mist hover:border-warm">
+              <button type="button" onClick={startHere} className="border border-warm/70 bg-panel/90 px-5 py-2 text-xs tracking-[0.15em] text-mist hover:border-warm sm:text-sm">
                 ここまでの条件ではじめる(のこりはおまかせ)
               </button>
             )}

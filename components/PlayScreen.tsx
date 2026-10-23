@@ -265,6 +265,56 @@ export function PlayScreen({ t, initial, birthYear, selfAge, ghost, dev = false,
   const col = "min-h-0 min-w-0 overflow-x-clip lg:overflow-x-hidden bg-void/35 px-[2.5vw] py-2 sm:px-8 sm:py-6 lg:overflow-y-auto lg:py-8";
 
   const assetPanel = <AssetPanel t={t.assets} state={state} month={month} onTrade={onTrade} onStartStocks={onStartStocks} onPlan={onPlan} onSpend={onSpend} onKidNisa={onKidNisa} onBorrow={onBorrow} offers={offers} />;
+  const activityPanel = (
+  <ActivityPanel
+    t={t.lessons}
+    state={state}
+    onStartLesson={(id) => {
+      const next = startLesson(state, id);
+      if (!next) return false;
+      act(next);
+      return true;
+    }}
+    onStopLesson={(id) => act((s) => stopLesson(s, id))}
+    onStartPart={(id) => {
+      const next = startPartTime(state, id);
+      if (!next) return false;
+      act(next);
+      return true;
+    }}
+    onStopPart={() => act((s) => stopPartTime(s))}
+    onPolicy={(id) => {
+      const next = pmPolicy(state, id);
+      if (!next) return false;
+      act(next);
+      return true;
+    }}
+    onMeet={(id) => {
+      const next = goMeet(state, id);
+      if (!next) return false;
+      act(next);
+      return true;
+    }}
+    onBuy={(id) => {
+      const next = shopBuy(state, id);
+      if (!next) return false;
+      act(next);
+      return true;
+    }}
+    onSell={(id) => {
+      const next = shopSell(state, id);
+      if (!next) return false;
+      act(next);
+      return true;
+    }}
+    onRun={(id) => {
+      const next = runForOffice(state, id);
+      if (!next) return false;
+      act(next);
+      return true;
+    }}
+  />
+  );
   return (
     <div className="grid w-full flex-1 divide-line lg:h-[calc(100dvh-3.5rem-2.5rem)] lg:grid-cols-[minmax(17rem,0.9fr)_minmax(0,1.7fr)_minmax(17rem,0.9fr)] lg:divide-x">
       {/* 左: 年の移り変わり */}
@@ -322,6 +372,7 @@ export function PlayScreen({ t, initial, birthYear, selfAge, ghost, dev = false,
           </div>
         </div>
 
+        {narrow && <div className="mt-6">{activityPanel}</div>}
 
         <LifeCharts series={state.series ?? []} />
 
@@ -487,54 +538,7 @@ export function PlayScreen({ t, initial, birthYear, selfAge, ghost, dev = false,
           </div>
         )}
         </div>
-        <ActivityPanel
-          t={t.lessons}
-          state={state}
-          onStartLesson={(id) => {
-            const next = startLesson(state, id);
-            if (!next) return false;
-            act(next);
-            return true;
-          }}
-          onStopLesson={(id) => act((s) => stopLesson(s, id))}
-          onStartPart={(id) => {
-            const next = startPartTime(state, id);
-            if (!next) return false;
-            act(next);
-            return true;
-          }}
-          onStopPart={() => act((s) => stopPartTime(s))}
-          onPolicy={(id) => {
-            const next = pmPolicy(state, id);
-            if (!next) return false;
-            act(next);
-            return true;
-          }}
-          onMeet={(id) => {
-            const next = goMeet(state, id);
-            if (!next) return false;
-            act(next);
-            return true;
-          }}
-          onBuy={(id) => {
-            const next = shopBuy(state, id);
-            if (!next) return false;
-            act(next);
-            return true;
-          }}
-          onSell={(id) => {
-            const next = shopSell(state, id);
-            if (!next) return false;
-            act(next);
-            return true;
-          }}
-          onRun={(id) => {
-            const next = runForOffice(state, id);
-            if (!next) return false;
-            act(next);
-            return true;
-          }}
-        />
+        {!narrow && activityPanel}
         {!narrow && assetPanel}
         <JapanMap homes={p.homes ?? []} city={p.city} age={p.age} abroad={!!p.abroad} />
       </section>

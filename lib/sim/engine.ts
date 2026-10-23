@@ -18,6 +18,8 @@ import { CARE_LABEL, careYear } from "@/lib/sim/childcare";
 import { intelChance } from "@/lib/sim/intel";
 import { BG_INTEL, BG_LEARN, BG_MONEY, BG_RISK, SOLO_RATE, absentWho, lessonBlock, monthlyAllowance, newYearGift } from "@/lib/sim/family";
 import { concernEvent, concernResolved } from "@/lib/sim/data/jp-concern";
+import { livingCosts } from "@/lib/sim/living";
+import { CRIMES, judge, type CrimeId } from "@/lib/sim/data/jp-crime";
 import { olympicYear, sportById } from "@/lib/sim/data/jp-sports";
 import { SUMMIT_BY_JOB, SUMMIT_BY_OCC, summitChance } from "@/lib/sim/data/jp-summit";
 import { savingsRate } from "@/lib/sim/economy";
@@ -90,7 +92,7 @@ const LIVING: Record<string, string> = {
   owned_flat: "ローンを抱えた持ち家のマンション",
 };
 
-const pickMajorEngine = (rng: () => number) => weighted<Major>(rng, { humanities: 45, science: 28, medical: 8, education: 7, art: 4 });
+const pickMajorEngine = (rng: () => number) => weighted<Major>(rng, { humanities: 45, science: 28, medical: 8, education: 7, art: 4, sports: 3 });
 
 const HOUSING_KIND_TEXT = { lodging: "友人や親戚の家に身を寄せて暮らしている", dorm: "寮や社宅で暮らしている", share: "シェアハウスで暮らしている", facility: "施設や病院で暮らしている", homeless: "定まった住まいがなく、転々としている" } as const;
 
@@ -237,7 +239,7 @@ function personAt(self: CurrentSelf, seed: number, age: number, data: CountryDat
     retireAt: null,
     employment: self.workStyle === "self" ? "self" : self.workStyle === "nonregular" ? "nonregular" : "regular",
     firm: weighted<Firm>(rng, { large: 25, mid: 30, small: 45 }),
-    major: self.edu === "univ" || self.edu === "grad" ? (self.major ?? weighted<Major>(rng, { humanities: 45, science: 28, medical: 8, education: 7, art: 4 })) : null,
+    major: self.edu === "univ" || self.edu === "grad" ? (self.major ?? weighted<Major>(rng, { humanities: 45, science: 28, medical: 8, education: 7, art: 4, sports: 3 })) : null,
     field: self.field ?? null,
     payMult: self.occ === "none" ? 1 : (jobById(self.job)?.mult ?? jobById(DEFAULT_JOB[self.occ])?.mult ?? 1),
     birthYear: birthYearOf(self.age),
@@ -309,12 +311,19 @@ function startWallet(p: Person, data: CountryData, savingsMan: number | null): W
 // 内訳(税・社会保険料・手取り・消費税の目安)も返す。
 export type YearMoney = { flow: number; tax: TaxResult; need: number };
 function yearlyMoney(p: Person, data: CountryData, econ: number, inDebt = false): YearMoney {
-  if (p.occ === null) return { flow: 0, tax: householdTax(p, data, econ), need: 0 };
-  // 実家で暮らしている間は、生活費が半分ほどで済む。
-  const base = (320 + p.kids * 100 + (p.owned ? 60 : 0) + { tokyo: 30, metro: 10, local: -10, rural: -25 }[p.region]) * (p.abroad?.costFactor ?? 1) * (p.housingKind ? { lodging: 0.5, dorm: 0.6, share: 0.82, facility: 0.8, homeless: 0.55 }[p.housingKind] : 1);
+  if (p.occ === null) {
+    // 働いていない大人(求職中など): 収入がなくても、生活費・固定費は、かかりつづける(切りつめて、貯金からとりくずす)。
+    if (!p.married && p.age >= 20 && p.history.graduated !== undefined && !p.withParents) {
+      const need = livingCosts(p, data).total * 0.7;
+      return { flow: -need, tax: householdTax(p, data, econ), need };
+    }
+    return { flow: 0, tax: householdTax(p, data, econ), need: 0 };
+  }
+  // 生活費・固定費は、費目ごとの内訳(家賃・ローン・食費・光熱水道・交通通信・医療・教育など)から出す。
+  const base = livingCosts(p, data).total;
   const t = householdTax(p, data, econ);
   // 収入の低い人は、暮らしの水準を、収入にあわせて切り詰める(生活費は、手取りの9割ちょっとが上限)。
-  const need = p.occ === "retired" ? data.cashflow.retiredNeed : Math.min(p.withParents ? base * 0.5 : base, t.net * 0.93);
+  const need = p.occ === "retired" ? Math.max(data.cashflow.retiredNeed * 0.85, base * 0.9) : Math.min(base, t.net * 0.93);
   const surplus = t.net - need;
   // 借金があるあいだは、暮らしを切り詰めて、黒字の大半を返済にまわす。
   const flow = surplus > 0 ? surplus * (inDebt ? 0.9 : data.cashflow.saveRate) : surplus;
@@ -659,6 +668,7 @@ export function choiceMonth(seed: number, age: number, id: string): number {
 // いま選択を求められている場面。month は、いまの月(0〜11)。まだ来ていない月の場面は、出さない(省くと、すべて出る)。
 export function pending(state: GameState, data: CountryData = jpData, month = 11): TurningPoint | null {
   const p = state.person;
+  if (p.prison) return null;
   let best: { tp: TurningPoint; when: number } | null = null;
   // 選択を求める出来事(不倫・裁判・ペットなど)が、順番待ちならそれを先に出す。
   const def = state.queue.length ? data.eventQuestions.find((e) => e.id === state.queue[0]) : undefined;
@@ -1933,6 +1943,91 @@ export function tick(state: GameState, data: CountryData = jpData): GameState {
     if (p.office.rank === "pm" && !next.queue.includes("pm_disaster") && roll(seed, a, S.job + 47) < 0.2) {
       next.queue.push("pm_disaster");
       push("国内で、大きな災害が起きた", 70);
+    }
+  }
+  // ---- 犯罪: 追われる生活・逮捕・裁き・服役・出所 ----
+  if (p.prison) next.queue = [];
+  if (p.prison) {
+    bump(p, { health: -1, joy: -2, bonds: -3 });
+    p.extra.stress = Math.min(100, p.extra.stress + 4);
+    if (a >= p.prison.until) {
+      const yrs = p.prison.until - (p.history.prisonFrom ?? p.prison.until);
+      p.prison = null;
+      const occs: Occ[] = ["construction", "production", "service", "logistics"];
+      const r2 = streamRng(seed, a, S.job + 80);
+      const title = assignJob(p, occs[Math.floor(r2() * occs.length)], r2, data);
+      p.employment = "nonregular";
+      p.sector = "private";
+      p.payMult *= 0.8;
+      p.history.release = a;
+      bump(p, { joy: 3, health: 1 });
+      push(`${yrs}年の刑期を終えて、出所した。前科が知られ、仕事探しは難航し、${title}として、非正規で働きはじめた`, 88);
+    }
+  } else if (p.crime) {
+    const def = CRIMES[p.crime.kind as CrimeId];
+    const cr = streamRng(seed, a, S.job + 81);
+    if (def && p.crime.arrestAt !== null && a >= p.crime.arrestAt) {
+      const prior = p.history.record !== undefined;
+      const v = judge(def, cr, prior);
+      const rec = () => {
+        p.history.record = a;
+        p.extra.trust = Math.max(0, p.extra.trust - 25);
+        p.extra.career = Math.max(0, p.extra.career - 15);
+        p.payMult *= 0.85;
+        if (p.employment === "regular") p.employment = "nonregular";
+        bump(p, { bonds: -8, joy: -10, money: -4 });
+        if (p.married && cr() < 0.4) next.later.push({ age: a + 1, event: "前科が知られ、家庭にも亀裂が入り、離婚した", weight: 70, delta: { bonds: -6, joy: -6 }, divorce: true });
+      };
+      push(`${def.label}の疑いで逮捕された(${def.law})`, 90);
+      if (v.kind === "none") {
+        p.history.arrested = a;
+        bump(p, { bonds: -4, joy: -6 });
+        p.extra.trust = Math.max(0, p.extra.trust - 8);
+        push("検察は、起訴を見送った(不起訴・起訴猶予)。前科はつかなかったが、逮捕されたことは、周囲に知られた", 80);
+      } else if (v.kind === "fine") {
+        next.wallet.cash = Math.max(0, next.wallet.cash - v.man * 10000);
+        rec();
+        push(`略式の手続きで、罰金${v.man}万円の刑に処された。前科がつき、就職や転職、海外への渡航などで、長く不利になる`, 88);
+      } else if (v.kind === "suspended") {
+        rec();
+        if (p.occ && p.occ !== "retired" && cr() < 0.5) {
+          p.occ = null;
+          p.job = null;
+          push("会社に知られ、解雇された", 70);
+        }
+        push(`拘禁刑${v.years}年・執行猶予つきの判決を受けた。刑務所には入らないが、前科がつき、猶予の間に罪を犯せば、実刑になる`, 90);
+      } else {
+        rec();
+        p.history.prisonFrom = a;
+        p.prison = { until: a + Math.max(1, Math.ceil(v.years)), kind: def.id };
+        if (p.occ && p.occ !== "retired") {
+          p.occ = null;
+          p.job = null;
+        }
+        push(`拘禁刑${v.years}年の実刑判決を受け、刑務所に入った。仕事も、暮らしも、失った`, 95);
+      }
+      p.crime = null;
+    } else if (a > p.crime.until) {
+      p.crime = null;
+      bump(p, { joy: 5 });
+      p.extra.stress = Math.max(0, p.extra.stress - 15);
+      push("公訴時効が成立し、罪に問われることはなくなった。長く続いた追われる日々が、ようやく終わった", 80);
+    } else {
+      bump(p, { joy: -3, bonds: -2 });
+      p.extra.stress = Math.min(100, p.extra.stress + 6);
+      p.extra.trust = Math.max(0, p.extra.trust - 2);
+      if (cr() < 0.35) push("警察の影におびえながら、息をひそめて暮らしている", 55);
+    }
+  }
+  // 犯罪に手を染めるか(だまされた・貧しい・住まいがないとき)。3年に一度までしか聞かない。
+  if (!p.crime && !p.prison && a >= 18 && next.queue.length === 0 && (p.history.crimeAsk === undefined || a - p.history.crimeAsk >= 3)) {
+    const scam = p.history.scamVictim !== undefined && a - p.history.scamVictim <= 1;
+    const homeless = p.housingKind === "homeless";
+    const poor = p.stats.money < 15 && next.wallet.cash < 100000 && p.occ !== "retired";
+    const risk = Math.min(0.5, ((scam ? 0.3 : 0) + (homeless ? 0.25 : 0) + (poor ? 0.1 : 0)) * (p.stats.bonds < 40 ? 1.3 : 1));
+    if (risk > 0 && roll(seed, a, S.job + 82) < risk) {
+      p.history.crimeAsk = a;
+      next.queue.push("crime_temptation");
     }
   }
   // アスリート: 競技を選び、毎年、大会に出るかを聞く。実績が90以上なら、4年に一度、オリンピックの代表に選ばれる。

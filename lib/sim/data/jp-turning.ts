@@ -22,7 +22,7 @@ const eduEvent: Record<Edu, string> = {
   grad: "大学院に進学した",
 };
 
-const pickMajor = (rng: () => number): Major => weighted<Major>(rng, { humanities: 45, science: 28, medical: 8, education: 7, art: 4 });
+const pickMajor = (rng: () => number): Major => weighted<Major>(rng, { humanities: 45, science: 28, medical: 8, education: 7, art: 4, sports: 3 });
 
 function setEdu(p: Person, rng: () => number, data: CountryData, edu: Edu, away = false): string {
   p.edu = edu;
@@ -619,7 +619,8 @@ const MAJORS: { id: Major; label: string; note: string; learn: number }[] = [
   { id: "science", label: "理工系", note: "技術職やITに進みやすく、給料はやや高め。実験や課題で忙しい。", learn: 8 },
   { id: "medical", label: "医療・薬・看護系", note: "資格があり、需要が安定している。学ぶ期間は長く、大変。", learn: 10 },
   { id: "education", label: "教育系", note: "教員を目指す人が多い。採用は年度ごとに変わる。", learn: 5 },
-  { id: "art", label: "芸術・スポーツ系", note: "好きを深められるが、収入が安定する仕事は限られる。", learn: 2 },
+  { id: "art", label: "美術・芸術系(デザイン・美術・音楽など)", note: "好きを深められるが、収入が安定する仕事は限られる。", learn: 2 },
+  { id: "sports", label: "体育・スポーツ系", note: "教員・指導者・トレーナー・選手などの道がある。体力と競技の実績が武器になる。", learn: 3 },
 ];
 
 const majorQuestion = (): TurningQuestion => ({
@@ -825,8 +826,9 @@ const countryQuestion = (): TurningQuestion => ({
   options: jpDataCountries().map((c) => ({
     id: c.id,
     label: `${c.name}(${c.cities.join("・")})`,
-    // 渡航・住まいの契約・当面の生活の準備にかかる費用。
+    // 渡航・住まいの契約・当面の生活の準備にかかる費用。前科があると、多くの国で、ビザや入国が認められにくい。
     cost: () => MOVE_ABROAD_MAN,
+    show: (p) => p.history.record === undefined,
     apply: (p, r, d) => {
       const city = moveAbroad(p, r, d, c.id);
       p.cashDelta -= MOVE_ABROAD_MAN * 10000;

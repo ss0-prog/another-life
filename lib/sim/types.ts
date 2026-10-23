@@ -34,7 +34,7 @@ export type School = "none" | "hs" | "vocational" | "univ" | "grad";
 export type Background = "poverty" | "tight" | "modest" | "comfortable" | "rich";
 export type Employment = "regular" | "nonregular" | "self";
 export type Firm = "large" | "mid" | "small";
-export type Major = "humanities" | "science" | "medical" | "education" | "art";
+export type Major = "humanities" | "science" | "medical" | "education" | "art" | "sports";
 export type BranchKind = "childhood" | "education" | "job" | "place" | "family" | "relations";
 // 人間関係の悩み(恋人・友人・家族・職場)。解決するまで、それに関する出来事が、多く起きる。
 export type ConcernKind = "romance" | "friends" | "family" | "work";
@@ -111,6 +111,10 @@ export type Person = {
   // いまの仕事に就いた年齢(仕事が変わるたびに更新。「同じ仕事を何年続けたか」の判定に使う)。
   jobKey?: string;
   jobSince?: number;
+  // 犯罪に手を染めて、警察に追われているとき(kind は CrimeId)。arrestAt は、捕まる年齢(逃げきるなら null)。until は、公訴時効が切れる年齢。
+  crime?: { kind: string; since: number; arrestAt: number | null; until: number } | null;
+  // 刑務所で服役中のとき。until は、出所する年齢。
+  prison?: { until: number; kind: string } | null;
   // アスリートの競技(sports の id)と、オリンピックのメダル数。
   sport?: string;
   medals?: { gold: number; silver: number; bronze: number };

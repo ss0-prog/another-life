@@ -43,6 +43,7 @@ const rules: IntentRule[] = [
       const text = m.input ?? "";
       const named = COUNTRIES.find((c) => c.kw.test(text));
       if (p.abroad && named && p.abroad.country === named.name) return "";
+      if (p.history.record !== undefined) return "海外への移住を考えたが、前科があり、多くの国でビザが認められなかった";
       if (s.wallet.cash < 1000000) return "海外への移住を考えたが、渡航や住まいの準備にかかる費用(約100万円)が足りなかった";
       const city = moveAbroad(p, rng, data, named?.id);
       p.cashDelta -= 1000000;

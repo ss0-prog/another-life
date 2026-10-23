@@ -13,6 +13,7 @@ import { debtTotal } from "@/lib/sim/helpers";
 import { savingsRate } from "@/lib/sim/economy";
 import { incomeOf } from "@/lib/sim/salary";
 import { householdTax, taxSnap } from "@/lib/sim/tax";
+import { livingCosts } from "@/lib/sim/living";
 import type { AssetId, GameState, LenderId, Tag } from "@/lib/sim/types";
 
 type Props = {
@@ -61,6 +62,8 @@ export function AssetPanel({ t, state, month, onTrade, onStartStocks, onPlan, on
     return () => window.removeEventListener("betsu-uchu:open-spend", onOpen);
   }, []);
   const [taxOpen, setTaxOpen] = useState(false);
+  const [costOpen, setCostOpen] = useState(false);
+  const costs = livingCosts(state.person, jpData);
   // 手取りは、左の「年収の目安」と同じ計算で、いまの状態から出す(年のはじめの値のままだと、年のなかで能力値が変わると、ずれる)。結婚していれば、配偶者のぶんをふくめた世帯の目安。
   const ownIncome = state.person.occ !== null ? Math.round(incomeOf(state.person, jpData, state.person.econ)) : 0;
   const tx = state.person.occ !== null ? taxSnap(householdTax(state.person, jpData, state.person.econ)) : null;
@@ -240,6 +243,38 @@ export function AssetPanel({ t, state, month, onTrade, onStartStocks, onPlan, on
                   </div>
                 </dl>
                 <p className="mt-2">税の計算は、実際の制度をもとにした簡略版です(出典は「データについて」)。</p>
+              </div>
+            )}
+          </div>
+        )}
+        {!minor && state.person.occ !== null && costs.total > 0 && (
+          <div className="mt-2 border border-line/70 text-left">
+            <button type="button" onClick={() => setCostOpen((o) => !o)} aria-expanded={costOpen} className="flex w-full items-center justify-between gap-2 px-3 py-2 text-xs tracking-wider text-haze hover:text-mist">
+              <span>今年の生活費・固定費(世帯の目安)</span>
+              <span className="flex items-center gap-2 tabular-nums text-mist">
+                約{costs.total}万円(月{(costs.total / 12).toFixed(1)}万円)
+                <span aria-hidden className={`text-[9px] text-dim transition-transform ${costOpen ? "rotate-180" : ""}`}>▼</span>
+              </span>
+            </button>
+            {costOpen && (
+              <div className="border-t border-line/70 px-3 py-3 text-[11px] leading-5 tracking-wider text-dim">
+                <dl className="space-y-1.5 tabular-nums">
+                  {costs.items.map((x) => (
+                    <div key={x.id}>
+                      <div className="flex justify-between gap-3 text-haze">
+                        <dt>{x.label}</dt>
+                        <dd>{x.man}万円(月{(x.man / 12).toFixed(1)}万円)</dd>
+                      </div>
+                      {x.note && <p className="pl-3 text-[10px]">{x.note}</p>}
+                    </div>
+                  ))}
+                  <div className="flex justify-between gap-3 border-t border-line/70 pt-1.5 text-xs font-bold text-mist">
+                    <dt>= 合計</dt>
+                    <dd>{costs.total}万円</dd>
+                  </div>
+                </dl>
+                <p className="mt-2">手取りから、この生活費を引いた黒字の一部が、貯金に回ります。残りは、保険・年金・ローンの返済・投資などに使われる想定です。収入が低いと、暮らしを切りつめます。年に1度、まとめて反映されます。</p>
+                <p className="mt-1">費目は、総務省の家計調査・全国家計構造調査(令和6年: 全国の消費支出は総世帯で月約25.1万円)と、文部科学省の学習費調査をもとにした目安です。</p>
               </div>
             )}
           </div>

@@ -58,13 +58,22 @@ export const UNIV_FIELDS: MajorCategory[] = [
   },
   {
     id: "art",
-    label: "芸術・スポーツ系",
+    label: "美術・芸術系(デザイン・美術・音楽など)",
     details: [
       { id: "a_design", label: "デザイン・建築デザイン", jobs: ["designer", "web_designer", "interior", "fashion", "game_creator"] },
       { id: "a_fine", label: "美術・写真・マンガ", jobs: ["artist", "manga", "photographer", "curator", "designer"] },
       { id: "a_music", label: "音楽・舞台・演劇", jobs: ["musician", "composer", "actor", "singer", "entertainer"] },
       { id: "a_media", label: "映像・メディア・文芸", jobs: ["film_director", "game_creator", "photographer", "novelist", "journalist"] },
-      { id: "a_sports", label: "スポーツ科学・競技", jobs: ["trainer", "athlete", "hs_teacher", "fitness_staff"] },
+    ],
+  },
+  {
+    id: "sports",
+    label: "体育・スポーツ系",
+    details: [
+      { id: "p_pe", label: "体育・スポーツ教育(教員・指導者)", jobs: ["hs_teacher", "school_teacher", "trainer", "athlete"] },
+      { id: "p_sci", label: "スポーツ科学・トレーニング", jobs: ["trainer", "fitness_staff", "athlete", "rehab"] },
+      { id: "p_comp", label: "競技・アスリート養成", jobs: ["athlete", "trainer", "hs_teacher", "fitness_staff"] },
+      { id: "p_health", label: "健康・スポーツマネジメント", jobs: ["fitness_staff", "trainer", "city_hall", "travel_office"] },
     ],
   },
 ];

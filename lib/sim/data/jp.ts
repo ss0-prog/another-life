@@ -115,7 +115,7 @@ export const jpData: CountryData = {
     employmentFactor: { regular: 1, nonregular: 0.62, self: 1 },
     firmFactor: { large: 1.25, mid: 1, small: 0.83 },
     econSensitivity: { mgmt: 0.8, tech: 0.6, office: 0.7, sales: 1.3, service: 1.3, security: 0.8, agri: 1.0, production: 1.1, transport: 0.9, construction: 1.2, logistics: 1.1 },
-    majorFactor: { humanities: 1, science: 1.06, medical: 1.12, education: 0.98, art: 0.88 },
+    majorFactor: { humanities: 1, science: 1.06, medical: 1.12, education: 0.98, art: 0.88, sports: 0.93 },
   },
   econLabel: (level) => (level > 0.6 ? "好景気" : level > -0.4 ? "ふつう" : level > -1.1 ? "不況" : "深刻な不況"),
 

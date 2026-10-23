@@ -12,6 +12,7 @@ import { addDebt, assignJob, bump, chargeWithDebt, friendName, fullName, kidCall
 import { WAITLIST, parentsAround, partnerWorks } from "@/lib/sim/childcare";
 import { compat, compatMark, idealChance, isE, isJ, isN, isT, IDEAL, typeCall } from "@/lib/sim/mbti";
 import { interpolate, weighted } from "@/lib/sim/rng";
+import { CRIMES, yearsToArrest, type CrimeId } from "@/lib/sim/data/jp-crime";
 import { MEETS, SPORTS, athleteScore, meetWinChance, olympicResult, sportById } from "@/lib/sim/data/jp-sports";
 import type { AutoEvent, CountryData, EventQuestionDef, GameState, Occ, Person, Region, TurningOption } from "@/lib/sim/types";
 
@@ -376,6 +377,7 @@ export const lifeEvents: AutoEvent[] = [
     if (r() < 0.5) {
       money(s, -(10 + r() * 40));
       bump(s.person, { health: -1, bonds: -2 });
+      mark(s.person, "scamVictim");
       return "詐欺にあい、まとまったお金をだましとられた";
     }
     return "詐欺の電話に気づき、事なきを得た";
@@ -1685,6 +1687,45 @@ export const eventQuestions: EventQuestionDef[] = [
         opt("skip", "辞退して、休養する", (q) => (bump(q, { health: 3 }), (q.history.olympic = q.age), "オリンピックの代表を辞退し、体を休めた"), { detail: () => "メダルは狙えないが、体は休まる。" }),
       ],
     }),
+  },
+  {
+    id: "crime_temptation",
+    weight: () => 0,
+    intro: (p) => (p.history.scamVictim !== undefined && p.age - p.history.scamVictim <= 1 ? "だまされた悔しさと、追いつめられた気持ちが、頭を離れなくなった" : p.housingKind === "homeless" ? "その日の食べ物にも困り、追いつめられた" : "お金に困り、追いつめられた"),
+    question: (p) => {
+      const scam = p.history.scamVictim !== undefined && p.age - p.history.scamVictim <= 1;
+      const homeless = p.housingKind === "homeless";
+      const why = scam ? "人にだまされ、お金を失いました。" : homeless ? "住まいを失い、その日の食べ物にも困っています。" : "お金がなく、暮らしが立ちゆきません。";
+      return {
+        title: scam ? "報復や、犯罪に手を染めるか" : "犯罪に手を染めるか",
+        prompt: `${why}どうするだろう。犯罪は、実際に検挙される確率があり、現行の法で裁かれます。懲役(拘禁刑)や罰金を受けると、前科がつき、就職や暮らしに長く響きます。`,
+        options: [
+          opt("endure", "耐えて、相談窓口や公的な支援を頼る", (q, r) => {
+            bump(q, { bonds: 2, joy: -1 });
+            if (scam && r() < 0.2) {
+              q.cashDelta += 100000 + Math.round(r() * 300000);
+              return "警察と消費生活センターに相談した。被害の一部が戻ってきた";
+            }
+            if (homeless) return "福祉事務所に相談し、支援につながる道を探しはじめた";
+            return "自治体の窓口や支援団体に相談し、なんとか踏みとどまった";
+          }, { auto: true, detail: () => "時間はかかるが、罪には問われない。生活保護や自治体の支援、弁護士の無料相談などの道がある。" }),
+          ...(["assault", "theft", "fraud", "robbery"] as CrimeId[]).map((cid) => {
+            const d = CRIMES[cid];
+            return opt(cid, cid === "assault" ? "だました相手に、報復する(暴力をふるう)" : cid === "theft" ? "盗みに手を染める(窃盗)" : cid === "fraud" ? "だます側にまわる(詐欺・闇バイトなど)" : "強盗に手を染める", (q, r) => {
+              const arrest = r() < d.clearance;
+              q.crime = { kind: cid, since: q.age, arrestAt: arrest ? q.age + yearsToArrest(r) : null, until: q.age + d.limit };
+              if (d.gain[1] > 0) q.cashDelta += Math.round((d.gain[0] + r() * (d.gain[1] - d.gain[0])) * 10000);
+              q.extra.stress = Math.min(100, q.extra.stress + 10);
+              bump(q, { bonds: -4, joy: cid === "assault" ? 2 : -2 });
+              return cid === "assault" ? "怒りにまかせて、だました相手に暴力をふるった。警察に追われる身になった" : cid === "theft" ? "生きるために、盗みに手を染めた。警察に追われる身になった" : cid === "fraud" ? "だまされた側から、だます側にまわってしまった。警察に追われる身になった" : "強盗に手を染めた。警察に追われる身になった";
+            }, {
+              show: (q) => (cid === "assault" ? scam : cid === "robbery" ? homeless || q.stats.money < 12 : true),
+              detail: () => `${d.law}。検挙率は約${Math.round(d.clearance * 100)}%(${d.clearanceNote})。公訴時効は${d.limit}年。${d.gain[1] > 0 ? `手に入るお金は、${d.gain[0]}〜${d.gain[1]}万円ほど。` : ""}`,
+            });
+          }),
+        ],
+      };
+    },
   },
   {
     id: "have_child",

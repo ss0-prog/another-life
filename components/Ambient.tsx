@@ -121,9 +121,9 @@ function Stars({ dim }: { dim: boolean }) {
 }
 
 // ---- 街のシルエット: 高さの違うビルが二重に並び、夜は窓に灯りがともり、高いビルの屋上には赤いランプがまたたく ----
-type Building = { x: number; w: number; h: number; antenna: number; windows: { x: number; y: number; lit: boolean; warm: boolean; flicker: boolean; delay: number }[]; beacon: boolean; delay: number; roof: 0 | 1 | 2 | 3; setback: boolean; sign: string | null; signY: number; shape: 0 | 5 | 6 };
+type Building = { x: number; w: number; h: number; antenna: number; windows: { x: number; y: number; lit: boolean; warm: boolean; flicker: boolean; delay: number }[]; beacon: boolean; delay: number; roof: 0 | 1 | 2 | 3; setback: boolean; sign: string | null; signY: number };
 
-function makeCity(seed: number, minH: number, maxH: number, windowRate: number): Building[] {
+function makeCity(seed: number, minH: number, maxH: number, windowRate: number, clearX?: number): Building[] {
   const rng = createRng(seed);
   // 屋根の形は、別の乱数で決める(ほかの建物の並びを、変えないため)。
   const shapeRng = createRng(seed ^ 0x5bd1e995);
@@ -133,7 +133,12 @@ function makeCity(seed: number, minH: number, maxH: number, windowRate: number):
     let w = (28 + rng() * (rng() < 0.5 ? 46 : 84)) * 1.11; // 建物の数を、1割へらす
     // 高さは、ランダムに、ゆるやかな「ひとかたまり」をかさねる(新宿のように、高いビルが固まる所と、低い街並みが続く所ができる)。
     const wave = Math.abs((((x / 420 + seed * 0.37) % 2) + 2) % 2 - 1); // 三角波(サーバーとブラウザで、計算結果が、ずれないよう、sinは使わない)
-    const h = minH + Math.min(1, rng() * 0.62 + wave * 0.5) * (maxH - minH);
+    let h = minH + Math.min(1, rng() * 0.62 + wave * 0.5) * (maxH - minH);
+    // 東京タワーのまわりは、建物を低くして、タワーが、くっきり見えるようにする。
+    if (clearX !== undefined) {
+      const d = Math.abs(x + w / 2 - clearX);
+      h = Math.min(h, minH + (maxH - minH) * (0.2 + 0.8 * Math.min(1, d / 230)));
+    }
     const tall = h > maxH * 0.78;
     // 高いビルの一部は、細く、すらりとした塔にする。
     const slender = tall && shapeRng() < 0.35;
@@ -150,59 +155,22 @@ function makeCity(seed: number, minH: number, maxH: number, windowRate: number):
         windows.push({ x: 7 + c * 12 + (lit ? jx : 0), y: 12 + r * 17 + (lit ? jy : 0), lit, warm: rng() < 0.72, flicker: rng() < 0.1, delay: rng() * 8 });
       }
     const roofPick = rng();
-    // 高いビルの一部は、てっぺんが、階段のように細くなる塔や、針のような尖塔になる(先に、赤いランプ)。
-    const crown = tall && shapeRng() < 0.55;
     const signColors = ["#ff6fa5", "#6fe3ff", "#ffd35a", "#9bff9b"];
     out.push({
       x, w, h,
       antenna: tall && rng() < 0.7 ? 18 + rng() * 22 : shapeRng() < 0.22 ? 7 + shapeRng() * 11 : 0,
       windows,
-      beacon: tall && !crown,
+      beacon: tall,
       delay: rng() * 3,
       // 屋上の設備(給水タンク・室外機・階段室)と、上の階が少しひっこんだ形、ネオンの看板
       roof: roofPick < 0.18 ? 1 : roofPick < 0.4 ? 2 : roofPick < 0.55 ? 3 : 0,
       setback: h > minH + (maxH - minH) * 0.55 && rng() < 0.55,
       sign: h > minH + (maxH - minH) * 0.25 && rng() < 0.16 ? signColors[Math.floor(rng() * signColors.length)] : null,
       signY: 20 + rng() * (h * 0.5),
-      // 赤いランプのある高い建物は、四角い屋上のまま。ほかは、4割ほどが、屋上の機械室(2段の箱)になる。三角やまるの屋根は、つけない。
-      shape: (() => {
-        const q = shapeRng();
-        const pick = 5 as const;
-        if (crown) return 6;
-        return tall || q > 0.45 ? 0 : pick;
-      })(),
     });
     x += w + (rng() < 0.12 ? 3 + rng() * 8 : -rng() * 9);
   }
   return out;
-}
-
-function RoofShape({ shape, w, style, night, delay }: { shape: 5 | 6; w: number; style: { fill: string; transition: string }; night: boolean; delay: number }) {
-  const s = Math.min(11, w * 0.2);
-  const y = 0.6; // 屋上と、すきまができないように、少しかぶせる
-  // 5: 屋上の機械室(2段の箱)
-  if (shape === 5)
-    return (
-      <g style={style}>
-        <rect x={w * 0.2} y={-s * 0.9} width={w * 0.6} height={s * 0.9 + 1} />
-        <rect x={w * 0.36} y={-s * 1.6} width={w * 0.28} height={s * 0.8} />
-      </g>
-    );
-  // 6: 上が、階段のように細くなる塔。てっぺんに、細い針と、赤いランプ
-  const tipY = -38;
-  return (
-    <g>
-      <g style={style}>
-        <rect x={w * 0.14} y={-13 + y} width={w * 0.72} height={14} />
-        <rect x={w * 0.3} y={-25 + y} width={w * 0.4} height={13} />
-        <rect x={w / 2 - 0.8} y={tipY} width={1.6} height={16} />
-      </g>
-      <g style={{ opacity: night ? 1 : 0, transition: "opacity 4.5s ease" }}>
-        <circle cx={w / 2} cy={tipY} r={3} fill="#ff2d2d" opacity={0.22} className="beacon-slow" style={{ animationDelay: `${delay * 1.7}s` }} />
-        <circle cx={w / 2} cy={tipY} r={1.3} fill="#ff4545" className="beacon-slow" style={{ animationDelay: `${delay * 1.7}s` }} />
-      </g>
-    </g>
-  );
 }
 
 function CityLayer({ buildings, color, base, night, near }: { buildings: Building[]; color: string; base: number; night: boolean; near?: boolean }) {
@@ -214,27 +182,25 @@ function CityLayer({ buildings, color, base, night, near }: { buildings: Buildin
         return (
           <g key={i} transform={`translate(${b.x} ${top})`}>
             <rect width={b.w} height={b.h + 40} style={fillStyle} />
-            {/* 屋根の形 */}
-            {b.shape !== 0 && <RoofShape shape={b.shape} w={b.w} style={fillStyle} night={night} delay={b.delay} />}
             {/* 上の階が、少しひっこんだ形 */}
-            {b.setback && b.shape === 0 && <rect x={b.w * 0.18} y={-b.h * 0.14} width={b.w * 0.64} height={b.h * 0.14 + 1} style={fillStyle} />}
+            {b.setback && <rect x={b.w * 0.18} y={-b.h * 0.14} width={b.w * 0.64} height={b.h * 0.14 + 1} style={fillStyle} />}
             {/* 屋上の設備 */}
-            {b.shape === 0 && b.roof === 1 && (
+            {b.roof === 1 && (
               <g style={fillStyle}>
                 <rect x={b.w * 0.3} y={-9} width={b.w * 0.26} height={9} />
                 <rect x={b.w * 0.3 + 2} y={-12} width={b.w * 0.26 - 4} height={3} />
               </g>
             )}
-            {b.shape === 0 && b.roof === 2 && (
+            {b.roof === 2 && (
               <g style={fillStyle}>
                 {[0.14, 0.4, 0.66].map((f) => (
                   <rect key={f} x={b.w * f} y={-5} width={b.w * 0.16} height={5} />
                 ))}
               </g>
             )}
-            {b.shape === 0 && b.roof === 3 && <rect x={b.w * 0.55} y={-11} width={b.w * 0.22} height={11} style={fillStyle} />}
+            {b.roof === 3 && <rect x={b.w * 0.55} y={-11} width={b.w * 0.22} height={11} style={fillStyle} />}
             {/* 屋上の細いアンテナ・避雷針 */}
-            {b.antenna > 0 && b.shape !== 6 && <rect x={b.w * (0.25 + (b.delay % 1) * 0.5)} y={-b.antenna} width={1.3} height={b.antenna + 1} style={fillStyle} />}
+            {b.antenna > 0 && <rect x={b.w * (0.25 + (b.delay % 1) * 0.5)} y={-b.antenna} width={1.3} height={b.antenna + 1} style={fillStyle} />}
             {/* 光と影: 上は、ほんのり明るく、下に向かって、しずむ。左のふちに光、右のふちに影 */}
             <rect width={b.w} height={b.h + 40} fill="url(#bShade)" style={{ opacity: night ? 0.3 : 1, transition: "opacity 4.5s ease" }} />
             <rect width={1.4} height={b.h + 40} fill="#ffffff" opacity={night ? 0.06 : 0.16} />
@@ -361,14 +327,14 @@ const wheelFront: Building[] = (() => {
   const h = 112;
   const windows: Building["windows"] = [];
   for (let c = 0; c < 4; c++) for (let r = 0; r < 6; r++) windows.push({ x: 7 + c * 12, y: 12 + r * 17, lit: (c * 3 + r) % 4 !== 0, warm: (c + r) % 3 !== 0, flicker: c === 2 && r === 3, delay: 0.9 });
-  return [{ x: 566, w, h, antenna: 0, windows, beacon: false, delay: 0, roof: 2, setback: false, sign: null, signY: 0, shape: 0 }];
+  return [{ x: 566, w, h, antenna: 0, windows, beacon: false, delay: 0, roof: 2, setback: false, sign: null, signY: 0 }];
 })();
 
 const frontBuilding: Building[] = (() => {
   const make = (x: number, w: number, h: number, cols: number, rows: number, roof: 0 | 1 | 2 | 3, sign: string | null, shift: number): Building => {
     const windows: Building["windows"] = [];
     for (let c = 0; c < cols; c++) for (let r = 0; r < rows; r++) windows.push({ x: 8 + c * 12, y: 8 + r * 17, lit: (c + r + shift) % 3 !== 1, warm: (c + shift) % 4 !== 3, flicker: c === 1 && r === 0, delay: 1.3 + shift * 0.4 });
-    return { x, w, h, antenna: 0, windows, beacon: false, delay: 0, roof, setback: false, sign, signY: 14, shape: 0 };
+    return { x, w, h, antenna: 0, windows, beacon: false, delay: 0, roof, setback: false, sign, signY: 14 };
   };
   // タワーの足もとの、低い建物(3つ)
   return [make(897, 46, 44, 3, 2, 2, "#ffd35a", 0), make(858, 60, 104, 4, 4, 3, null, 1), make(922, 62, 92, 4, 3, 1, "#ff9fb6", 2)];
@@ -422,7 +388,7 @@ function FerrisWheel({ cx, base, night }: { cx: number; base: number; night: boo
 
 function SkylineSvg({ phase, mode = "all" }: { phase: Phase; mode?: "all" | "city" | "glow" }) {
   const far = useMemo(() => makeCity(11, 52, 136, 0.22), []);
-  const near = useMemo(() => makeCity(23, 74, 186, 0.3), []);
+  const near = useMemo(() => makeCity(23, 74, 186, 0.3, 920), []);
   const c = CITY_COLORS[phase];
   return (
     <svg xmlns="http://www.w3.org/2000/svg" width="1600" height="270" viewBox="0 0 1600 270" preserveAspectRatio="xMidYMax slice" aria-hidden>

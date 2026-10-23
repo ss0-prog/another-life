@@ -14,7 +14,7 @@ import { SURVEY, type SurveyKey } from "@/lib/sim/survey";
 import { HS_FIELDS, UNIV_FIELDS, VOC_FIELDS } from "@/lib/sim/data/jp-majors";
 import { DEFAULT_JOB, OCC_LABEL } from "@/lib/sim/data/jp-jobs";
 import { jpData } from "@/lib/sim/data/jp";
-import { branchAsk } from "@/lib/sim/data/jp-turning";
+import { branchAsk, workStylesFor } from "@/lib/sim/data/jp-turning";
 import type { Ailment, Branch, DebtAnswer, HousingAnswer, Major, Marital, BranchKind, Condition, School, CurrentSelf, Edu, GenderId, Occ, Orientation, Region, Sex } from "@/lib/sim/types";
 
 type Props = {
@@ -271,7 +271,9 @@ function allStepsFor(v: Values, selfAge: number | undefined): Step[] {
     );
   }
   if (!minor && v.school === "none" && v.occ && v.occ !== "none" && v.occ !== "homemaker" && v.occ !== "retired") {
-    steps.push({ id: "workStyle", node: "働き方", q: "勤め先は？", prompt: "民間・公務員・自営で収入の安定や昇進のしかたが変わります。", input: "chips", options: WORK, label: (r) => optLabel(WORK, r) });
+    // その職種に、そもそもない働き方(警察官の「自営」、作家の「公務員」など)は出さない。選べる道がひとつだけなら、聞かない。
+    const allowed = workStylesFor(v.occ);
+    if (allowed.length > 1) steps.push({ id: "workStyle", node: "働き方", q: "勤め先は？", prompt: "民間・公務員・自営で収入の安定や昇進のしかたが変わります。", input: "chips", options: WORK.filter((o) => (allowed as string[]).includes(o.value)), label: (r) => optLabel(WORK, r) });
   }
   // 専攻・学科: 大学・大学院は、分野 → 専攻。専門学校・高校は、分野・学科。卒業後の進路の候補に使う。
   if (!minor) {
@@ -413,7 +415,7 @@ function selfFrom(v0: Values): CurrentSelf | null {
     edu,
     occ,
     job: jobDef ? jobDef.id : null,
-    workStyle: occ === "none" ? "private" : (v.workStyle ?? "private"),
+    workStyle: occ === "none" ? "private" : (v.workStyle ?? workStylesFor(jobDef ? jobDef.id : v.occ)[0] ?? "private"),
     region: v.region,
     housing,
     married: marital === "married",

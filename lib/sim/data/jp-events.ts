@@ -8,10 +8,11 @@ import { applyChangeIncome, changeIncome, incomeOf, round10 } from "@/lib/sim/sa
 import { leaveLoss, man as manText, retirementTax } from "@/lib/sim/tax";
 import { STUDY_MAIN, STUDY_OTHERS, countryById } from "@/lib/sim/data/jp-countries";
 import type { TurningQuestion } from "@/lib/sim/types";
-import { addDebt, assignJob, bump, chargeWithDebt, friendName, fullName, kidCall, moveAbroad, moveHome, moveTo, bearerOf, noBearer, npcMbti, partnerCall, randomPartner } from "@/lib/sim/helpers";
+import { addDebt, assignJob, bump, isResponsible, chargeWithDebt, friendName, fullName, kidCall, moveAbroad, moveHome, moveTo, bearerOf, noBearer, npcMbti, partnerCall, randomPartner } from "@/lib/sim/helpers";
 import { WAITLIST, parentsAround, partnerWorks } from "@/lib/sim/childcare";
 import { compat, compatMark, idealChance, isE, isJ, isN, isT, IDEAL, typeCall } from "@/lib/sim/mbti";
 import { interpolate, weighted } from "@/lib/sim/rng";
+import { MAX_LESSONS } from "@/lib/sim/types";
 import { CRIMES, yearsToArrest, type CrimeId } from "@/lib/sim/data/jp-crime";
 import { MEETS, SPORTS, athleteScore, meetWinChance, olympicResult, sportById } from "@/lib/sim/data/jp-sports";
 import type { AutoEvent, CountryData, EventQuestionDef, GameState, Occ, Person, Region, TurningOption } from "@/lib/sim/types";
@@ -1151,7 +1152,7 @@ export const eventQuestions: EventQuestionDef[] = [
   // ---- 趣味を増やすか(人生で一度) ----
   {
     id: "hobby_offer",
-    weight: (p) => (inAge(p, 18, 62) && !p.history.hobbyOffer && p.lessons.length < 5 ? 0.8 : 0),
+    weight: (p) => (inAge(p, 18, 62) && !p.history.hobbyOffer && p.lessons.length < MAX_LESSONS ? 0.8 : 0),
     intro: () => "毎日に、もう一つ、楽しみがほしいと思った",
     question: () => ({
       title: "趣味を増やしますか",
@@ -1164,7 +1165,7 @@ export const eventQuestions: EventQuestionDef[] = [
           if (p.lessons.length < 5 && !p.lessons.some((l) => l.id === id)) p.lessons.push({ id, since: p.age });
           const def = d.lessons.find((l) => l.id === id);
           return (bump(p, { joy: 4 }), `新しい趣味に、${label}をはじめた${def ? `(年に約${def.costMan}万円)` : ""}`);
-        }),
+        }, { show: (p) => p.lessons.length < MAX_LESSONS && !p.lessons.some((l) => l.id === id) }),
       ).concat([opt("skip", "今は、増やさない", (p) => (mark(p, "hobbyOffer"), "趣味は増やさず、今の毎日を大事にすることにした"), { auto: true })]),
     }),
   },
@@ -1896,7 +1897,7 @@ export const eventQuestions: EventQuestionDef[] = [
   },
   {
     id: "early_retire",
-    weight: (p, e) => (working(p) && !p.office && p.sector === "private" && p.employment !== "self" && inAge(p, 45, 60) ? (e < 0 ? 1.0 : 0.3) : 0),
+    weight: (p, e) => (working(p) && !isResponsible(p) && p.sector === "private" && p.employment !== "self" && inAge(p, 45, 60) ? (e < 0 ? 1.0 : 0.3) : 0),
     intro: () => "会社が、早期退職者を募集し始めた",
     question: () => ({
       title: "早期退職の募集",

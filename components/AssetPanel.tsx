@@ -503,6 +503,18 @@ export function AssetPanel({ t, state, month, onTrade, onStartStocks, onPlan, on
             <button type="button" disabled={dead || yen <= 0} onClick={() => act(-1)} className="border border-line px-4 py-1 text-sm tracking-widest text-haze hover:border-haze disabled:opacity-30">
               {t.sell}
             </button>
+            <button
+              type="button"
+              disabled={dead || held < 1}
+              onClick={() => {
+                const ok = onTrade(sel, -held);
+                setMsg(ok ? null : t.noHolding);
+                if (ok) setAmount("");
+              }}
+              className="border border-line px-4 py-1 text-sm tracking-widest text-haze hover:border-haze disabled:opacity-30"
+            >
+              すべて売る{held >= 1 ? `(約${man(held)}${t.unit})` : ""}
+            </button>
           </div>
           <div className="mt-4 flex flex-wrap items-center justify-center gap-3 text-xs tracking-wider text-haze">
             <span>積み立て(毎月ずつ・年の額)</span>

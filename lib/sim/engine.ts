@@ -2113,7 +2113,7 @@ export function tick(state: GameState, data: CountryData = jpData): GameState {
     bump(p, { bonds: 2, health: 1 });
   }
   // 転職の話は、年のおわりの状態(昇進などのあと)で、年収の比べ方が正しくなるよう、いちばん最後に決める。
-  if (p.occ && p.occ !== "retired" && !p.office && !(p.job === "athlete" && p.sport && a < 38) && a < 60 && roll(seed, a, S.job) < interpolate(data.curves.jobChange, a) * mbtiJob * Math.max(0.3, 1 + 0.3 * economyAt(seed, a, p.birthYear))) {
+  if (p.occ && p.occ !== "retired" && !isResponsible(p) && a - (p.jobSince ?? a - 3) >= 3 && !(p.job === "athlete" && p.sport && a < 38) && a < 60 && roll(seed, a, S.job) < interpolate(data.curves.jobChange, a) * mbtiJob * Math.max(0.3, 1 + 0.3 * economyAt(seed, a, p.birthYear))) {
     // 転職は、勝手には決まらない。話が来たところで、選んでもらう(リストラは、この限りではない)。
     if (!next.queue.includes("job_change")) {
       const r = streamRng(seed, a, S.jobPick);

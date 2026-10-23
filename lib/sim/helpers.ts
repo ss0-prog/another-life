@@ -35,7 +35,7 @@ export function leaveLocal(p: Person, data: CountryData) {
 }
 
 // 議員・総理大臣・会社の経営者など、責任ある立場にあるか(あるあいだは、引っ越しの話も、転職の話も出ない)。
-export const isResponsible = (p: Person) => !!p.office || p.job === "ceo";
+export const isResponsible = (p: Person) => !!p.office || ["ceo", "founder", "owner", "politician"].includes(p.job ?? "");
 
 export function moveTo(p: Person, rng: Rng, data: CountryData, region: Region, city?: string): string {
   leaveLocal(p, data);

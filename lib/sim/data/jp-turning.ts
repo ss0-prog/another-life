@@ -2,7 +2,7 @@ import { SINCE, yearOf } from "@/lib/sim/era";
 import { incomeOf, round10 } from "@/lib/sim/salary";
 import { householdTax, netIncome, man as manText, pct as pctOf } from "@/lib/sim/tax";
 import { JOBS, OCC_LABEL, OCC_OFFICIAL, jobById } from "@/lib/sim/data/jp-jobs";
-import { assignJob, bump, fullName, moveAbroad, moveTo, randomPartner } from "@/lib/sim/helpers";
+import { assignJob, bump, fullName, isResponsible, moveAbroad, moveTo, randomPartner } from "@/lib/sim/helpers";
 import { compat, typeCall } from "@/lib/sim/mbti";
 import { STUDY_MAIN, STUDY_OTHERS, countryById } from "@/lib/sim/data/jp-countries";
 import { fieldById, fieldJobIds } from "@/lib/sim/data/jp-majors";
@@ -93,13 +93,150 @@ const PUBLIC_JOBS = ["waste", "bus_driver", "civil_worker", "custodian", "cleane
 const NOT_PUBLIC = ["lawyer", "accountant", "musician", "artist", "designer", "other_health", "tutor", "clergy"];
 const publicAllowed = (j: JobDef) => (PUBLIC_OCC.includes(j.occ) && !NOT_PUBLIC.includes(j.id)) || PUBLIC_JOBS.includes(j.id);
 
+// 職種ごとの、勤め先の分け方。大企業・中小企業という区分が、そもそもない仕事(公務員・フリーランス・開業・農家など)は、その仕事に合った区分だけを出す。
+// 各項目は、[区分の id, この職種での呼び名, 説明] 。id は WORKPLACES の id(large / mid / small / nonreg / public / self)。
+type WpRef = readonly [string, string?, string?];
+const PUBLIC_NOTE = "採用試験に合格して、採用される。身分が安定していて、景気の影響を受けにくい。";
+const CORP: WpRef[] = [["large"], ["mid"], ["small"], ["nonreg"]]; // 民間の会社勤めだけ(公務員・自営の道はない)
+const JOB_WP: Record<string, WpRef[]> = {
+  // ---- 公務員・公的な職(民間の企業という区分はない) ----
+  police: [["public", "地方公務員(都道府県警察)", `警察学校で学んで、交番などに配属される。夜勤や転勤がある。${PUBLIC_NOTE}`]],
+  firefighter: [["public", "地方公務員(市町村の消防)", `交代制の勤務で、救急や災害に出動する。${PUBLIC_NOTE}`]],
+  jsdf: [["public", "国家公務員(防衛省・自衛隊)", "全国の駐屯地や基地に勤務し、災害派遣も担う。"]],
+  coast_guard: [["public", "国家公務員(海上保安庁)", "海の安全を守る。船や航空機で勤務する。"]],
+  prison_guard: [["public", "国家公務員(法務省の刑務所・入国管理など)", PUBLIC_NOTE]],
+  national_clerk: [["public", "国家公務員(府省・税務署・裁判所など)", PUBLIC_NOTE]],
+  city_hall: [["public", "地方公務員(市役所・県庁)", PUBLIC_NOTE]],
+  bureaucrat: [["public", "国家公務員(総合職・中央省庁)", "政策をつくる仕事。激務になりやすいが、キャリアの幅が広い。"]],
+  diplomat: [["public", "国家公務員(外務省)", "世界各地の大使館などに勤務する。"]],
+  judge: [["public", "裁判官・検察官(国家公務員)", "司法試験に合格し、司法修習を経て任官される。"]],
+  astronaut: [["public", "宇宙航空研究開発機構(JAXA)の宇宙飛行士(公的機関)", "選抜の倍率が、きわめて高い。"]],
+  politician: [["public", "議員(選挙で選ばれる)", "選挙に当選して、はじめてなれる職。"]],
+  paramedic: [["public", "消防の救急隊員(公務員)", PUBLIC_NOTE], ["mid", "民間の救急・病院などに勤める"]],
+  // ---- 教育 ----
+  school_teacher: [["public", "公立の小・中学校(公務員)", PUBLIC_NOTE], ["mid", "私立の小・中学校(正規)", "学校法人に勤める。"], ["nonreg", "非常勤・臨時の講師", "収入は低めだが、すぐに働ける。"]],
+  hs_teacher: [["public", "公立の高校(公務員)", PUBLIC_NOTE], ["mid", "私立の高校(正規)", "学校法人に勤める。"], ["nonreg", "非常勤・臨時の講師", "収入は低めだが、すぐに働ける。"]],
+  kindergarten: [["public", "公立の幼稚園・認定こども園(公務員)", PUBLIC_NOTE], ["mid", "私立の幼稚園・認定こども園(正規)"], ["nonreg", "非常勤・パート"]],
+  childcare: [["public", "公立の保育所(公務員)", PUBLIC_NOTE], ["mid", "私立の保育所・認定こども園(正規)"], ["small", "小規模な保育園・企業主導型の保育所(正規)"], ["nonreg", "非常勤・パート"]],
+  prof: [["public", "国公立の大学・高専", "研究と教育に専念できる。ポストの競争は激しい。"], ["mid", "私立大学", "研究と教育に加え、学生の募集など大学の運営にも関わる。"], ["nonreg", "任期つき・非常勤の教員", "ポストは不安定で、収入は低め。"]],
+  assoc_prof: [["public", "国公立の大学・高専"], ["mid", "私立大学"], ["nonreg", "任期つき・非常勤の教員", "ポストは不安定で、収入は低め。"]],
+  other_teacher: [["mid", "専門学校・予備校・各種学校(正規)"], ["nonreg", "非常勤講師"], ["self", "独立して、教室や学校を開く"]],
+  tutor: [["mid", "大手の学習塾・チェーン(正規)"], ["small", "地域の学習塾・個人塾(正規)"], ["nonreg", "塾講師のアルバイト・契約"], ["self", "個人で、家庭教師・教室を開く"]],
+  psychologist: [["public", "公立学校・行政機関の心理職(公務員)", PUBLIC_NOTE], ["mid", "病院・企業・相談機関(正規)"], ["nonreg", "非常勤のカウンセラー"], ["self", "独立して、カウンセリングルームを開く"]],
+  curator: [["public", "公立の博物館・図書館(公務員)", PUBLIC_NOTE], ["mid", "私立の博物館・図書館・財団(正規)"], ["nonreg", "非常勤・委託"]],
+  // ---- 医療・福祉 ----
+  doctor: [["large", "大学病院・大きな病院に勤める(勤務医)", "症例が多く、専門を深められる。当直や長時間勤務がある。"], ["public", "公立・国立の病院(公務員)", PUBLIC_NOTE], ["small", "地域の病院・診療所に勤める", "地域の暮らしに寄りそう。"], ["self", "開業する(クリニックを開く)", "開業の資金と経営の力が要る。うまくいけば収入は大きい。"], ["nonreg", "非常勤・当直などの医師"]],
+  dentist: [["small", "歯科医院に勤める(勤務歯科医)"], ["large", "大きな歯科・病院に勤める"], ["public", "公立病院・保健所(公務員)", PUBLIC_NOTE], ["self", "開業する(歯科医院を開く)", "開業の資金と経営の力が要る。"], ["nonreg", "非常勤"]],
+  vet: [["small", "動物病院に勤める"], ["large", "大きな動物病院・製薬会社などに勤める"], ["public", "公務員の獣医師(家畜保健衛生所・保健所など)", PUBLIC_NOTE], ["self", "開業する(動物病院を開く)"]],
+  pharmacist: [["mid", "調剤薬局・ドラッグストアに勤める"], ["large", "大きな病院・製薬会社に勤める"], ["public", "公立病院・保健所(公務員)", PUBLIC_NOTE], ["self", "薬局を開業する"], ["nonreg", "パート・派遣の薬剤師"]],
+  nurse: [["large", "大きな病院に勤める"], ["public", "公立・国立の病院(公務員)", PUBLIC_NOTE], ["mid", "中規模の病院・介護施設に勤める"], ["small", "診療所・クリニックに勤める"], ["nonreg", "パート・派遣の看護師"]],
+  jr_nurse: [["mid", "病院・施設に勤める"], ["small", "診療所・クリニックに勤める"], ["nonreg", "パート・派遣"]],
+  radiology: [["large", "大きな病院・検査センターに勤める"], ["public", "公立病院(公務員)", PUBLIC_NOTE], ["small", "診療所・クリニックに勤める"], ["nonreg", "非常勤"]],
+  rehab: [["large", "大きな病院に勤める"], ["mid", "リハビリ病院・介護施設に勤める"], ["small", "整形外科クリニックなどに勤める"], ["self", "独立して、訪問リハビリ・施設を開く"], ["nonreg", "非常勤"]],
+  dental_hyg: [["small", "歯科医院に勤める"], ["mid", "大きな歯科医院・病院に勤める"], ["nonreg", "パート"]],
+  dietitian: [["public", "公立学校・保健所の栄養士(公務員)", PUBLIC_NOTE], ["mid", "病院・給食会社に勤める"], ["small", "小規模な施設・給食に勤める"], ["nonreg", "パート"]],
+  other_health: [["small", "整骨院・治療院に勤める"], ["mid", "病院・チェーンの治療院に勤める"], ["self", "独立して、治療院を開く"], ["nonreg", "パート"]],
+  care_manager: [["mid", "介護事業所・社会福祉法人に勤める"], ["small", "小規模な居宅介護支援事業所に勤める"], ["public", "地域包括支援センターなど(公的な機関)"], ["nonreg", "非常勤"]],
+  social_worker: [["public", "福祉事務所・児童相談所(公務員)", PUBLIC_NOTE], ["mid", "社会福祉法人・病院に勤める"], ["nonreg", "非常勤"]],
+  // ---- 法律・会計などの専門職 ----
+  lawyer: [["large", "大手の法律事務所・企業の法務に勤める"], ["small", "地域の法律事務所・司法書士事務所に勤める"], ["public", "官公庁の専門職(任期つきなど)", PUBLIC_NOTE], ["self", "独立して、事務所を開く", "顧客を自分で開拓する。うまくいけば収入は大きい。"]],
+  accountant: [["large", "大手の監査法人・税理士法人に勤める"], ["mid", "企業の経理・財務に勤める"], ["small", "地域の会計事務所に勤める"], ["self", "独立して、事務所を開く"]],
+  other_pro: [["small", "事務所に勤める"], ["public", "官公庁・図書館などの専門職", PUBLIC_NOTE], ["self", "独立して、事務所を開く"], ["nonreg", "非常勤・委託"]],
+  clergy: [["self", "寺社・教会を継ぐ・独立して活動する"], ["mid", "宗教法人に勤める"]],
+  // ---- 報道・創作・芸能(会社の規模ではなく、所属か、フリーか) ----
+  journalist: [["large", "大手の新聞社・出版社・放送局に勤める"], ["mid", "中堅の出版社・制作会社に勤める"], ["small", "小さな出版社・編集プロダクションに勤める"], ["nonreg", "契約・派遣の記者・編集者"], ["self", "フリーランスで活動する"]],
+  artist: [["self", "作家として、自営・フリーで活動する", "作品が売れるまで、収入は不安定。"], ["nonreg", "アシスタント・契約で働く"]],
+  designer: [["large", "大手のデザイン会社・メーカーに勤める"], ["mid", "デザイン事務所に勤める"], ["small", "小さな制作会社に勤める"], ["nonreg", "契約・派遣"], ["self", "フリーランスで活動する"]],
+  web_designer: [["mid", "制作会社・事業会社に勤める"], ["large", "大手のIT・メディア企業に勤める"], ["small", "小さな制作会社に勤める"], ["nonreg", "契約・派遣"], ["self", "フリーランスで活動する"]],
+  interior: [["mid", "設計事務所・内装会社に勤める"], ["large", "大手の設計会社・ハウスメーカーに勤める"], ["small", "小さな事務所に勤める"], ["self", "独立して、事務所を開く"]],
+  game_creator: [["large", "大手のゲーム会社に勤める"], ["mid", "中堅のゲーム会社・制作会社に勤める"], ["small", "小さなスタジオに勤める"], ["nonreg", "契約・派遣"], ["self", "個人・インディーで開発する"]],
+  musician: [["self", "フリーで活動する(演奏・レッスンなど)", "収入は不安定。"], ["nonreg", "楽団・事務所・学校と契約して働く"], ["mid", "オーケストラ・劇団などの団員(正規)"]],
+  composer: [["self", "フリーで活動する"], ["mid", "音楽会社・制作会社に勤める"], ["nonreg", "契約・委託"]],
+  singer: [["nonreg", "事務所・レーベルと契約する"], ["self", "インディーズ・フリーで活動する"]],
+  idol: [["nonreg", "事務所・グループに所属する(契約)"]],
+  actor: [["nonreg", "事務所に所属する(契約)"], ["self", "フリーで活動する"]],
+  voice_actor: [["nonreg", "事務所に所属する(契約)"], ["self", "フリーで活動する"]],
+  comedian: [["nonreg", "事務所に所属する(契約)"], ["self", "フリーで活動する"]],
+  model: [["nonreg", "事務所に所属する(契約)"], ["self", "フリーで活動する"]],
+  entertainer: [["large", "放送局の社員(アナウンサーなど)"], ["nonreg", "事務所に所属する(契約)"], ["self", "フリーで活動する"]],
+  manga: [["self", "フリーで活動する(連載・投稿・依頼)", "作品が売れるまで、収入は不安定。"], ["nonreg", "アシスタント・契約で働く"], ["mid", "出版社・制作会社に勤める"]],
+  novelist: [["self", "作家・脚本家として、自営で活動する", "作品が売れるまで、収入は不安定。"], ["nonreg", "契約・委託(脚本・ライター)"]],
+  film_director: [["large", "大手の映画会社・放送局に勤める"], ["mid", "制作会社に勤める"], ["self", "フリーで活動する"], ["nonreg", "契約・派遣"]],
+  photographer: [["small", "スタジオ・写真館に勤める"], ["mid", "制作会社・新聞社に勤める"], ["self", "フリーで活動する"], ["nonreg", "契約・アシスタント"]],
+  translator: [["mid", "翻訳会社・企業に勤める"], ["small", "小さな翻訳会社に勤める"], ["nonreg", "契約・派遣"], ["self", "フリーランスで活動する"]],
+  streamer: [["self", "個人で配信・投稿する", "再生数や視聴者数で収入が決まる。"], ["nonreg", "事務所・企業に所属する(契約)"]],
+  esports: [["nonreg", "プロチームと契約する"], ["self", "個人で配信・大会賞金で活動する"]],
+  shogi: [["self", "プロ棋士(日本将棋連盟・日本棋院に所属する対局者)", "対局の成績と賞金で収入が決まる。"]],
+  athlete: [["mid", "企業・実業団のチームに所属する(社員選手)", "競技を続けながら、会社の社員として給料がもらえる。"], ["nonreg", "プロ契約(チーム・クラブと契約)", "活躍できなければ、契約は更新されない。"], ["self", "個人で活動する(個人競技のプロ)", "賞金とスポンサーで暮らす。"], ["public", "自衛隊・警察などの公務員選手", PUBLIC_NOTE]],
+  trainer: [["small", "ジム・スポーツクラブに勤める"], ["mid", "大手スポーツクラブ・チームに勤める"], ["nonreg", "契約・アルバイト"], ["self", "独立して、パーソナルトレーナーになる"]],
+  trader: [["large", "大手の金融機関・ファンドに勤める"], ["mid", "証券会社・運用会社に勤める"], ["self", "個人で投資・取引をする", "資金と相場しだいで、収入が大きく動く。"]],
+  fp: [["mid", "保険・証券・銀行などに勤める"], ["small", "FP事務所に勤める"], ["self", "独立する"]],
+  researcher: [["large", "大企業の研究所"], ["mid", "中堅企業の研究所"], ["public", "国・公的研究機関の研究員", PUBLIC_NOTE], ["nonreg", "任期つきの研究員(ポスドクなど)", "ポストは不安定で、収入は低め。"]],
+  cabin: [["large", "大手の航空会社"], ["mid", "地方・LCCの航空会社"], ["nonreg", "契約の客室乗務員"]],
+  drone_pilot: [["small", "ドローン事業会社に勤める"], ["mid", "測量・空撮の会社に勤める"], ["nonreg", "契約・パート"], ["self", "個人事業として、仕事を受ける"]],
+  travel_office: [["large", "大手の旅行会社・ホテル"], ["mid", "中堅の旅行会社・ホテル"], ["small", "地域の旅行会社・旅館"], ["nonreg", "契約・パート"]],
+  production_clerk: CORP,
+  sales_clerk: CORP,
+  ad_sales: [["large", "大手の広告代理店"], ["mid", "中堅の広告会社"], ["small", "小さな広告会社"], ["nonreg"]],
+  trading_co: [["large", "大手の総合商社"], ["mid", "中堅の専門商社"], ["small", "小さな商社"], ["nonreg"]],
+  // ---- 経営者・起業家(勤め先の規模ではなく、自分の会社) ----
+  ceo: [["large", "大企業の役員(取締役)"], ["mid", "中堅企業の役員(取締役)"], ["small", "中小企業の経営者(社長)"]],
+  founder: [["self", "スタートアップを創業する"]],
+  owner: [["self", "店舗のオーナーとして、独立する"]],
+  // ---- 農林水産 ----
+  farmer: [["self", "自営の農家・漁家・林家(個人経営)", "天候や市場の価格で、収入が大きく動く。"], ["small", "農業法人・漁協・造園会社などに勤める(正社員)"], ["nonreg", "季節・パートで働く"]],
+  fisher: [["self", "自営の漁師(個人経営の漁船)", "漁獲と価格で、収入が大きく動く。"], ["small", "漁協・水産会社に勤める(正社員)"], ["nonreg", "漁船の乗組員・パート"]],
+  dairy: [["self", "自営の牧場・酪農家", "価格や飼料代で、収入が動く。"], ["small", "農業法人・牧場に勤める(正社員)"], ["nonreg", "季節・パートで働く"]],
+  forestry: [["small", "森林組合・林業会社に勤める(正社員)"], ["public", "国・自治体の森林の職(公務員)", PUBLIC_NOTE], ["self", "独立して、林業を営む"], ["nonreg", "季節・パートで働く"]],
+  // ---- 運輸・保安 ----
+  train_driver: [["large", "JR・大手私鉄の運転士・車掌"], ["mid", "地方の鉄道会社"], ["public", "公営の鉄道・地下鉄(公務員)", PUBLIC_NOTE]],
+  bus_driver: [["public", "公営バス(公務員)", PUBLIC_NOTE], ["mid", "民間のバス会社(正社員)"], ["small", "地域の小さなバス会社(正社員)"], ["nonreg", "契約・パート"]],
+  taxi_driver: [["mid", "タクシー会社(正社員)"], ["small", "地域の小さなタクシー会社"], ["nonreg", "契約・パート"], ["self", "個人タクシー事業者"]],
+  pilot: [["large", "大手の航空会社"], ["mid", "地方・LCCの航空会社"]],
+  sailor: [["large", "大手の海運会社"], ["mid", "中堅の海運会社・フェリー会社"], ["nonreg", "契約の船員"]],
+  power_plant: [["large", "電力会社"], ["mid", "発電所の関連会社"]],
+  guard: [["large", "大手の警備会社(正社員)"], ["mid", "中堅の警備会社"], ["small", "地域の小さな警備会社"], ["nonreg", "契約・パート"]],
+  traffic_guide: [["mid", "警備会社(正社員)"], ["small", "地域の小さな警備会社"], ["nonreg", "契約・パート"]],
+  // ---- サービス・販売 ----
+  night_work: [["small", "店舗に勤める(スタッフ)"], ["nonreg", "アルバイト・業務委託"], ["self", "独立して、店を持つ"]],
+  zookeeper: [["public", "公営の動物園・水族館(公務員)", PUBLIC_NOTE], ["mid", "民間の動物園・水族館(正社員)"], ["nonreg", "契約・パート"]],
+  tour_guide: [["small", "旅行会社・観光協会に勤める"], ["nonreg", "契約・パート"], ["self", "フリーランスのガイド"]],
+  ec_shop: [["self", "個人でネットショップを運営する"], ["small", "小さな会社のEC担当(正社員)"], ["mid", "EC運営会社に勤める(正社員)"]],
+  secondhand: [["self", "個人で古物商を営む"], ["small", "リサイクルショップに勤める"], ["nonreg", "アルバイト・契約"]],
+  pet_care: [["small", "ペットサロン・動物病院に勤める"], ["mid", "大手のペット関連会社に勤める"], ["nonreg", "パート"], ["self", "独立して、サロンを開く"]],
+  barber: [["small", "個人の店・サロンに勤める"], ["mid", "チェーンのサロンに勤める(正社員)"], ["nonreg", "パート・業務委託"], ["self", "独立して、店を開く"]],
+  beauty: [["small", "個人の店・サロンに勤める"], ["mid", "チェーンのサロンに勤める(正社員)"], ["large", "大手のサロン・化粧品会社に勤める"], ["nonreg", "パート・業務委託"], ["self", "独立して、店を開く"]],
+};
+
+// 独立・開業という道がある、ふつうの会社勤めの職種。これ以外の職種には、「自営・独立」を出さない。
+const SELF_OK = new Set(["realtor", "insurance_sales", "other_sales", "street_sales", "cleaning_shop", "carpenter", "plumber", "plasterer", "electrician", "frame", "auto_mechanic", "painter", "craftsman", "brewer", "precision", "printing", "delivery", "truck", "truck_big", "cook", "patissier", "barista", "bartender", "fashion", "sys_consultant", "software", "it_infra", "data_sci", "hvac", "demolition"]);
+
 function workplacesFor(j: JobDef): Workplace[] {
+  const spec = JOB_WP[j.id];
+  if (spec) {
+    return spec.map(([id, label, note], i) => {
+      const base = WORKPLACES.find((w) => w.id === id)!;
+      return { ...base, label: label ?? base.label, note: note ?? base.note, auto: i === 0 };
+    });
+  }
   return WORKPLACES.filter((w) => {
     if (w.id === "public") return publicAllowed(j);
-    if (w.id === "self") return j.occ !== "office";
-    if (j.occ === "agri") return w.id === "small" || w.id === "nonreg";
+    if (w.id === "self") return SELF_OK.has(j.id);
     return true;
   });
+}
+
+// ある職種で、選べる働き方(民間・公務員・自営・非正規)。勤め先の区分から決まる。
+export type WorkStyleId = "private" | "public" | "self" | "nonregular";
+export function workStylesFor(jobId: string | null | undefined): WorkStyleId[] {
+  const j = jobById(jobId ?? undefined);
+  if (!j) return ["private", "public", "self", "nonregular"];
+  const out: WorkStyleId[] = [];
+  for (const w of workplacesFor(j)) {
+    const st: WorkStyleId = w.employment === "self" ? "self" : w.employment === "nonregular" ? "nonregular" : w.sector === "public" ? "public" : "private";
+    if (!out.includes(st)) out.push(st);
+  }
+  return out;
 }
 
 function enterJob(p: Person, rng: Rng, data: CountryData, j: JobDef, w: Workplace): string {
@@ -173,14 +310,15 @@ const workplaceQuestion = (j: JobDef): TurningQuestion => ({
 
 const JOB_DEFAULT: Record<Occ, string> = { tech: "software", office: "office_general", sales: "shop_clerk", service: "care_worker", security: "guard", agri: "farmer", production: "machine_assembly", transport: "truck", construction: "carpenter", logistics: "delivery", mgmt: "office_general" };
 
-const jobOption = (j: JobDef): TurningOption => ({
-  id: j.id,
-  label: j.title,
-  auto: j.id === JOB_DEFAULT[j.occ],
-  apply: () => "",
-  detail: jobDetail(j),
-  children: () => workplaceQuestion(j),
-});
+const jobOption = (j: JobDef): TurningOption => {
+  const wps = workplacesFor(j);
+  // 勤め先の区分がひとつしかない職種(警察官・議員・プロ棋士など)は、勤め先をたずねない。
+  if (wps.length === 1) {
+    const w = wps[0];
+    return { id: j.id, label: j.title, auto: j.id === JOB_DEFAULT[j.occ], apply: (p, rng, data) => enterJob(p, rng, data, j, w), detail: (p, env, data) => `${jobDetail(j)!(p, env, data)} ${w.label}。${w.note}` };
+  }
+  return { id: j.id, label: j.title, auto: j.id === JOB_DEFAULT[j.occ], apply: () => "", detail: jobDetail(j), children: () => workplaceQuestion(j) };
+};
 
 // 大分類の中の職種。多い分類は、グループに分けてから選ぶ。
 const occQuestion = (occ: Occ, jobs: JobDef[]): TurningQuestion => {
@@ -1083,7 +1221,7 @@ export const turningPoints: TurningPoint[] = [
     age: (p) => Math.max(25, (p.jobSince ?? 0) + 5),
     title: "働き方を見つめ直す",
     prompt: "いまの仕事と、これからをどう考えるだろう。",
-    when: (p) => p.occ !== null && !p.office,
+    when: (p) => p.occ !== null && !isResponsible(p) && p.jobSince !== undefined && p.age - p.jobSince >= 5,
     options: [
       {
         id: "stay",
@@ -1228,7 +1366,7 @@ export const turningPoints: TurningPoint[] = [
     age: (p) => Math.max(40, (p.jobSince ?? 0) + 5),
     title: "これからのキャリア",
     prompt: "働き方を、どうしていくだろう。",
-    when: (p) => p.occ !== null && !p.office && p.occ !== "retired",
+    when: (p) => p.occ !== null && !isResponsible(p) && p.jobSince !== undefined && p.age - p.jobSince >= 5 && p.occ !== "retired",
     options: [
       {
         id: "lead",
@@ -1264,7 +1402,7 @@ export const turningPoints: TurningPoint[] = [
     age: 55,
     title: "何歳まで働く？",
     prompt: "仕事をいつまで続けるか、そろそろ考えるときです。",
-    when: (p) => p.occ !== null && !p.office && p.occ !== "retired",
+    when: (p) => p.occ !== null && !isResponsible(p) && p.jobSince !== undefined && p.age - p.jobSince >= 3 && p.occ !== "retired",
     options: [
       opt("r60", "60歳で退職して、早めにゆっくり暮らす", (p) => ((p.retireAt = 60), bump(p, { health: 4, joy: 3 }), "60歳で仕事を退くことに決めた"), { detail: (p, env, data) => `収入は早く止まり、年金も満額ではない。そのぶん、自由な時間と体力が残る。いまの収入では、${takeText(p, data, env.econ)}退職後も、国民健康保険料や住民税は、かかり続ける。` }),
       opt("retire", "定年(65歳)まで勤め、その後はゆっくり暮らす", (p) => ((p.retireAt = 65), bump(p, { health: 3 }), "65歳の定年まで働くことに決めた"), { auto: true, detail: (p, env, data) => `65歳以降は年金が中心。${pensionText(p, data, 1)}貯金の取り崩しが必要になることもある。` }),

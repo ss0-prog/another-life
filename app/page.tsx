@@ -25,6 +25,18 @@ type Phase =
   | { name: "play"; initial: GameState }
   | { name: "result"; real: LifeSummary; alt: LifeSummary; altLabel: string };
 
+// トップ画面の「このサイトでできること」。実際にある機能だけを、わかりやすく書く。
+const HOME_FEATURES = [
+  { tag: "分岐", title: "「もし、あのとき」の先を、最期まで歩ける", body: "進学・仕事・住む場所・家族などの、人生の分かれ道を選び、選ばなかった道の人生を、一年ずつ見届けます。" },
+  { tag: "選択", title: "節目では、あなた自身が選ぶ", body: "就職・結婚・転職・引っ越し・離婚など、人生の節目で、時間が止まります。選んだ結果で、その先が変わります。" },
+  { tag: "リアル", title: "実際の統計をもとにした、暮らしとお金", body: "寿命・給料・最低賃金・景気・進学率などの公的統計をもとに、税金や生活費、ローン、借金、投資まで、お金のゆくえを見られます。" },
+  { tag: "職業", title: "200をこえる職業と、階級・役職", body: "警察官や自衛官の階級、会社の役職、議員から総理大臣まで。アスリートなら、大会やオリンピックをめざせます。" },
+  { tag: "運命", title: "病気・事故・恋・家族・まさかの出来事", body: "出会いや結婚、子育て、病気や災害、ときには犯罪や裁判まで。運命のいたずらは、人生ごとに別々に起こります。" },
+  { tag: "レポート", title: "最期に、その人生の物語が読める", body: "亡くなった理由や、どんな人生だったかのまとめ、年表、資産や幸福度の移り変わりを、レポートで読み返せます。" },
+  { tag: "つながる", title: "誰かの人生を読む・実績を集める", body: "公開された、ほかの人の人生を読めます。人生で達成した実績は、コレクションに集まります。" },
+  { tag: "気軽", title: "ログインなしで、すぐ遊べる", body: "入力は、この端末の中だけで使います。条件を答えなくても、「ランダムで始める」で、すぐに別の人生へ。" },
+] as const;
+
 export default function Home() {
   const { user, enabled, login } = useAuth();
   const [saved, setSaved] = useState<SavedProfile | null>(null);
@@ -258,6 +270,19 @@ export default function Home() {
                   </li>
                 ))}
               </motion.ol>
+              {/* このサイトでできること(魅力) */}
+              <motion.section aria-labelledby="home-features" className="mt-16 w-full" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 2.8, duration: 1.6 }}>
+                <p id="home-features" className="text-center text-xs tracking-[0.5em] text-haze">このサイトでできること</p>
+                <ul className="mt-4 grid w-full gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                  {HOME_FEATURES.map((f) => (
+                    <li key={f.title} className="flex flex-col rounded-sm border border-line bg-panel/70 px-5 py-6 text-left backdrop-blur-sm">
+                      <span className="text-xs tracking-[0.3em] text-warm">{f.tag}</span>
+                      <p className="mt-2 text-sm font-bold leading-7 tracking-wider text-mist">{f.title}</p>
+                      <p className="mt-2 text-xs leading-6 tracking-[0.06em] text-haze">{f.body}</p>
+                    </li>
+                  ))}
+                </ul>
+              </motion.section>
               {/* 「無数のifの先へ」の上にも、「別の人生をシミュレートする」を置く */}
               <div className="flex w-full justify-center mt-14">
                 <button type="button" onClick={() => { setPrefill(null); setPhase({ name: "wizard" }); }} className={`${primaryButtonClass} w-full lg:whitespace-nowrap lg:w-[calc((100%-2rem)/3)] lg:px-3 lg:text-[15px] lg:tracking-[0.15em]`}>

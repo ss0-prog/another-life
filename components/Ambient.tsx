@@ -435,7 +435,7 @@ function FerrisWheel({ cx, base, night }: { cx: number; base: number; night: boo
 
 function SkylineSvg({ phase, mode = "all" }: { phase: Phase; mode?: "all" | "city" | "glow" }) {
   const far = useMemo(() => makeCity(11, 52, 136, 0.22), []);
-  const near = useMemo(() => makeCity(23, 74, 186, 0.3, 920, [250, 400, 1290]), []);
+  const near = useMemo(() => makeCity(23, 74, 186, 0.3, 920, [250, 560, 1290]), []);
   const nearBack = useMemo(() => near.filter((_, i) => i % 2 !== 0), [near]);
   const nearFg = useMemo(() => near.filter((_, i) => i % 2 === 0), [near]);
   // 手前の列から、3軒に1軒を、低くして、もう一度かさねる(電車の前に立つ)。

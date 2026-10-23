@@ -25,6 +25,19 @@ type Phase =
   | { name: "play"; initial: GameState }
   | { name: "result"; real: LifeSummary; alt: LifeSummary; altLabel: string };
 
+// トップ画面の見出し(遊び方・このサイトでできること)。両脇に細い線と、小さな菱形をつける。
+function SectionTitle({ id, children }: { id?: string; children: React.ReactNode }) {
+  return (
+    <h2 id={id} className="flex w-full items-center justify-center gap-3 text-base font-bold tracking-[0.35em] text-warm drop-shadow-[0_0_14px_rgba(240,201,148,0.3)] sm:gap-4 sm:text-lg">
+      <span aria-hidden className="h-px w-8 bg-gradient-to-r from-transparent to-warm/60 sm:w-16" />
+      <span aria-hidden className="h-1.5 w-1.5 rotate-45 border border-warm/80" />
+      <span className="shrink-0">{children}</span>
+      <span aria-hidden className="h-1.5 w-1.5 rotate-45 border border-warm/80" />
+      <span aria-hidden className="h-px w-8 bg-gradient-to-l from-transparent to-warm/60 sm:w-16" />
+    </h2>
+  );
+}
+
 // トップ画面の「このサイトでできること」。実際にある機能だけを、わかりやすく書く。
 const HOME_FEATURES = [
   { tag: "分岐", title: "「もし、あのとき」の先を、最期まで歩ける", body: "進学・仕事・住む場所・家族などの、人生の分かれ道を選び、選ばなかった道の人生を、一年ずつ見届けます。" },
@@ -257,9 +270,9 @@ export default function Home() {
                   {t.home.start}
                 </button>
               </div>
-              <motion.p className="mt-20 text-xs tracking-[0.5em] text-haze" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1.0, duration: 0.7 }}>
-                {t.home.howTo}
-              </motion.p>
+              <motion.div className="mt-20 w-full" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1.0, duration: 0.7 }}>
+                <SectionTitle>{t.home.howTo}</SectionTitle>
+              </motion.div>
               <motion.ol className="mt-4 grid w-full gap-4 lg:grid-cols-3" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1.1, duration: 0.8 }}>
                 {t.home.steps.map((step, i) => (
                   <li key={step} className="flex flex-col items-center rounded-sm border border-line bg-panel/70 px-5 py-6 text-center backdrop-blur-sm">
@@ -272,7 +285,7 @@ export default function Home() {
               </motion.ol>
               {/* このサイトでできること(魅力) */}
               <motion.section aria-labelledby="home-features" className="mt-16 w-full" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1.3, duration: 0.8 }}>
-                <p id="home-features" className="text-center text-xs tracking-[0.5em] text-haze">このサイトでできること</p>
+                <SectionTitle id="home-features">このサイトでできること</SectionTitle>
                 <ul className="mt-4 grid w-full gap-4 sm:grid-cols-2 lg:grid-cols-4">
                   {HOME_FEATURES.map((f) => (
                     <li key={f.title} className="flex flex-col rounded-sm border border-line bg-panel/70 px-5 py-6 text-left backdrop-blur-sm">

@@ -123,11 +123,12 @@ function Stars({ dim }: { dim: boolean }) {
 // ---- 街のシルエット: 高さの違うビルが二重に並び、夜は窓に灯りがともり、高いビルの屋上には赤いランプがまたたく ----
 type Building = { x: number; w: number; h: number; antenna: number; windows: { x: number; y: number; lit: boolean; warm: boolean; flicker: boolean; delay: number }[]; beacon: boolean; delay: number; roof: 0 | 1 | 2 | 3; setback: boolean; sign: string | null; signY: number };
 
-function makeCity(seed: number, minH: number, maxH: number, windowRate: number, clearX?: number): Building[] {
+function makeCity(seed: number, minH: number, maxH: number, windowRate: number, clearX?: number, landmarks: number[] = []): Building[] {
   const rng = createRng(seed);
   // 屋根の形は、別の乱数で決める(ほかの建物の並びを、変えないため)。
   const shapeRng = createRng(seed ^ 0x5bd1e995);
   const out: Building[] = [];
+  const usedLm = new Set<number>();
   let x = -20;
   while (x < 1640) {
     let w = (28 + rng() * (rng() < 0.5 ? 46 : 84)) * 1.11; // 建物の数を、1割へらす
@@ -138,6 +139,13 @@ function makeCity(seed: number, minH: number, maxH: number, windowRate: number, 
     if (clearX !== undefined) {
       const d = Math.abs(x + w / 2 - clearX);
       h = Math.min(h, minH + (maxH - minH) * (0.2 + 0.8 * Math.min(1, d / 230)));
+    }
+    // 目じるしになる、ひときわ高いビルを、横にばらして、3本ほど立てる(東京タワーよりは、低く)。
+    const lm = landmarks.findIndex((c, i) => !usedLm.has(i) && x + w / 2 >= c);
+    if (lm >= 0) {
+      usedLm.add(lm);
+      h = maxH + 24 + shapeRng() * 18;
+      w = 46 + shapeRng() * 14;
     }
     const tall = h > maxH * 0.78;
     // 高いビルの一部は、細く、すらりとした塔にする。
@@ -158,7 +166,7 @@ function makeCity(seed: number, minH: number, maxH: number, windowRate: number, 
     const signColors = ["#ff6fa5", "#6fe3ff", "#ffd35a", "#9bff9b"];
     out.push({
       x, w, h,
-      antenna: tall && rng() < 0.7 ? 18 + rng() * 22 : shapeRng() < 0.22 ? 7 + shapeRng() * 11 : 0,
+      antenna: lm >= 0 ? 0 : tall && rng() < 0.7 ? 18 + rng() * 22 : shapeRng() < 0.22 ? 7 + shapeRng() * 11 : 0,
       windows,
       beacon: tall,
       delay: rng() * 3,
@@ -388,7 +396,7 @@ function FerrisWheel({ cx, base, night }: { cx: number; base: number; night: boo
 
 function SkylineSvg({ phase, mode = "all" }: { phase: Phase; mode?: "all" | "city" | "glow" }) {
   const far = useMemo(() => makeCity(11, 52, 136, 0.22), []);
-  const near = useMemo(() => makeCity(23, 74, 186, 0.3, 920), []);
+  const near = useMemo(() => makeCity(23, 74, 186, 0.3, 920, [250, 560, 1290]), []);
   const c = CITY_COLORS[phase];
   return (
     <svg xmlns="http://www.w3.org/2000/svg" width="1600" height="270" viewBox="0 0 1600 270" preserveAspectRatio="xMidYMax slice" aria-hidden>

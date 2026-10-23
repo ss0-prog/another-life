@@ -540,7 +540,7 @@ function SkylineSvg({ phase, mode = "all" }: { phase: Phase; mode?: "all" | "cit
       <CityLayer buildings={nearFg} color={c.near} base={290} night={c.lit} near />
       {/* 電車の手前に立つ、低い建物(電車が、ところどころ、建物にかくれる) */}
       <CityLayer buildings={nearFront} color={c.near} base={290} night={c.lit} near />
-      <FerrisWheel cx={560} base={290} night={c.lit} color={c.near} />
+      <FerrisWheel cx={560} base={290} night={c.lit} color={phase === "night" ? "#1c2335" : c.near} />
       {/* 観覧車の下の3分の1を、かくす森 */}
       <Forest color={c.near} />
       {/* 観覧車の右下を、少しだけ隠す建物 */}

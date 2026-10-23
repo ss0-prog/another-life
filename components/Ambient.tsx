@@ -121,7 +121,7 @@ function Stars({ dim }: { dim: boolean }) {
 }
 
 // ---- 街のシルエット: 高さの違うビルが二重に並び、夜は窓に灯りがともり、高いビルの屋上には赤いランプがまたたく ----
-type Building = { x: number; w: number; h: number; antenna: number; windows: { x: number; y: number; lit: boolean; warm: boolean; flicker: boolean; delay: number }[]; beacon: boolean; delay: number; roof: 0 | 1 | 2 | 3; setback: boolean; sign: string | null; signY: number; shape: 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 };
+type Building = { x: number; w: number; h: number; antenna: number; windows: { x: number; y: number; lit: boolean; warm: boolean; flicker: boolean; delay: number }[]; beacon: boolean; delay: number; roof: 0 | 1 | 2 | 3; setback: boolean; sign: string | null; signY: number; shape: 0 | 5 | 6 };
 
 function makeCity(seed: number, minH: number, maxH: number, windowRate: number): Building[] {
   const rng = createRng(seed);
@@ -130,8 +130,10 @@ function makeCity(seed: number, minH: number, maxH: number, windowRate: number):
   const out: Building[] = [];
   let x = -20;
   while (x < 1640) {
-    let w = 38 + rng() * 78;
-    const h = minH + rng() * (maxH - minH);
+    let w = (28 + rng() * (rng() < 0.5 ? 46 : 84)) * 1.11; // 建物の数を、1割へらす
+    // 高さは、ランダムに、ゆるやかな「ひとかたまり」をかさねる(新宿のように、高いビルが固まる所と、低い街並みが続く所ができる)。
+    const wave = Math.abs((((x / 420 + seed * 0.37) % 2) + 2) % 2 - 1); // 三角波(サーバーとブラウザで、計算結果が、ずれないよう、sinは使わない)
+    const h = minH + Math.min(1, rng() * 0.62 + wave * 0.5) * (maxH - minH);
     const tall = h > maxH * 0.78;
     // 高いビルの一部は、細く、すらりとした塔にする。
     const slender = tall && shapeRng() < 0.35;
@@ -153,7 +155,7 @@ function makeCity(seed: number, minH: number, maxH: number, windowRate: number):
     const signColors = ["#ff6fa5", "#6fe3ff", "#ffd35a", "#9bff9b"];
     out.push({
       x, w, h,
-      antenna: tall && rng() < 0.7 ? 18 + rng() * 34 : 0,
+      antenna: tall && rng() < 0.7 ? 18 + rng() * 22 : shapeRng() < 0.22 ? 7 + shapeRng() * 11 : 0,
       windows,
       beacon: tall && !crown,
       delay: rng() * 3,
@@ -162,52 +164,43 @@ function makeCity(seed: number, minH: number, maxH: number, windowRate: number):
       setback: h > minH + (maxH - minH) * 0.55 && rng() < 0.55,
       sign: h > minH + (maxH - minH) * 0.25 && rng() < 0.16 ? signColors[Math.floor(rng() * signColors.length)] : null,
       signY: 20 + rng() * (h * 0.5),
-      // 赤いランプのある高い建物は、四角い屋上のまま。ほかは、半分ほどが、ななめ・三角・まる・台形・双子の尖塔の屋根になる。
+      // 赤いランプのある高い建物は、四角い屋上のまま。ほかは、4割ほどが、屋上の機械室(2段の箱)になる。三角やまるの屋根は、つけない。
       shape: (() => {
         const q = shapeRng();
-        const pick = Math.floor(shapeRng() * 5) + 1;
-        if (crown) return (slender || shapeRng() < 0.5 ? 7 : 6) as 6 | 7;
-        return tall || q > 0.62 ? 0 : (pick as 1 | 2 | 3 | 4 | 5);
+        const pick = 5 as const;
+        if (crown) return 6;
+        return tall || q > 0.45 ? 0 : pick;
       })(),
     });
-    x += w + (rng() < 0.25 ? 6 + rng() * 14 : 1 + rng() * 5);
+    x += w + (rng() < 0.12 ? 3 + rng() * 8 : -rng() * 9);
   }
   return out;
 }
 
-function RoofShape({ shape, w, style, night, delay }: { shape: 1 | 2 | 3 | 4 | 5 | 6 | 7; w: number; style: { fill: string; transition: string }; night: boolean; delay: number }) {
-  const s = Math.min(20, w * 0.34);
+function RoofShape({ shape, w, style, night, delay }: { shape: 5 | 6; w: number; style: { fill: string; transition: string }; night: boolean; delay: number }) {
+  const s = Math.min(11, w * 0.2);
   const y = 0.6; // 屋上と、すきまができないように、少しかぶせる
-  if (shape === 6 || shape === 7) {
-    const tipY = shape === 7 ? -44 : -50;
+  // 5: 屋上の機械室(2段の箱)
+  if (shape === 5)
     return (
-      <g>
-        <g style={style}>
-          {shape === 7 ? (
-            <polygon points={`${w * 0.28},${y} ${w * 0.72},${y} ${w / 2 + 0.8},${tipY} ${w / 2 - 0.8},${tipY}`} />
-          ) : (
-            <>
-              <rect x={w * 0.14} y={-13} width={w * 0.72} height={14} />
-              <rect x={w * 0.3} y={-25} width={w * 0.4} height={13} />
-              <rect x={w / 2 - 0.8} y={tipY} width={1.6} height={26} />
-            </>
-          )}
-        </g>
-        <g style={{ opacity: night ? 1 : 0, transition: "opacity 4.5s ease" }}>
-          <circle cx={w / 2} cy={tipY} r={3} fill="#ff2d2d" opacity={0.22} className="beacon-slow" style={{ animationDelay: `${delay * 1.7}s` }} />
-          <circle cx={w / 2} cy={tipY} r={1.3} fill="#ff4545" className="beacon-slow" style={{ animationDelay: `${delay * 1.7}s` }} />
-        </g>
+      <g style={style}>
+        <rect x={w * 0.2} y={-s * 0.9} width={w * 0.6} height={s * 0.9 + 1} />
+        <rect x={w * 0.36} y={-s * 1.6} width={w * 0.28} height={s * 0.8} />
       </g>
     );
-  }
-  if (shape === 1) return <polygon points={`0,${y} ${w},${y} ${w},${-s}`} style={style} />;
-  if (shape === 2) return <polygon points={`0,${y} ${w},${y} ${w / 2},${-s * 1.2}`} style={style} />;
-  if (shape === 3) return <path d={`M0 ${y} A ${w / 2} ${s} 0 0 1 ${w} ${y} Z`} style={style} />;
-  if (shape === 4) return <polygon points={`0,${y} ${w},${y} ${w - s * 0.7},${-s * 0.7} ${s * 0.7},${-s * 0.7}`} style={style} />;
+  // 6: 上が、階段のように細くなる塔。てっぺんに、細い針と、赤いランプ
+  const tipY = -38;
   return (
-    <g style={style}>
-      <polygon points={`${w * 0.12},${y} ${w * 0.38},${y} ${w * 0.25},${-s * 1.5}`} />
-      <polygon points={`${w * 0.62},${y} ${w * 0.88},${y} ${w * 0.75},${-s * 1.5}`} />
+    <g>
+      <g style={style}>
+        <rect x={w * 0.14} y={-13 + y} width={w * 0.72} height={14} />
+        <rect x={w * 0.3} y={-25 + y} width={w * 0.4} height={13} />
+        <rect x={w / 2 - 0.8} y={tipY} width={1.6} height={16} />
+      </g>
+      <g style={{ opacity: night ? 1 : 0, transition: "opacity 4.5s ease" }}>
+        <circle cx={w / 2} cy={tipY} r={3} fill="#ff2d2d" opacity={0.22} className="beacon-slow" style={{ animationDelay: `${delay * 1.7}s` }} />
+        <circle cx={w / 2} cy={tipY} r={1.3} fill="#ff4545" className="beacon-slow" style={{ animationDelay: `${delay * 1.7}s` }} />
+      </g>
     </g>
   );
 }
@@ -240,6 +233,8 @@ function CityLayer({ buildings, color, base, night, near }: { buildings: Buildin
               </g>
             )}
             {b.shape === 0 && b.roof === 3 && <rect x={b.w * 0.55} y={-11} width={b.w * 0.22} height={11} style={fillStyle} />}
+            {/* 屋上の細いアンテナ・避雷針 */}
+            {b.antenna > 0 && b.shape !== 6 && <rect x={b.w * (0.25 + (b.delay % 1) * 0.5)} y={-b.antenna} width={1.3} height={b.antenna + 1} style={fillStyle} />}
             {/* 光と影: 上は、ほんのり明るく、下に向かって、しずむ。左のふちに光、右のふちに影 */}
             <rect width={b.w} height={b.h + 40} fill="url(#bShade)" style={{ opacity: night ? 0.3 : 1, transition: "opacity 4.5s ease" }} />
             <rect width={1.4} height={b.h + 40} fill="#ffffff" opacity={night ? 0.06 : 0.16} />
@@ -426,8 +421,8 @@ function FerrisWheel({ cx, base, night }: { cx: number; base: number; night: boo
 }
 
 function SkylineSvg({ phase, mode = "all" }: { phase: Phase; mode?: "all" | "city" | "glow" }) {
-  const far = useMemo(() => makeCity(11, 50, 130, 0.22), []);
-  const near = useMemo(() => makeCity(23, 70, 200, 0.3), []);
+  const far = useMemo(() => makeCity(11, 52, 136, 0.22), []);
+  const near = useMemo(() => makeCity(23, 74, 186, 0.3), []);
   const c = CITY_COLORS[phase];
   return (
     <svg xmlns="http://www.w3.org/2000/svg" width="1600" height="270" viewBox="0 0 1600 270" preserveAspectRatio="xMidYMax slice" aria-hidden>

@@ -49,7 +49,7 @@ export function JapanMap({ homes, city, age, abroad }: { homes: Home[]; city: st
   const overseas = stops.filter((s) => !s.xy);
 
   return (
-    <div className="mt-8 rounded-sm border border-line bg-panel/70 p-4">
+    <div className="mt-8 max-lg:mt-2 rounded-sm border border-line bg-panel/70 p-4">
       <p className="font-gothic text-xs tracking-[0.3em] text-warm">これまで暮らした場所</p>
       <p className="font-gothic mt-1 text-[11px] leading-5 tracking-wider text-dim">{moves > 0 ? `${moves}回引っ越しました。矢印は移った順です。` : "まだ引っ越していません。"}</p>
       <svg viewBox={`0 0 ${VIEW.w} ${VIEW.h}`} className="mx-auto mt-3 w-full max-w-sm" role="img" aria-label="暮らした場所を結んだ日本地図">

@@ -34,12 +34,15 @@ export function leaveLocal(p: Person, data: CountryData) {
   if (gone.length) p.leftNote = `${gone.join("と")}は、通えなくなり、やめた`;
 }
 
-export function moveTo(p: Person, rng: Rng, data: CountryData, region: Region): string {
+// 議員・総理大臣・会社の経営者など、責任ある立場にあるか(あるあいだは、引っ越しの話も、転職の話も出ない)。
+export const isResponsible = (p: Person) => !!p.office || p.job === "ceo";
+
+export function moveTo(p: Person, rng: Rng, data: CountryData, region: Region, city?: string): string {
   leaveLocal(p, data);
   p.abroad = null; // 国内に移れば、海外暮らしではなくなる。
   p.housingKind = null; // 引っ越せば、居候や寮などの暮らしではなくなる。
   p.region = region;
-  p.city = newCity(rng, data, region, p.city);
+  p.city = city ?? newCity(rng, data, region, p.city);
   p.withParents = false;
   return p.city;
 }

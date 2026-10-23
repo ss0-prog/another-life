@@ -12,6 +12,7 @@ import { addDebt, assignJob, bump, chargeWithDebt, friendName, fullName, kidCall
 import { WAITLIST, parentsAround, partnerWorks } from "@/lib/sim/childcare";
 import { compat, compatMark, idealChance, isE, isJ, isN, isT, IDEAL, typeCall } from "@/lib/sim/mbti";
 import { interpolate, weighted } from "@/lib/sim/rng";
+import { MEETS, SPORTS, athleteScore, meetWinChance, olympicResult, sportById } from "@/lib/sim/data/jp-sports";
 import type { AutoEvent, CountryData, EventQuestionDef, GameState, Occ, Person, Region, TurningOption } from "@/lib/sim/types";
 
 // 選択を求めない出来事(風邪で寝込んだ、いじめにあった、事故、昇格・降格…)と、選択を求める出来事(不倫・裁判・ペットなど)。
@@ -53,6 +54,8 @@ const needTreat = (s: GameState, manYen: number, label: string) => {
   if (!s.queue.includes("treat")) s.queue.push("treat");
 };
 const kidName = (p: Person, i = 0) => (p.kidList[i] ? kidCall(p, i) : "子ども");
+const REGION_NAME: Record<Region, string> = { tokyo: "東京23区", metro: "大都市", local: "地方都市", rural: "郊外・農村部" };
+const DISASTERS = ["大規模な地震", "記録的な豪雨", "大型の台風", "感染症の急速な拡大"];
 const rural = (p: Person) => (p.region === "rural" || p.region === "local" ? 1.3 : 1);
 
 const recent = (p: Person, key: string, years: number) => p.age - (p.history[key] ?? -99) <= years;
@@ -651,19 +654,26 @@ export const eventQuestions: EventQuestionDef[] = [
     id: "move_ask",
     weight: () => 0,
     intro: () => "引っ越しの話が出た",
-    question: (p) => ({
-      title: "引っ越し",
-      prompt: isStudent(p) ? "新しい土地で暮らす話が出ました。いまの学校や友だちとは、はなれることになります。慣れない環境で、ストレスもかかります。" : "仕事や暮らしの事情で、新しい土地へ移る話が出ました。",
-      options: [
-        opt("move", "引っ越す", (q, r, d) => {
-          const student = isStudent(q);
-          const region = weighted<Region>(r, d.transition.region[q.region]);
-          const city = moveTo(q, r, d, region);
-          return [`${city}に引っ越した`, ...(student ? moveAftermath(q, r) : [])].join("。");
-        }),
-        opt("stay", "いまの場所で暮らし続ける", () => "引っ越しはせず、いまの暮らしを続けることにした", { auto: true }),
-      ],
-    }),
+    question: (p) => {
+      const offer = p.moveOffer;
+      const route = offer ? `${p.city}(${REGION_NAME[p.region]})から、${offer.city}(${REGION_NAME[offer.region]})への引っ越しです。` : "";
+      return {
+        title: offer ? `引っ越し: ${p.city} → ${offer.city}` : "引っ越し",
+        prompt: `${route}${isStudent(p) ? "新しい土地で暮らす話が出ました。いまの学校や友だちとは、はなれることになります。慣れない環境で、ストレスもかかります。" : "仕事や暮らしの事情で、新しい土地へ移る話が出ました。"}`,
+        options: [
+          opt("move", offer ? `${offer.city}に引っ越す` : "引っ越す", (q, r, d) => {
+            const student = isStudent(q);
+            const o = q.moveOffer;
+            const from = q.city;
+            const region = o?.region ?? weighted<Region>(r, d.transition.region[q.region]);
+            const city = moveTo(q, r, d, region, o?.city);
+            q.moveOffer = null;
+            return [`${from}から${city}に引っ越した`, ...(student ? moveAftermath(q, r) : [])].join("。");
+          }, { detail: (q) => (q.moveOffer ? `${q.city}を離れ、${q.moveOffer.city}で暮らす。地域が変わるため、仕事・家賃・人間関係も変わる。` : "") }),
+          opt("stay", "いまの場所で暮らし続ける", (q) => ((q.moveOffer = null), "引っ越しはせず、いまの暮らしを続けることにした"), { auto: true }),
+        ],
+      };
+    },
   },
   // ---- 政治の世界から、声がかかる(ごくまれ) ----
   {
@@ -1551,6 +1561,132 @@ export const eventQuestions: EventQuestionDef[] = [
     }),
   },
   {
+    id: "pm_disaster",
+    weight: () => 0,
+    intro: (p) => `${DISASTERS[p.age % DISASTERS.length]}への対応を、迫られた`,
+    question: (p) => ({
+      title: "災害への対応",
+      prompt: `${DISASTERS[p.age % DISASTERS.length]}が起き、多くの人が被害を受けています。総理大臣として、どう動くだろう。対応しだいで、国民の信用が大きく動きます。`,
+      options: [
+        opt("lead", "自ら現地に入り、先頭に立って対応する", (p, r) => {
+          const ok = r() < 0.55 + p.intel / 400 + p.stats.bonds / 400 + (p.extra.trust >= 70 ? 0.08 : 0);
+          p.extra.stress = Math.min(100, p.extra.stress + 6);
+          if (ok) {
+            p.extra.trust = Math.min(100, p.extra.trust + 9);
+            bump(p, { bonds: 3, health: -3, joy: 2 });
+            return "災害の現場に自ら入り、迅速に支援をまとめた。対応は高く評価され、国民の信用が高まった";
+          }
+          p.extra.trust = Math.max(0, p.extra.trust - 6);
+          bump(p, { health: -3, joy: -4 });
+          return "先頭に立って対応したが、混乱が広がり、判断の遅れを批判された";
+        }, { auto: true, detail: () => "うまくいけば、信用が大きく上がる。体への負担が大きく、失敗すれば批判を浴びる。" }),
+        opt("delegate", "担当大臣に任せ、官邸から指揮をとる", (p, r) => {
+          const ok = r() < 0.45 + p.intel / 500;
+          if (ok) {
+            p.extra.trust = Math.min(100, p.extra.trust + 3);
+            return "担当大臣に権限を委ね、官邸から全体を指揮した。大きな混乱はなく、対応は堅実だと受け止められた";
+          }
+          p.extra.trust = Math.max(0, p.extra.trust - 8);
+          bump(p, { joy: -3 });
+          return "現場への指示が行き届かず、対応が後手に回ったと、厳しい批判を受けた";
+        }, { detail: () => "安定した対応になりやすいが、現場から遠いと見られると、信用を失う。" }),
+        opt("later", "ほかの政策を優先し、対応を後回しにする", (p, r) => {
+          p.extra.trust = Math.max(0, p.extra.trust - 20);
+          bump(p, { bonds: -4, joy: -6 });
+          if (r() < 0.35 && p.office?.rank === "pm") {
+            p.office.rank = "former_pm";
+            return "災害への対応の遅れで、世論の批判が一気に高まり、内閣は総辞職に追いこまれた";
+          }
+          return "災害への対応を後回しにし、国民の信用を大きく失った";
+        }, { detail: () => "信用が大きく下がる。退陣に追いこまれることもある。" }),
+      ],
+    }),
+  },
+  {
+    id: "athlete_sport",
+    weight: () => 0,
+    intro: () => "選手として、どの競技に打ちこむかを決めるときが来た",
+    question: () => ({
+      title: "競技を選ぶ",
+      prompt: "選手として、どの競技に打ちこむだろう。選んだ競技で、大会やオリンピックをめざします。",
+      options: SPORTS.map((sp) => opt(sp.id, `${sp.label}(${sp.season === "summer" ? "夏季" : "冬季"}オリンピック競技)`, (p) => {
+        p.sport = sp.id;
+        p.extra.career = Math.max(p.extra.career, 40);
+        bump(p, { health: 2, joy: 3 });
+        return `${sp.label}の選手として、本格的に打ちこむことにした`;
+      }, { detail: () => sp.note })),
+    }),
+  },
+  {
+    id: "athlete_meet",
+    weight: () => 0,
+    intro: (p) => `${sportById(p.sport)?.label ?? "競技"}の大会に、出場する機会があった`,
+    question: (p) => ({
+      title: "大会に出るか",
+      prompt: `${sportById(p.sport)?.label ?? "競技"}の大会です。いまの実績は${Math.round(p.extra.career)}、健康は${Math.round(p.stats.health)}。健康が高いほど勝ちやすく、勝てば実績を積めます。`,
+      options: [
+        ...MEETS.map((m) => opt(m.id, `${m.label}に出る`, (q, r) => {
+          const win = r() < meetWinChance(q, m);
+          const place = !win && r() < 0.3;
+          const name = sportById(q.sport)?.label ?? "競技";
+          if (win) {
+            q.extra.career = Math.min(100, q.extra.career + m.gain);
+            q.extra.charm = Math.min(100, q.extra.charm + 2);
+            bump(q, { joy: 8, bonds: 3, health: -1 });
+            return `${name}の${m.label}で優勝した。実績が大きく伸びた`;
+          }
+          if (place) {
+            q.extra.career = Math.min(100, q.extra.career + Math.round(m.gain / 3));
+            bump(q, { joy: 2, health: -1 });
+            return `${name}の${m.label}で、上位に入った`;
+          }
+          q.extra.career = Math.min(100, q.extra.career + 1);
+          bump(q, { joy: -2, health: r() < 0.12 ? -6 : -1 });
+          return `${name}の${m.label}に出たが、勝てなかった`;
+        }, {
+          show: (q) => q.extra.career >= m.minCareer,
+          detail: (q) => `${m.field}。優勝できる目安は、約${Math.round(meetWinChance(q, m) * 100)}%(健康・実績・魅力で変わる)。${m.note}`,
+        })),
+        opt("rest", "今年は、練習と休養に専念する", (q) => (bump(q, { health: 4, joy: 1 }), (q.extra.stress = Math.max(0, q.extra.stress - 4)), "今年は大会を見送り、練習と体づくりに専念した"), { auto: true, detail: () => "体を休められる。実績は、あまり伸びない。" }),
+      ],
+    }),
+  },
+  {
+    id: "athlete_olympic",
+    weight: () => 0,
+    intro: (p) => `${sportById(p.sport)?.season === "winter" ? "冬季" : "夏季"}オリンピックの代表に、選ばれた`,
+    question: (p) => ({
+      title: "オリンピックに出場するか",
+      prompt: `実績が90をこえ、${sportById(p.sport)?.label ?? "競技"}の日本代表に選ばれました。4年に一度の舞台です。実績・魅力・信用・健康が高いほど、メダルを狙えます。`,
+      options: [
+        opt("go", "オリンピックに出場する", (q, r) => {
+          const name = sportById(q.sport)?.label ?? "競技";
+          const res = olympicResult(q, r);
+          q.medals ??= { gold: 0, silver: 0, bronze: 0 };
+          q.history.olympic = q.age;
+          if (res === "gold" || res === "silver" || res === "bronze") {
+            q.medals[res] += 1;
+            if (res === "gold") q.history.olympicGold = q.age;
+            q.extra.charm = Math.min(100, q.extra.charm + (res === "gold" ? 12 : 7));
+            q.extra.trust = Math.min(100, q.extra.trust + 5);
+            q.extra.career = 100;
+            bump(q, { joy: res === "gold" ? 25 : 16, bonds: 6, money: res === "gold" ? 10 : 5, health: -2 });
+            const label = { gold: "金", silver: "銀", bronze: "銅" }[res];
+            return `オリンピックの${name}で、${label}メダルを獲得した`;
+          }
+          if (res === "finalist") {
+            q.extra.career = Math.min(100, q.extra.career + 2);
+            bump(q, { joy: 4, bonds: 2 });
+            return `オリンピックの${name}に出場し、入賞(8位以内)を果たした`;
+          }
+          bump(q, { joy: -3 });
+          return `オリンピックの${name}に出場したが、入賞には届かなかった`;
+        }, { auto: true, detail: (q) => `メダルの目安は、約${Math.round(Math.min(0.55, 0.105 * (0.5 + Math.max(0, athleteScore(q) - 0.5) * 3.2) * (0.2 + (q.stats.health / 100) * 1.4) * 0.85) * 100)}%。(実数: 東京2020は583人で58個、パリ2024は409人で45個のメダル)` }),
+        opt("skip", "辞退して、休養する", (q) => (bump(q, { health: 3 }), (q.history.olympic = q.age), "オリンピックの代表を辞退し、体を休めた"), { detail: () => "メダルは狙えないが、体は休まる。" }),
+      ],
+    }),
+  },
+  {
     id: "have_child",
     weight: () => 0,
     intro: () => "子どものことを考えた",
@@ -1719,7 +1855,7 @@ export const eventQuestions: EventQuestionDef[] = [
   },
   {
     id: "early_retire",
-    weight: (p, e) => (working(p) && p.sector === "private" && p.employment !== "self" && inAge(p, 45, 60) ? (e < 0 ? 1.0 : 0.3) : 0),
+    weight: (p, e) => (working(p) && !p.office && p.sector === "private" && p.employment !== "self" && inAge(p, 45, 60) ? (e < 0 ? 1.0 : 0.3) : 0),
     intro: () => "会社が、早期退職者を募集し始めた",
     question: () => ({
       title: "早期退職の募集",

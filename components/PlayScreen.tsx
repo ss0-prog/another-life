@@ -16,7 +16,7 @@ import type { Messages } from "@/lib/i18n";
 import { jpData } from "@/lib/sim/data/jp";
 import { AssetPanel } from "@/components/AssetPanel";
 import { ActivityPanel } from "@/components/ActivityPanel";
-import { answer, borrowAndSpend, contributeKidFund, canInterpret, describeText, envAt, freeAction, holdingsValue, lenderOffers, pending, shortfallFor, setName, runForOffice, setPlan, goMeet, shopBuy, shopSell, startLesson, startPartTime, startStocks, stopLesson, stopPartTime, suggestNames, suggestTag, tick, trade } from "@/lib/sim/engine";
+import { answer, pmPolicy, borrowAndSpend, contributeKidFund, canInterpret, describeText, envAt, freeAction, holdingsValue, lenderOffers, pending, shortfallFor, setName, runForOffice, setPlan, goMeet, shopBuy, shopSell, startLesson, startPartTime, startStocks, stopLesson, stopPartTime, suggestNames, suggestTag, tick, trade } from "@/lib/sim/engine";
 import { compat, compatMark, IDEAL, idealChance, typeLabel } from "@/lib/sim/mbti";
 import { debtTotal, kidCall, kidTitle, lifeLabel } from "@/lib/sim/helpers";
 import { soften } from "@/lib/jp";
@@ -506,6 +506,12 @@ export function PlayScreen({ t, initial, birthYear, selfAge, ghost, dev = false,
             return true;
           }}
           onStopPart={() => act((s) => stopPartTime(s))}
+          onPolicy={(id) => {
+            const next = pmPolicy(state, id);
+            if (!next) return false;
+            act(next);
+            return true;
+          }}
           onMeet={(id) => {
             const next = goMeet(state, id);
             if (!next) return false;

@@ -7,7 +7,7 @@ import { chipClass } from "@/components/controls";
 import { LessonPanel } from "@/components/LessonPanel";
 import type { Messages } from "@/lib/i18n";
 import { jpData } from "@/lib/sim/data/jp";
-import { officeChance } from "@/lib/sim/engine";
+import { PM_POLICIES, officeChance, pmPolicyReady } from "@/lib/sim/engine";
 import { fitScore } from "@/lib/sim/mbti";
 import { shopBuyable, shopSellable } from "@/lib/sim/shop";
 import { MEETINGS, MEET_LIMIT } from "@/lib/sim/data/jp-meet";
@@ -24,12 +24,13 @@ type Props = {
   onBuy: (id: string) => boolean;
   onSell: (id: string) => boolean;
   onMeet: (id: string) => boolean;
+  onPolicy?: (id: string) => boolean;
 };
 
-type View = "lesson" | "hobby" | "part" | "meet" | "office" | "shop";
+type View = "lesson" | "hobby" | "part" | "meet" | "office" | "shop" | "policy";
 
 // 右の列の上にある「活動する」。習い事・趣味・アルバイト・出馬(25歳〜)を、いつでも始められる。
-export function ActivityPanel({ t, state, onStartLesson, onStopLesson, onStartPart, onStopPart, onRun, onBuy, onSell, onMeet }: Props) {
+export function ActivityPanel({ t, state, onStartLesson, onStopLesson, onStartPart, onStopPart, onRun, onBuy, onSell, onMeet, onPolicy }: Props) {
   const [open, setOpen] = useState(false);
   const [view, setView] = useState<View | null>(null);
   const root = useRef<HTMLDivElement>(null);
@@ -57,6 +58,7 @@ export function ActivityPanel({ t, state, onStartLesson, onStopLesson, onStartPa
     { id: "meet", label: "出会い", show: p.age >= 15 },
     { id: "office", label: "出馬", show: p.age >= 25 },
     { id: "shop", label: "売買", show: p.age >= 8 },
+    { id: "policy", label: "経済対策", show: p.office?.rank === "pm" },
   ];
 
   const parts = jpData.partTimes.filter((x) => p.age >= x.minAge && partTimeAvailable(x.id, yearOf(p)));
@@ -170,6 +172,29 @@ export function ActivityPanel({ t, state, onStartLesson, onStopLesson, onStartPa
                   </ul>
                 </div>
               ))}
+            </div>
+          )}
+
+          {viewNow === "policy" && p.office?.rank === "pm" && (
+            <div className="mt-4 rounded-sm border border-line bg-panel/60 px-4 py-3">
+              <p className="text-xs tracking-[0.3em] text-warm">経済対策(総理大臣の仕事)</p>
+              <p className="mt-1 text-[11px] leading-5 tracking-wider text-dim">ひどい不況のときだけ、年に一度、税金などを動かせます。国民の信用が大きく動きます。</p>
+              {pmPolicyReady(state) ? (
+                <ul className="mt-3 space-y-2">
+                  {PM_POLICIES.map((x) => (
+                    <li key={x.id}>
+                      <button type="button" onClick={() => onPolicy?.(x.id)} className={`${chipClass(false)} w-full text-left`}>
+                        {x.label}
+                        <span className="mt-1 block text-xs leading-5 text-dim">{x.note}</span>
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="mt-3 text-sm leading-7 tracking-wider text-haze">
+                  {p.history.pmPolicy === p.age ? "今年の経済対策は、すでに決めました。" : "いまは、経済対策をとるほどの不況ではありません。"}
+                </p>
+              )}
             </div>
           )}
 

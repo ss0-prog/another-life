@@ -111,6 +111,11 @@ export type Person = {
   // いまの仕事に就いた年齢(仕事が変わるたびに更新。「同じ仕事を何年続けたか」の判定に使う)。
   jobKey?: string;
   jobSince?: number;
+  // アスリートの競技(sports の id)と、オリンピックのメダル数。
+  sport?: string;
+  medals?: { gold: number; silver: number; bronze: number };
+  // 持ちかけられた引っ越しの行き先(「どこからどこへ」を、選ぶ前に見せるため)。
+  moveOffer?: { region: Region; city: string } | null;
   // いまの持病(あとから診断される場合は ailmentOnset に予定が入る)。
   ailment: Ailment;
   ailmentOnset: { age: number; id: Ailment } | null;

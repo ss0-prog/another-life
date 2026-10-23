@@ -1081,7 +1081,7 @@ export const turningPoints: TurningPoint[] = [
     age: (p) => Math.max(25, (p.jobSince ?? 0) + 5),
     title: "働き方を見つめ直す",
     prompt: "いまの仕事と、これからをどう考えるだろう。",
-    when: (p) => p.occ !== null,
+    when: (p) => p.occ !== null && !p.office,
     options: [
       {
         id: "stay",
@@ -1226,7 +1226,7 @@ export const turningPoints: TurningPoint[] = [
     age: (p) => Math.max(40, (p.jobSince ?? 0) + 5),
     title: "これからのキャリア",
     prompt: "働き方を、どうしていくだろう。",
-    when: (p) => p.occ !== null && p.occ !== "retired",
+    when: (p) => p.occ !== null && !p.office && p.occ !== "retired",
     options: [
       {
         id: "lead",
@@ -1262,7 +1262,7 @@ export const turningPoints: TurningPoint[] = [
     age: 55,
     title: "何歳まで働く？",
     prompt: "仕事をいつまで続けるか、そろそろ考えるときです。",
-    when: (p) => p.occ !== null && p.occ !== "retired",
+    when: (p) => p.occ !== null && !p.office && p.occ !== "retired",
     options: [
       opt("r60", "60歳で退職して、早めにゆっくり暮らす", (p) => ((p.retireAt = 60), bump(p, { health: 4, joy: 3 }), "60歳で仕事を退くことに決めた"), { detail: (p, env, data) => `収入は早く止まり、年金も満額ではない。そのぶん、自由な時間と体力が残る。いまの収入では、${takeText(p, data, env.econ)}退職後も、国民健康保険料や住民税は、かかり続ける。` }),
       opt("retire", "定年(65歳)まで勤め、その後はゆっくり暮らす", (p) => ((p.retireAt = 65), bump(p, { health: 3 }), "65歳の定年まで働くことに決めた"), { auto: true, detail: (p, env, data) => `65歳以降は年金が中心。${pensionText(p, data, 1)}貯金の取り崩しが必要になることもある。` }),

@@ -18,11 +18,12 @@ import { CARE_LABEL, careYear } from "@/lib/sim/childcare";
 import { intelChance } from "@/lib/sim/intel";
 import { BG_INTEL, BG_LEARN, BG_MONEY, BG_RISK, SOLO_RATE, absentWho, lessonBlock, monthlyAllowance, newYearGift } from "@/lib/sim/family";
 import { concernEvent, concernResolved } from "@/lib/sim/data/jp-concern";
+import { olympicYear, sportById } from "@/lib/sim/data/jp-sports";
 import { SUMMIT_BY_JOB, SUMMIT_BY_OCC, summitChance } from "@/lib/sim/data/jp-summit";
 import { savingsRate } from "@/lib/sim/economy";
 import { LENDERS, LENDER_ORDER, lenderAvailable } from "@/lib/sim/data/jp-debt";
 import { fitMult, fitScore } from "@/lib/sim/mbti";
-import { jobLabel, leaveLocal, moveHome, kidCall, kidTitle, condOf, addDebt, assignJob, bump, chargeWithDebt, clamp, debtTotal, fullName, lifeLabel, moveTo, newCity, noBearer, randomPartner } from "@/lib/sim/helpers";
+import { isResponsible, jobLabel, leaveLocal, moveHome, kidCall, kidTitle, condOf, addDebt, assignJob, bump, chargeWithDebt, clamp, debtTotal, fullName, lifeLabel, moveTo, newCity, noBearer, randomPartner } from "@/lib/sim/helpers";
 import { birthYearOf, cpiAt, economyAt, unemploymentAt } from "@/lib/sim/economy";
 import { WEATHER_EVENT, weatherAt } from "@/lib/sim/weather";
 import { marketOf, priceAt } from "@/lib/sim/market";
@@ -749,6 +750,9 @@ export function parseAmountMan(raw: string): number | null {
 }
 
 // 手入力の文章を、辞書で読み取る。AI は使わない。
+// 議員の職にあるあいだは、できないこと(副業・転職・独立・退職)。
+const OFFICE_BLOCKED = new Set(["side_job", "job_change", "go_self", "retire", "reduce_work", "business"]);
+
 export function interpret(text: string, data: CountryData = jpData): Interpretation {
   const actions = data.intents.filter((r) => r.test.test(text) && (!r.also || r.also.test(text))).slice(0, 5);
   let category: Interpretation["category"] = null;
@@ -807,6 +811,11 @@ export function freeAction(
     if (covered.includes(rule.id)) continue;
     const m = text.match(rule.test);
     if (!m) continue;
+    // 議員(総理大臣をふくむ)は、副業・転職・独立・退職はできない。
+    if (p.office && OFFICE_BLOCKED.has(rule.id)) {
+      next.events.push({ age, event: "議員の職にあるあいだは、副業・転職・独立・退職はできない", weight: 40 });
+      continue;
+    }
     const ev = rule.apply(next, rng, data, m);
     if (ev) {
       next.events.push({ age, event: ev, weight: 70 });
@@ -816,7 +825,7 @@ export function freeAction(
 
   // 2) お金の使い道は、その人の特徴から、直後の行動と数年後の結果をつくる。
   const remaining = interp.actions.filter((r) => !covered.includes(r.id));
-  if (cat && (remaining.length === 0 || yen !== null)) {
+  if (cat && !(p.office && cat.id === "business") && (remaining.length === 0 || yen !== null)) {
     let firstStocks = false;
     if (cat.id === "invest") {
       firstStocks = !next.wallet.stocks;
@@ -981,6 +990,56 @@ export function runForOffice(state: GameState, id: string, data: CountryData = j
   return next;
 }
 
+// 総理大臣の経済対策。ひどい不況のとき、年に一度だけ、税金などを動かせる。
+export const PM_POLICIES: { id: string; label: string; note: string }[] = [
+  { id: "consumption_cut", label: "消費税を引き下げる", note: "暮らしが楽になり、支持は上がる。財源への批判が、あとから出てくる。" },
+  { id: "income_cut", label: "所得税・住民税を減税する", note: "働く人の手取りが増え、支持が上がる。税収が減り、批判も出る。" },
+  { id: "cash_benefit", label: "国民に給付金を出す", note: "すぐに家計を支えられ、支持が上がる。一度きりで、効果は長続きしない。" },
+  { id: "tax_hike", label: "増税して財政を立て直す", note: "国の財政は守られるが、不況のなかの増税で、支持は大きく下がる。" },
+];
+
+// 経済対策ができる状態か(総理大臣で、ひどい不況で、今年まだ使っていない)。
+export function pmPolicyReady(state: GameState): boolean {
+  const p = state.person;
+  return state.deathAge === null && p.office?.rank === "pm" && p.econ < -0.6 && p.history.pmPolicy !== p.age;
+}
+
+export function pmPolicy(state: GameState, id: string): GameState | null {
+  const def = PM_POLICIES.find((x) => x.id === id);
+  if (!def || !pmPolicyReady(state)) return null;
+  const next = clone(state);
+  const p = next.person;
+  const snap = fxSnap(next);
+  p.history.pmPolicy = p.age;
+  const t = (d: number) => (p.extra.trust = Math.min(100, Math.max(0, p.extra.trust + d)));
+  let text = "";
+  if (id === "consumption_cut") {
+    t(7);
+    bump(p, { joy: 3, bonds: 2 });
+    next.later.push({ age: p.age + 2, event: "消費税の減税の財源をめぐり、批判が強まった", weight: 55, delta: { bonds: -2 } });
+    text = "不況のなか、消費税の引き下げを決めた。家計への支えとして、国民の支持が集まった";
+  } else if (id === "income_cut") {
+    t(5);
+    bump(p, { joy: 2, bonds: 2 });
+    next.later.push({ age: p.age + 2, event: "減税による税収の落ちこみが、国会で問われた", weight: 55, delta: { bonds: -2 } });
+    text = "不況のなか、所得税と住民税の減税を決めた。働く人の手取りが増えた";
+  } else if (id === "cash_benefit") {
+    t(6);
+    bump(p, { joy: 2 });
+    next.later.push({ age: p.age + 1, event: "給付金の効果は一時的で、景気の回復には、つながらなかったとの指摘が出た", weight: 50, delta: { bonds: -1 } });
+    text = "不況のなか、国民への給付金を決めた。すぐに家計を支える対策として、受け入れられた";
+  } else {
+    t(-9);
+    bump(p, { joy: -3, bonds: -3 });
+    next.later.push({ age: p.age + 3, event: "増税の効果で、国の財政に、少しゆとりが出てきた", weight: 55, delta: { joy: 2 } });
+    text = "不況のなか、増税による財政の立て直しに踏み切った。国民の反発は強く、支持は大きく下がった";
+  }
+  const fx = fxSince(next, snap);
+  next.events.push({ age: p.age, event: text, weight: 80, ...(fx ? { fx } : {}) });
+  flush(next);
+  return next;
+}
+
 // こどもNISA(子どもの将来のための積立)。親が積み立て、いちばん下の子が18歳になるとき、子どもの新しい道のために使われる。
 export function contributeKidFund(state: GameState, yen: number): GameState | null {
   const p = state.person;
@@ -1117,6 +1176,7 @@ export function tick(state: GameState, data: CountryData = jpData): GameState {
     const d = data.eventQuestions.find((e) => e.id === id);
     // 結婚の話は、付き合っている人がいるときだけ。別れていたら、取り下げる。
     if (id === "marry" && (p.married || p.partner?.status !== "dating")) return false;
+    if (id === "move_ask" && isResponsible(p)) return false;
     return !d || hasChoice(d, p, next.wallet.cash);
   });
   const seed = next.seed;
@@ -1143,7 +1203,7 @@ export function tick(state: GameState, data: CountryData = jpData): GameState {
 
   // 実際に日本で起きた、大きな出来事(災害・経済・社会)。生まれた年と年齢から決まる、その年だけ、年表にはさむ。
   if (p.birthYear !== undefined && a >= 3) {
-    const year = p.birthYear + a;
+    const year = (p.birthYear ?? 0) + a;
     for (const he of HISTORY_EVENTS) {
       if (he.year !== year || year > SIM_NOW_YEAR) continue;
       const pref = p.abroad ? null : prefectureOf(p.city);
@@ -1191,7 +1251,10 @@ export function tick(state: GameState, data: CountryData = jpData): GameState {
     }
     const trustTarget = 40 + (w && p.employment === "regular" ? 12 : 0) + (p.owned ? 8 : 0) + (p.married ? 6 : 0) + (a >= 30 ? 8 : 0) + (a >= 45 ? 6 : 0) - (debt ? 15 : 0) - (p.bankrupt !== null && a - p.bankrupt <= 7 ? 25 : 0);
     x.trust = clamp(x.trust + (trustTarget - x.trust) * 0.25);
-    if (w) {
+    if (w && p.job === "athlete" && p.sport) {
+      // 選手の実績は、大会の結果で決まる(大会に出なければ、少しずつ、薄れる)。
+      x.career = clamp(x.career - 1);
+    } else if (w) {
       const careerTarget = 15 + 0.35 * st.learn + (p.employment === "regular" ? 10 : 0) + Math.min(22, Math.max(0, a - 24) * 1.1);
       x.career = clamp(x.career + (careerTarget - x.career) * 0.12);
     } else if (p.occ !== "retired") x.career = clamp(x.career - 2);
@@ -1415,8 +1478,13 @@ export function tick(state: GameState, data: CountryData = jpData): GameState {
     }
   }
   // 引っ越しは、勝手には起きない。実家暮らしと、18歳未満(子ども〜高校生)をのぞいて、引っ越すかどうかを、かならず聞く。
-  if (a >= 18 && !p.withParents && !next.queue.includes("move_ask") && roll(seed, a, S.move) < interpolate(data.curves.moveRate, a)) {
-    push("引っ越しの話が出た", 40);
+  // 議員や経営者など、責任ある立場のあいだは、引っ越しの話は出ない(退いたら、もとの確率にもどる)。
+  if (a >= 18 && !p.withParents && !isResponsible(p) && !next.queue.includes("move_ask") && roll(seed, a, S.move) < interpolate(data.curves.moveRate, a)) {
+    // 行き先は、話が出たときに決めておき、選ぶ場面で「どこからどこへ」を見せる。
+    const mr = streamRng(seed, a, S.move + 7);
+    const toRegion = weighted<Region>(mr, data.transition.region[p.region]);
+    p.moveOffer = { region: toRegion, city: newCity(mr, data, toRegion, p.city) };
+    push(`${p.city}から${p.moveOffer.city}への、引っ越しの話が出た`, 40);
     next.queue.push("move_ask");
   }
   if (!p.owned && p.occ !== null && p.occ !== "retired" && roll(seed, a, S.buy) < interpolate(data.curves.purchaseRate, a) * data.regionFactor.purchase[p.region] * (p.married ? 1.6 : 0.5) * p.homeBias * mbtiHome) {
@@ -1429,14 +1497,16 @@ export function tick(state: GameState, data: CountryData = jpData): GameState {
   if (p.withParents && a >= 24 && roll(seed, a, S.parents) < 0.06) p.withParents = false;
 
   const retire = p.retireAt ?? (p.workLong ? data.retireAge + 5 : data.retireAge);
-  if (a === retire && p.occ && (p.employment !== "self" || p.retireAt !== null) && p.occ !== "retired") {
+  if (a === retire && p.occ && !p.office && (p.employment !== "self" || p.retireAt !== null) && p.occ !== "retired") {
     p.occ = "retired";
     push("仕事を退いた", 55);
   }
   // 定年を過ぎても働いている人: 年齢が上がるほど、定年退職や、体調による退職を、せまられやすい。
   // 90歳をこえると、仕事は、続けられない。
   if (p.occ && p.occ !== "retired" && a >= retire) {
-    if (a >= WORK_LIMIT) {
+    if (p.office && a < WORK_LIMIT) {
+      // 議員は、定年も、途中の退職もない(任期の終わりの選挙で、決まる)。
+    } else if (a >= WORK_LIMIT) {
       p.occ = "retired";
       p.parttime = null;
       p.office = null;
@@ -1842,11 +1912,45 @@ export function tick(state: GameState, data: CountryData = jpData): GameState {
     }
   }
 
-  // 議員などの職: 内閣総理大臣は、何年かで退く。
-  if (p.office?.rank === "pm" && a - (p.office.rankSince ?? a) >= 2 + Math.floor(roll(seed, a, S.job + 43) * 4) && roll(seed, a, S.job + 44) < 0.5) {
-    p.office.rank = "former_pm";
-    push("内閣総理大臣を退いた。国のかじ取りの重責から、ようやく解き放たれた", 80);
-    bump(p, { health: 2, joy: -3 });
+  // 内閣総理大臣: 総理の座にあるあいだ、ストレスは大きく減る(国の頂点に立つ高揚と、周りの支え)。
+  // 当選を重ね、信用を90以上に保ち続けるかぎり、退く必要はない。信用が下がると、退陣に追いこまれることがある。
+  if (p.office?.rank === "pm") {
+    p.extra.stress = Math.max(0, p.extra.stress - 18);
+    // 毎年の政権運営のうごき: つながりが強いほど、信用はやや上がりやすい。
+    p.extra.trust = Math.min(100, Math.max(0, p.extra.trust + Math.round((roll(seed, a, S.job + 45) - 0.45) * 8 + (p.stats.bonds - 50) / 40)));
+    const tenure = a - (p.office.rankSince ?? a);
+    const trustNow = p.extra.trust;
+    if (trustNow < 35 && roll(seed, a, S.job + 46) < 0.7) {
+      p.office.rank = "former_pm";
+      push("支持率が落ちこみ、内閣は総辞職した。内閣総理大臣を退いた", 82);
+      bump(p, { joy: -6, bonds: -3 });
+    } else if (trustNow < 90 && tenure >= 2 + Math.floor(roll(seed, a, S.job + 43) * 4) && roll(seed, a, S.job + 44) < 0.5) {
+      p.office.rank = "former_pm";
+      push("内閣総理大臣を退いた。国のかじ取りの重責から、ようやく解き放たれた", 80);
+      bump(p, { health: 2, joy: -3 });
+    }
+    // 総理として災害に見舞われる(年に約2割)。対応しだいで、信用が大きく動く。
+    if (p.office.rank === "pm" && !next.queue.includes("pm_disaster") && roll(seed, a, S.job + 47) < 0.2) {
+      next.queue.push("pm_disaster");
+      push("国内で、大きな災害が起きた", 70);
+    }
+  }
+  // アスリート: 競技を選び、毎年、大会に出るかを聞く。実績が90以上なら、4年に一度、オリンピックの代表に選ばれる。
+  if (p.job === "athlete" && p.occ && p.occ !== "retired" && a >= 15 && a <= 44 && next.queue.length === 0) {
+    if (!p.sport) {
+      next.queue.push("athlete_sport");
+      push("選手として、どの競技に打ちこむかを、決めるときが来た", 55);
+    } else {
+      const sp = sportById(p.sport);
+      const year = (p.birthYear ?? 0) + a;
+      if (sp && olympicYear(year, sp.season) && p.extra.career >= 90 && p.history.olympic !== a) {
+        next.queue.push("athlete_olympic");
+        push("オリンピックの代表に選ばれた", 70);
+      } else if (roll(seed, a, S.job + 48) < 0.75) {
+        next.queue.push("athlete_meet");
+        push(`${sp?.label ?? "競技"}の大会に出る機会があった`, 40);
+      }
+    }
   }
   // 議員などの職: 任期の終わりに、再選の結果が出る。
   if (p.office) {
@@ -1914,7 +2018,7 @@ export function tick(state: GameState, data: CountryData = jpData): GameState {
     bump(p, { bonds: 2, health: 1 });
   }
   // 転職の話は、年のおわりの状態(昇進などのあと)で、年収の比べ方が正しくなるよう、いちばん最後に決める。
-  if (p.occ && p.occ !== "retired" && a < 60 && roll(seed, a, S.job) < interpolate(data.curves.jobChange, a) * mbtiJob * Math.max(0.3, 1 + 0.3 * economyAt(seed, a, p.birthYear))) {
+  if (p.occ && p.occ !== "retired" && !p.office && !(p.job === "athlete" && p.sport && a < 38) && a < 60 && roll(seed, a, S.job) < interpolate(data.curves.jobChange, a) * mbtiJob * Math.max(0.3, 1 + 0.3 * economyAt(seed, a, p.birthYear))) {
     // 転職は、勝手には決まらない。話が来たところで、選んでもらう(リストラは、この限りではない)。
     if (!next.queue.includes("job_change")) {
       const r = streamRng(seed, a, S.jobPick);

@@ -107,6 +107,8 @@ export const ACHIEVEMENTS: Achievement[] = [
 
   // ---- 仕事・夢 ----
   { id: "pm", name: "総理大臣", desc: "日本の総理大臣になった。", mark: "首", rarity: "legend", check: (s) => s.person.history.pm !== undefined },
+  { id: "olympic_medal", name: "オリンピックのメダリスト", desc: "オリンピックで、メダルを獲得した。", mark: "輪", rarity: "legend", trivia: "日本代表のうち、メダルを獲得した選手は約1割(東京2020は583人で58個、パリ2024は409人で45個)。", check: (s) => !!s.person.medals && s.person.medals.gold + s.person.medals.silver + s.person.medals.bronze > 0 },
+  { id: "olympic_gold", name: "オリンピックの金メダル", desc: "オリンピックで、金メダルを獲得した。", mark: "金", rarity: "legend", check: (s) => !!s.person.medals && s.person.medals.gold > 0 },
   { id: "summit", name: "頂点に立った", desc: "それぞれの世界の、頂点に立った。", mark: "頂", rarity: "legend", check: (s) => s.person.history.summit !== undefined },
 
   // ---- 学び ----

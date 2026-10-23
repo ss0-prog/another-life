@@ -291,8 +291,8 @@ function TokyoTower({ cx, base, color, night }: { cx: number; base: number; colo
           <line x1={-20} y1={187} x2={20} y2={187} strokeWidth={1.1} stroke="#f2d3a6" />
           <line x1={-10} y1={110} x2={10} y2={110} strokeWidth={1} stroke="#f2d3a6" />
         </g>
-        <circle cx={0} cy={44} r={6} fill="#ff2d2d" opacity={0.16} className="beacon" />
-        <circle cx={0} cy={44} r={2.1} fill="#ff5a4d" className="beacon" />
+        <circle cx={0} cy={44} r={3.4} fill="#ff2d2d" opacity={0.16} className="beacon" />
+        <circle cx={0} cy={44} r={1.2} fill="#ff5a4d" className="beacon" />
       </g>
     </g>
   );

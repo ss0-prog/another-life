@@ -24,7 +24,6 @@ import { EventText } from "@/components/EventText";
 import { pickEpitaph } from "@/lib/sim/data/jp-epitaph";
 import { DevPanel } from "@/components/DevPanel";
 import { DeathOverlay } from "@/components/DeathOverlay";
-import { GhostPanel } from "@/components/GhostPanel";
 import { weatherAt } from "@/lib/sim/weather";
 import { setWeather } from "@/lib/weatherStore";
 import { incomeOf } from "@/lib/sim/salary";
@@ -323,7 +322,6 @@ export function PlayScreen({ t, initial, birthYear, selfAge, ghost, dev = false,
           </div>
         </div>
 
-        <GhostPanel age={p.age} selfAge={selfAge} ghost={ghost} netMan={Math.round((state.wallet.cash + holdingsValue(state, month) - debtTotal(state.wallet.debts)) / 10000)} joy={p.stats.joy} />
 
         <LifeCharts series={state.series ?? []} />
 
@@ -375,10 +373,10 @@ export function PlayScreen({ t, initial, birthYear, selfAge, ghost, dev = false,
                 <span>速度 ×{speed}</span>
                 <span aria-hidden className={`text-[9px] text-warm transition-transform ${speedOpen ? "rotate-180" : ""}`}>▼</span>
               </button>
-              <button type="button" onClick={() => window.dispatchEvent(new Event("betsu-uchu:open-activity"))} className="keep min-w-0 flex-1 border border-warm/50 bg-warm/5 px-1 py-1.5 text-center text-sm text-mist hover:border-warm">
+              <button type="button" onClick={() => window.dispatchEvent(new Event("betsu-uchu:open-activity"))} className="keep min-w-0 flex-1 border border-warm/50 bg-warm/5 px-1 py-1.5 text-center text-xs text-mist hover:border-warm">
                 活動する
               </button>
-              <button type="button" onClick={() => window.dispatchEvent(new Event("betsu-uchu:open-spend"))} className="keep min-w-0 flex-1 border border-warm/50 bg-warm/5 px-1 py-1.5 text-center text-sm text-mist hover:border-warm">
+              <button type="button" onClick={() => window.dispatchEvent(new Event("betsu-uchu:open-spend"))} className="keep min-w-0 flex-1 border border-warm/50 bg-warm/5 px-1 py-1.5 text-center text-xs text-mist hover:border-warm">
                 資産の使い方
               </button>
             </div>
@@ -394,7 +392,7 @@ export function PlayScreen({ t, initial, birthYear, selfAge, ghost, dev = false,
           </div>
         )}
         </div>
-        <LifeRibbon age={state.deathAge ?? p.age} dead={dead} startAge={state.events[0]?.age ?? p.age} events={state.events.slice(0, seen)} />
+        <LifeRibbon year={birthYear + (state.deathAge ?? p.age)} age={state.deathAge ?? p.age} dead={dead} startAge={state.events[0]?.age ?? p.age} events={state.events.slice(0, seen)} />
 
         {naming && !dead && revealed ? (
           <motion.div key={`name-${naming.kind}-${naming.index}`} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }} className="relative z-[35] rounded-sm border border-warm/50 bg-panel px-6 py-7 shadow-[0_0_50px_rgba(240,201,148,0.12)]">
@@ -642,7 +640,7 @@ export function PlayScreen({ t, initial, birthYear, selfAge, ghost, dev = false,
 }
 
 // 人生の道のり: 0〜100歳のものさしの上に、いまの年齢と、ターニングポイントと、これまでの大きな節目を、並べる(PC の、出来事の欄の上)。
-function LifeRibbon({ age, dead, startAge, events }: { age: number; dead: boolean; startAge: number; events: GameState["events"] }) {
+function LifeRibbon({ age, year, dead, startAge, events }: { age: number; year: number; dead: boolean; startAge: number; events: GameState["events"] }) {
   const [open, setOpen] = useState(false); // スマホでは、閉じておき、タップで、ひらく(PC では、いつも表示)
   const [list, setList] = useState(false); // 節目の一覧
   const [mList, setMList] = useState(false); // スマホ: 節目の一覧(アコーディオン)
@@ -667,7 +665,7 @@ function LifeRibbon({ age, dead, startAge, events }: { age: number; dead: boolea
           <span aria-hidden className={`text-[9px] text-dim transition-transform lg:hidden ${open ? "rotate-180" : ""}`}>▼</span>
         </span>
         <span className="tabular-nums">
-          {dead ? `${age}歳で最期` : `いま ${age}歳`}・節目 {dots.length}個
+          {dead ? `${age}歳で最期` : `いま ${age}歳`}({year}年)・節目 {dots.length}個
         </span>
       </button>
       <div className={`${open ? "block" : "hidden"} lg:block`}>

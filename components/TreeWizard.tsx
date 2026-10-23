@@ -1078,12 +1078,12 @@ export function TreeWizard({ t, onSubmit, onRandom, auth, prefill }: Props) {
         {!choosing && step && !rewinding && (
           <div className="font-gothic mt-8 flex flex-col items-center gap-3">
             {canUnsure && (
-              <button type="button" onClick={unsure} className="border border-line bg-panel/90 px-5 py-2 text-xs tracking-[0.15em] text-haze hover:border-haze hover:text-mist sm:text-sm">
+              <button type="button" onClick={unsure} className="w-full max-w-sm border border-line bg-panel/90 px-5 py-2 text-xs tracking-[0.15em] text-haze hover:border-haze hover:text-mist sm:text-sm">
                 わからない・その他(おまかせで決める)
               </button>
             )}
             {answers.length > 0 && (
-              <button type="button" onClick={startHere} className="border border-warm/70 bg-panel/90 px-5 py-2 text-xs tracking-[0.15em] text-mist hover:border-warm sm:text-sm">
+              <button type="button" onClick={startHere} className="w-full max-w-sm border border-warm/70 bg-panel/90 px-5 py-2 text-xs tracking-[0.15em] text-mist hover:border-warm sm:text-sm">
                 ここまでの条件ではじめる(のこりはおまかせ)
               </button>
             )}

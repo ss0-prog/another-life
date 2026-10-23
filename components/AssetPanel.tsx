@@ -328,7 +328,7 @@ export function AssetPanel({ t, state, month, onTrade, onStartStocks, onPlan, on
       )}
 
       {!dead && (
-        <button type="button" onClick={() => { setMenu((m) => !m); setWriting(false); }} className="mx-auto mt-6 border border-warm/60 bg-warm/5 px-6 py-2 text-sm tracking-[0.25em] text-mist hover:border-warm">
+        <button type="button" onClick={() => { setMenu((m) => !m); setWriting(false); }} className="mx-auto mt-6 border border-warm/60 bg-warm/5 px-6 py-2 text-xs tracking-[0.25em] text-mist hover:border-warm sm:text-sm">
           {menu ? t.close : t.usage}
         </button>
       )}

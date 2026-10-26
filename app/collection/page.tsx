@@ -59,7 +59,7 @@ export default function CollectionPage() {
   };
 
   return (
-    <PageShell title="コレクション" lead="遊びの中で達成した実績を、集めて、ならべます。まだ、見つけていない実績も、あります。">
+    <PageShell title="コレクション" lead="遊びの中で達成した実績を集めて、ならべます。まだ見つけていない実績もあります。">
       <section>
         <div className="font-gothic mx-auto max-w-xl text-center">
           <p className="text-xs tracking-[0.3em] text-warm">解除した実績</p>

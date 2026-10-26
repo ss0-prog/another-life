@@ -1587,7 +1587,7 @@ export function tick(state: GameState, data: CountryData = jpData): GameState {
     p.history.payslip = a;
     if (p.employment === "self") p.history.selfTax = a;
     const t = p.tax;
-    push(`はじめての${p.employment === "self" ? "確定申告" : "給与明細"}。年収${t.gross}万円から、所得税と住民税で${t.incomeTax + t.resident}万円、社会保険料で${t.social}万円が引かれ、手取りは${t.net}万円になった`, 47);
+    push(`はじめての${p.employment === "self" ? "確定申告" : "給与明細"}。年収${t.gross}万円のうち、所得税と住民税で${t.incomeTax + t.resident}万円と社会保険料で${t.social}万円が引かれ、手取りは${t.net}万円になった`, 47);
   } else if (p.tax.gross > 0 && p.occ === "retired" && p.history.pensionSlip === undefined) {
     p.history.pensionSlip = a;
     const t = p.tax;
@@ -1681,7 +1681,7 @@ export function tick(state: GameState, data: CountryData = jpData): GameState {
         const paid = Math.round(next.wallet.kidFund.contributed / 10000);
         next.wallet.kidFund = undefined;
         bump(p, { bonds: 3, joy: 4, money: 3 });
-        push(`こどもNISAで積み立てた${man.toLocaleString("ja-JP")}万円(積立は${paid.toLocaleString("ja-JP")}万円${man >= paid ? "、運用でふえた" : "、値下がりで目減りした"})が、${nm}の進学や独立の支えになった`, 64);
+        push(`こどもNISAで積み立てた${man.toLocaleString("ja-JP")}万円(積立は${paid.toLocaleString("ja-JP")}万円${man >= paid ? "、運用でふえた" : "、値下がりで目減りした"})が${nm}の進学や独立の支えになった`, 64);
       }
       bump(p, { bonds: 1, money: -2 });
     } else if (kage === 22) push(`${nm}が社会人になった`, 50);

@@ -340,7 +340,7 @@ const workplaceQuestion = (j: JobDef): TurningQuestion => ({
     label: w.label,
     auto: w.auto,
     apply: (p, rng, data) => enterJob(p, rng, data, j, w),
-    detail: (p, env, data) => `${w.note}${w.employment === "self" ? " 会社が半分払ってくれる厚生年金・健康保険には入れず、国民年金と国民健康保険を全額自分で払う。" : w.employment === "nonregular" ? " 年収が約106万円までなら、社会保険に入らず、税もほとんどかからない(それをこえると、保険料が引かれて、手取りが一時的に減ることもある)。" : ""} ${payText(p, env, data, { occ: j.occ, job: j.id, payMult: j.mult * (w.mult ?? 1), employment: w.employment, firm: w.firm, sector: w.sector })}${w.employment === "regular" && w.sector === "private" && env.econ < -0.6 ? " 不況の今は、正社員の採用が絞られている。" : ""}`,
+    detail: (p, env, data) => `${w.note}${w.employment === "self" ? " 会社が半分払ってくれる厚生年金・健康保険には入れず、国民年金と国民健康保険を全額自分で払う。" : w.employment === "nonregular" ? " 年収が約106万円までなら、社会保険に入らず税もほとんどかからない(それをこえると保険料が引かれて、手取りが一時的に減ることもある)。" : ""} ${payText(p, env, data, { occ: j.occ, job: j.id, payMult: j.mult * (w.mult ?? 1), employment: w.employment, firm: w.firm, sector: w.sector })}${w.employment === "regular" && w.sector === "private" && env.econ < -0.6 ? " 不況の今は、正社員の採用が絞られている。" : ""}`,
   })),
 });
 
@@ -411,7 +411,7 @@ const STUDY_KIND = { lang: { label: "語学留学", years: 1, total: 150 }, coll
 // 留学先: アメリカ・中国・カナダなどの主な国と、世界中の人気の留学先から、人ごとに決まる3つ。
 const studyCountryQuestion = (kind: keyof typeof STUDY_KIND, p: Person): TurningQuestion => ({
   title: "どの国に留学する？",
-  prompt: `${STUDY_KIND[kind].label}(${STUDY_KIND[kind].years}年)の行き先です。主な国と、人気の留学先から、いくつか出ています。`,
+  prompt: `${STUDY_KIND[kind].label}(${STUDY_KIND[kind].years}年)の行き先です。主な国と人気の留学先から、いくつか出ています。`,
   options: [...STUDY_MAIN.map((id) => studyCountryOption(id, kind)), ...otherStudyOptions(p, kind)],
 });
 
@@ -430,7 +430,7 @@ function studyCountryOption(id: string, kind: keyof typeof STUDY_KIND): TurningO
       }
       p.cashDelta -= studyPocket(p, k.total) * 10000;
       bump(p, kind === "lang" ? { learn: 8, joy: 4 } : { learn: 10, money: -4 });
-      return `${city}に、${k.label}に出かけた(${k.years}年間の予定。費用は約${k.total}万円で、家族の支えと奨学金で、まかなえない分は、自分の貯金から出す)`;
+      return `${city}に、${k.label}に出かけた(${k.years}年間の予定。費用は約${k.total}万円。家族の支えと奨学金でまかなえない分は、自分の貯金から出す)`;
     },
     detail: () => `収入の水準は日本の約${Math.round(c.incomeFactor * 100)}%、物価は約${Math.round(c.costFactor * 100)}%。言葉や文化のちがいに、慣れるまで時間がかかる。`,
   };
@@ -469,7 +469,7 @@ const graduateWorkQuestion = (p: Person): TurningQuestion => ({
       label: "専攻・学びを活かせる仕事",
       auto: true,
       apply: () => "",
-      detail: (p) => `${p.field ? `${fieldById(p.field)?.label ?? ""}の学びが、そのまま活きる。` : "これまでの学びが、そのまま活きる。"}収入や就職のしやすさは、仕事によって、ちがう。`,
+      detail: (p) => `${p.field ? `${fieldById(p.field)?.label ?? ""}の学びが、そのまま活きる。` : "これまでの学びが、そのまま活きる。"}収入や就職のしやすさは、仕事によってちがう。`,
       children: (q) => jobsQuestion(q.field ? `${fieldById(q.field)?.label ?? "専攻"}を活かせる仕事` : "学びを活かせる仕事", "専攻や学科を活かして、どの仕事に就くだろう。", (q.field && fieldJobIds(q.field).length ? fieldJobIds(q.field) : MAJOR_JOBS[majorKey(q)] ?? []).map((id) => jobById(id)).filter((j): j is JobDef => Boolean(j))),
     },
     {
@@ -614,7 +614,7 @@ export const branches: CountryData["branches"] = {
         matches: () => false,
         apply: (p) => {
           bump(p, { bonds: 3, joy: 2 });
-          return "別の高校に進学した。通う道も、出会う友人も、ちがった";
+          return "別の高校に進学した。通う道も出会う友人もちがった";
         },
       },
       {
@@ -624,7 +624,7 @@ export const branches: CountryData["branches"] = {
         apply: (p, r, d) => {
           setEdu(p, r, d, "univ");
           bump(p, { bonds: 3, joy: 2 });
-          return "別の大学に進学した。校風も、出会う人も、ちがった";
+          return "別の大学に進学した。校風も出会う人もちがった";
         },
       },
       {
@@ -775,7 +775,7 @@ export const branches: CountryData["branches"] = {
       },
       { id: "friends_deep", label: "友人との関係を、深める", matches: () => false, apply: (p) => ((p.concern = { kind: "friends", since: p.age }), bump(p, { bonds: 6, joy: 2 }), "友人との時間を、もっと大切にすることにした") },
       { id: "family_close", label: "家族と、もっと向き合う", matches: () => false, apply: (p) => ((p.concern = { kind: "family", since: p.age }), bump(p, { bonds: 5, joy: 1 }), "家族と向き合う時間を、もっと持つことにした") },
-      { id: "work_relations", label: "職場の人間関係を、整える", matches: () => false, apply: (p) => ((p.concern = { kind: "work", since: p.age }), bump(p, { bonds: 3, joy: 1 }), "職場の人との関係を、よくしようと、動きはじめた") },
+      { id: "work_relations", label: "職場の人間関係を、整える", matches: () => false, apply: (p) => ((p.concern = { kind: "work", since: p.age }), bump(p, { bonds: 3, joy: 1 }), "職場の人との関係をよくしようと、動きはじめた") },
     ] satisfies BranchOption[],
     motives: [
       { id: "love", label: "もっと恋愛をしたかった(学生のころ・社会人になってから)", options: ["romance_active"] },
@@ -996,7 +996,7 @@ const flowText = (t: string) => () => t;
 const MOVE_ABROAD_MAN = 100;
 const countryQuestion = (): TurningQuestion => ({
   title: "どの国へ？",
-  prompt: "移り住む国で、現在地も、収入も、物価も変わります。",
+  prompt: "移り住む国によって、現在地も収入も物価も変わります。",
   options: jpDataCountries().map((c) => ({
     id: c.id,
     label: `${c.name}(${c.cities.join("・")})`,
@@ -1060,8 +1060,8 @@ const kidMoney = (id: string, age: number, title: string): TurningPoint => ({
   title,
   prompt: "お正月にもらったお年玉や、ためたお小遣い。どうしよう。",
   options: [
-    opt("save", "とっておく・ためる", (p) => (bump(p, { money: 3 }), "お年玉やお小遣いを、使わずに、ためておいた"), { auto: true, detail: () => "お金は減らない。ほしいものは、がまんすることになる。" }),
-    opt("game", "ゲームやおもちゃ・お菓子に使う", (p) => ((p.cashDelta -= 5000), bump(p, { joy: 4 }), "お年玉で、ゲームやおもちゃ、お菓子を買った"), { detail: () => "5,000円ほど使う。楽しい気分になるが、すぐに使い切ることもある。" }),
+    opt("save", "とっておく・ためる", (p) => (bump(p, { money: 3 }), "お年玉やお小遣いを使わずに、ためておいた"), { auto: true, detail: () => "お金は減らない。ほしいものは、がまんすることになる。" }),
+    opt("game", "ゲームやおもちゃ・お菓子に使う", (p) => ((p.cashDelta -= 5000), bump(p, { joy: 4 }), "お年玉で、ゲームやおもちゃ・お菓子を買った"), { detail: () => "5,000円ほど使う。楽しい気分になるが、すぐに使い切ることもある。" }),
     opt("book", "本や文房具、習いごとの道具に使う", (p) => ((p.cashDelta -= 4000), bump(p, { learn: 4 }), "お年玉で、本や文房具を買った"), { detail: () => "4,000円ほど使う。学ぶことが、少し楽しくなる。" }),
     opt("gift", "家族や友だちへのプレゼントに使う", (p) => ((p.cashDelta -= 3000), bump(p, { bonds: 5 }), "お年玉で、家族や友だちにプレゼントを贈った"), { detail: () => "3,000円ほど使う。つながりが、少し深まる。" }),
     opt("fav", "好きなこと・推しのために使う", (p) => ((p.cashDelta -= 8000), bump(p, { joy: 6, money: -1 }), "お年玉を、好きなことや推しのために使った"), { detail: () => "8,000円ほど使う。夢中になれる時間が増える。" }),
@@ -1144,11 +1144,11 @@ export const turningPoints: TurningPoint[] = [
       return g >= 20 && p.occ === null && !p.history.graduated ? g - 1 : g;
     },
     title: "卒業後の進路",
-    prompt: "学びの先に、どんな道を選ぶだろう。大学院、留学、仕事探し、就職など、選べます。",
+    prompt: "学びの先に、どんな道を選ぶだろう。大学院・留学・仕事探し・就職などを選べます。",
     promptFn: (p) => {
       const g = p.gradAge ?? (p.edu === "grad" ? 24 : p.edu === "univ" ? 22 : p.edu === "vocational" ? 20 : 18);
       // 大学院は、大学を出た人だけが選べる。大学院を出た人には、書かない。
-      const ways = p.edu === "univ" ? "大学院、留学、仕事探し、就職など" : "留学、仕事探し、就職など";
+      const ways = p.edu === "univ" ? "大学院・留学・仕事探し・就職など" : "留学・仕事探し・就職など";
       return p.age < g ? `一年後に、卒業が控えています。卒業したあと、どうするか。${ways}、いまのうちに決めておきましょう(卒業のときから、その道に進みます)。` : `学びの先に、どんな道を選ぶだろう。${ways}、選べます。`;
     },
     // 留学中は、聞かない(留学を終えたときに、次の道を選ぶ)。
@@ -1225,7 +1225,7 @@ export const turningPoints: TurningPoint[] = [
         id: "abroad",
         label: "留学する",
         apply: () => "",
-        detail: (p) => `語学留学なら1年、大学や専門学校なら3年${p.edu === "univ" ? "(大学院への留学は、「大学院に進学する」から選べます)" : ""}。費用は、家計と奨学金で、まかなえる範囲の道だけが出ます。留学を終えたら、現地で働くか、国を変えるか、帰国するかを選べます。`,
+        detail: (p) => `語学留学なら1年、大学や専門学校なら3年${p.edu === "univ" ? "(大学院への留学は、「大学院に進学する」から選べます)" : ""}。費用は、家計と奨学金で、まかなえる範囲の道だけが出ます。留学を終えたら、現地就職・他国へ移る・帰国のどれかを選べます。`,
         children: () => ({
           title: "どんな留学？",
           prompt: "留学のかたちを選びます。そのあと、行き先の国を選びます。",
@@ -1238,7 +1238,7 @@ export const turningPoints: TurningPoint[] = [
       {
         id: "search",
         label: "まだ職を探す",
-        apply: (p) => (bump(p, { money: -2, joy: -2, learn: 1 }), "すぐには職を決めず、しばらく、職を探すことにした"),
+        apply: (p) => (bump(p, { money: -2, joy: -2, learn: 1 }), "すぐには職を決めず、しばらく職を探すことにした"),
         detail: () => "焦らず、納得できる仕事を探せる。そのあいだ、収入はなく、貯金や家族の支えで暮らすことになる。数年たっても決まらないと、働き口は、そのときの状況で決まる。",
       },
       {
@@ -1311,7 +1311,7 @@ export const turningPoints: TurningPoint[] = [
         show: (p) => p.employment !== "self",
         label: "独立して挑戦する",
         apply: () => "",
-        detail: (p, env) => `収入は大きく上下する。景気の影響を、もっとも受ける働き方。いまは${env.econLabel}。副業の収入は、年に20万円をこえると確定申告が要る。独立すると、会社が半分払っていた社会保険料を、全額自分で払うことになり、手取りの割合は下がりやすい。`,
+        detail: (p, env) => `収入は大きく上下する。景気の影響を、もっとも受ける働き方。いまは${env.econLabel}。副業の収入は、年に20万円をこえると確定申告が要る。独立すると、会社が半分払っていた社会保険料を全額自分で払うので、手取りの割合は下がりやすい。`,
         children: () => ({
           title: "どう独立する？",
           prompt: "始め方で、リスクが変わります。",
@@ -1356,7 +1356,7 @@ export const turningPoints: TurningPoint[] = [
         label: "結婚を意識して動く",
         show: (p) => p.partner?.status !== "dating",
         apply: () => "",
-        detail: () => "出会い方によって、費用も、合う確率も変わる。",
+        detail: () => "出会い方によって、費用も合う確率も変わる。",
         children: () => ({
           title: "どう出会う？",
           prompt: "出会いの方法を選びます。",
@@ -1448,7 +1448,7 @@ export const turningPoints: TurningPoint[] = [
     prompt: "仕事をいつまで続けるか、そろそろ考えるときです。",
     when: (p) => p.occ !== null && !isResponsible(p) && p.jobSince !== undefined && p.age - p.jobSince >= 3 && p.occ !== "retired",
     options: [
-      opt("r60", "60歳で仕事を退いて、早めにゆっくり暮らす", (p) => ((p.retireAt = 60), bump(p, { health: 4, joy: 3 }), "60歳で仕事を退くことに決めた"), { detail: (p, env, data) => `収入は早く止まり、年金も満額ではない。そのぶん、自由な時間と体力が残る。いまの収入では、${takeText(p, data, env.econ)}退職後も、国民健康保険料や住民税は、かかり続ける。` }),
+      opt("r60", "60歳で仕事を退いて、早めにゆっくり暮らす", (p) => ((p.retireAt = 60), bump(p, { health: 4, joy: 3 }), "60歳で仕事を退くことに決めた"), { detail: (p, env, data) => `収入は早く止まり、年金も満額ではない。そのぶん、自由な時間と体力が残る。いまの収入では、${takeText(p, data, env.econ)}退職後も国民健康保険料や住民税はかかり続ける。` }),
       opt("retire", "定年(65歳)まで勤め、その後はゆっくり暮らす", (p) => ((p.retireAt = 65), bump(p, { health: 3 }), "65歳の定年まで働くことに決めた"), { auto: true, show: (p) => p.employment === "regular", detail: (p, env, data) => `65歳以降は年金が中心。${pensionText(p, data, 1)}貯金の取り崩しが必要になることもある。` }),
       opt("retire_flex", "65歳まで働き、その後はゆっくり暮らす", (p) => ((p.retireAt = 65), bump(p, { health: 3 }), "65歳まで働くことに決めた"), { auto: true, show: (p) => p.employment !== "regular", detail: (p, env, data) => `65歳以降は年金が中心。${pensionText(p, data, 1)}貯金の取り崩しが必要になることもある。` }),
       opt("r70", "70歳まで働く", (p) => ((p.retireAt = 70), bump(p, { money: 4, health: -2 }), "70歳まで働き続けることに決めた"), { detail: (p, env, data) => `70歳まで収入が続く。体力との相談になる。いまの収入では、${takeText(p, data, env.econ)}厚生年金の保険料は、70歳まで払い続ける。` }),

@@ -45,7 +45,7 @@ const WINDOW: Record<Region, string[]> = {
   tokyo: ["窓の外には、ビルの明かりが途切れず並んでいる。遠くで電車の音がしている。"],
   metro: ["窓の向こうに、暮れかけた街の屋根が重なっている。"],
   local: ["窓の外は、車のライトがときどき通るだけの静かな通りだ。"],
-  rural: ["窓の外は、田んぼと、遠い山の影。虫の声がしている。"],
+  rural: ["窓の外は、田んぼと遠い山の影。虫の声がしている。"],
 };
 
 const HANDS: Record<Occ | "retired" | "student", string[]> = {

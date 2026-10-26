@@ -64,7 +64,7 @@ export const familyEvents: AutoEvent[] = [
   ev("fam_absent_parent", (p) => (p.soloParent && inAge(p, 8, 22) && p.history.absentThought === undefined ? 0.4 : 0), (s) => {
     mark(s.person, "absentThought");
     bump(s.person, { joy: -4, bonds: -1 });
-    return `離れて暮らす${absentWho(s.person)}のことを、ふと考える日があった。会えない理由は、まだ、うまく言葉にならなかった`;
+    return `離れて暮らす${absentWho(s.person)}のことを、ふと考える日があった。会えない理由は、まだうまく言葉にならなかった`;
   }, 44),
 
   // ---- 非行・犯罪(家庭・ひとり親・低い学力・弱いつながりで、確率が高まる) ----
@@ -101,7 +101,7 @@ export const familyEvents: AutoEvent[] = [
     mark(p, "record");
     bump(p, { bonds: -8, joy: -12, money: -8, health: -2 });
     trust(p, -20);
-    return "窃盗などの罪で逮捕された。前科がつき、周りの目は、大きく変わった";
+    return "窃盗などの罪で逮捕された。前科がつき、周りの目は大きく変わった";
   }, 64),
 
   // ---- 恵まれた家庭 ----
@@ -114,7 +114,7 @@ export const familyEvents: AutoEvent[] = [
   ev("fam_private_school", (p) => (inAge(p, 11, 13) && wealthy(p) && p.history.privateSchool === undefined ? (p.background === "rich" ? 1.2 : 0.5) : 0), (s) => {
     mark(s.person, "privateSchool");
     bump(s.person, { learn: 3, bonds: -1 });
-    return "私立の学校に進んだ。周りは、似た暮らしの家庭の子ばかりで、外の世界を知らないまま、日々が過ぎていった";
+    return "私立の学校に進んだ。周りは似た暮らしの家庭の子ばかりで、外の世界を知らないまま日々が過ぎていった";
   }, 48),
   ev("fam_pressure", (p) => (inAge(p, 8, 17) && wealthy(p) ? (p.background === "rich" ? 1.3 : 0.8) : 0), (s) => {
     bump(s.person, { learn: 3, joy: -6 });
@@ -127,7 +127,7 @@ export const familyEvents: AutoEvent[] = [
   }, 42),
   ev("fam_cold_home", (p) => (inAge(p, 8, 18) && wealthy(p) ? 0.35 : 0), (s) => {
     bump(s.person, { joy: -5, bonds: -3 });
-    return "親の不仲が続き、広い家の中は、静かに冷えていった";
+    return "親の不仲が続き、広い家の中は静かに冷えていった";
   }, 46),
   ev("fam_gold_digger", (p) => (inAge(p, 20, 45) && p.background === "rich" ? 0.5 : 0), (s) => {
     bump(s.person, { bonds: -2, joy: -3 });
@@ -137,6 +137,6 @@ export const familyEvents: AutoEvent[] = [
   ev("fam_inherit_fight", (p) => (p.background === "rich" && p.history.parentDied !== undefined && p.age - p.history.parentDied <= 2 && p.history.inheritFight === undefined ? 1.4 : 0), (s) => {
     mark(s.person, "inheritFight");
     bump(s.person, { bonds: -6, joy: -8 });
-    return "親の遺産をめぐって、きょうだいと争いになり、そのまま、疎遠になってしまった";
+    return "親の遺産をめぐってきょうだいと争いになり、そのまま疎遠になってしまった";
   }, 58),
 ];

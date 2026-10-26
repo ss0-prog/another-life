@@ -224,8 +224,8 @@ function allStepsFor(v: Values, selfAge: number | undefined): Step[] {
   const steps: Step[] = [
     { id: "age", node: "いまの年齢", q: "いま何歳ですか？", prompt: "10歳から90歳まで遊べます。あなたの「いま」からはじめます。", input: "number", min: 10, max: 90, unit: "歳", label: (r) => `${r}歳` },
     { id: "prefecture", node: "生まれた場所", q: "どこで生まれましたか？", prompt: "生まれた都道府県を選んでください。", input: "select", options: jpData.prefectures.map((p) => ({ value: p.name, label: p.name })), label: (r) => `${r}生まれ` },
-    { id: "sex", node: "性別", q: "あなたの性別を教えてください。", prompt: "生まれたときの性別は、平均寿命や賃金の統計の計算に使い、性自認は、恋人や家族の描き方に使います。答えなくても進めます。", input: "chips", options: SEX, label: (r) => SEX_SHORT[r] ?? r },
-    { id: "orientation", node: "惹かれる相手", q: "どんな人に惹かれますか？", prompt: "出会う恋人の性や、家族のかたちに使います。この答えは、公開される結果には、含まれません。答えなくても進めます(そのときは、異性として進みます)。", input: "chips", options: ORIENTATION, label: (r) => (r ? optLabel(ORIENTATION, r) : "答えない") },
+    { id: "sex", node: "性別", q: "あなたの性別を教えてください。", prompt: "生まれたときの性別は平均寿命や賃金の統計の計算に使い、性自認は恋人や家族の描き方に使います。答えなくても進めます。", input: "chips", options: SEX, label: (r) => SEX_SHORT[r] ?? r },
+    { id: "orientation", node: "惹かれる相手", q: "どんな人に惹かれますか？", prompt: "出会う恋人の性や、家族のかたちに使います。この答えは、公開される結果には含まれません。答えなくても進めます(そのときは、異性として進みます)。", input: "chips", options: ORIENTATION, label: (r) => (r ? optLabel(ORIENTATION, r) : "答えない") },
     {
       id: "condition",
       node: "先天性の持病",

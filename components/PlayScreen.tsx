@@ -816,7 +816,7 @@ function RelationPanel({ p }: { p: GameState["person"] }) {
   return (
     <div className="mt-6 rounded-sm border border-line bg-panel/60 px-4 py-3">
       <p className="text-xs tracking-[0.3em] text-warm">人間関係</p>
-      <p className="mt-1 text-[11px] leading-4 tracking-wider text-dim">いま関係のある人との距離。つながり・相性・同居・最近の出来事で、変わります。{p.concern ? `いまは、「${CONCERN_LABEL[p.concern.kind]}」に向き合っています。解決するまで、それに関する出来事が、多く起きます。` : ""}</p>
+      <p className="mt-1 text-[11px] leading-4 tracking-wider text-dim">いま関係のある人との距離。つながり・相性・同居・最近の出来事で、変わります。{p.concern ? `いまは、「${CONCERN_LABEL[p.concern.kind]}」に向き合っています。解決するまで、それに関する出来事が多く起きます。` : ""}</p>
       {GROUP_ORDER.map((g) => ({ g, list: rels.filter((r) => groupOfRelation(r) === g) })).filter((x) => x.list.length > 0).map(({ g, list }) => (
       <div key={g} className="mt-4">
       <p className="border-l-2 border-line pl-2 text-[11px] tracking-[0.3em] text-haze">{g}</p>

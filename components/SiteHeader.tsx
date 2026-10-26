@@ -224,7 +224,7 @@ export function SiteHeader() {
             <p className="text-xs tracking-[0.3em] text-warm">このサイトの約束</p>
             <ul className="mt-2 space-y-1.5 text-xs leading-6 tracking-wider text-haze">
               <li>・ログインなしで遊べます</li>
-              <li>・株価は完全な架空です。景気は、過去は実際の統計、未来はランダムです</li>
+              <li>・株価は完全な架空です。景気は過去が実際の統計、未来がランダムです</li>
               <li>・占いや予言ではありません</li>
               <li>・入力した内容はこの端末の中だけで使います</li>
             </ul>

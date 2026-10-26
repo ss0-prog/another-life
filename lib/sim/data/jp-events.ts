@@ -189,7 +189,7 @@ export const lifeEvents: AutoEvent[] = [
       p.job = "manager";
       applyChangeIncome(p, d, p.econ, before * 1.2);
       bump(p, { health: -2 });
-      return "昇進して、課長や部長など、部下をもつ立場になった";
+      return "昇進して、課長や部長など部下をもつ立場になった";
     }
     void d;
     return "昇格して役職がついた";
@@ -541,7 +541,7 @@ const careQuestion = (p: Person): TurningQuestion => {
         }
         q.childcare = { kind: "daycare", since: q.age };
         return "認可保育園に入れた。朝から夕方まで見てもらえることになった";
-      }, { auto: true, show: () => anyWork, detail: (q) => `0〜2歳は月に2〜3万円ほど(世帯の収入で変わる)、3歳からは無償化。ただ、${q.region === "tokyo" ? "東京23区などでは、入れないこと(待機)もある(約" + Math.round((WAITLIST.tokyo ?? 0.2) * 100) + "%と仮定)" : q.region === "metro" ? "都市部では、入れないこと(待機)も、ある(約" + Math.round((WAITLIST.metro ?? 0.1) * 100) + "%と仮定)" : "地方では、比較的入りやすい(待機は約" + Math.round((WAITLIST.local ?? 0.05) * 100) + "%と仮定)"}。` }),
+      }, { auto: true, show: () => anyWork, detail: (q) => `0〜2歳は月に2〜3万円ほど(世帯の収入で変わる)、3歳からは無償化。ただ、${q.region === "tokyo" ? "東京23区などでは入れないこと(待機)もある(約" + Math.round((WAITLIST.tokyo ?? 0.2) * 100) + "%と仮定)" : q.region === "metro" ? "都市部では入れないこと(待機)もある(約" + Math.round((WAITLIST.metro ?? 0.1) * 100) + "%と仮定)" : "地方では比較的入りやすい(待機は約" + Math.round((WAITLIST.local ?? 0.05) * 100) + "%と仮定)"}。` }),
       opt("grandparents", "親(祖父母)に預ける", (q) => {
         q.childcare = { kind: "grandparents", since: q.age };
         bump(q, { bonds: 3, joy: 2 });
@@ -750,7 +750,7 @@ export const eventQuestions: EventQuestionDef[] = [
       const n = p.partner ? `${p.partner.given}さん` : "パートナー";
       const st = p.history.stance ?? 1;
       const female = p.history.bearer === 1;
-      const stanceText = st === 2 ? `${n}は、産んで、一緒に育てたいと言っている。` : st === 1 ? `${n}は、気持ちが決まらずに迷っている。` : `${n}は、いまは産むことに反対している。`;
+      const stanceText = st === 2 ? `${n}は、産んで一緒に育てたいと言っている。` : st === 1 ? `${n}は、気持ちが決まらずに迷っている。` : `${n}は、いまは産むことに反対している。`;
       return {
         title: female ? "妊娠がわかった" : `${n}の妊娠`,
         prompt: female
@@ -897,7 +897,7 @@ export const eventQuestions: EventQuestionDef[] = [
           bump(p, { joy: 1 });
           return "認定こども園に通わせることにした。幼稚園と保育園のよいところを合わせた場所だ";
         }, { detail: () => "幼稚園と保育園の両方の役割を持つ。働いていても、いなくても通える。費用は年に12万円ほど。" }),
-        opt("keep", "いまの預け先を続ける", () => "預け先はいまのまま続けることにした", { show: (q) => !!q.childcare && q.childcare.kind !== "daycare" && q.childcare.kind !== "kindergarten" && q.childcare.kind !== "kodomoen", detail: () => "親や、シッターなどに、これまでどおり、見てもらう。" }),
+        opt("keep", "いまの預け先を続ける", () => "預け先はいまのまま続けることにした", { show: (q) => !!q.childcare && q.childcare.kind !== "daycare" && q.childcare.kind !== "kindergarten" && q.childcare.kind !== "kodomoen", detail: () => "親やシッターなどに、これまでどおり見てもらう。" }),
       ],
     }),
   },
@@ -1215,7 +1215,7 @@ export const eventQuestions: EventQuestionDef[] = [
         options: [
           opt("retire", fixed ? "定年で仕事を退く" : self ? "仕事をたたんで引退する" : "仕事を退く", (q) => ((q.occ = "retired"), (q.parttime = null), bump(q, { joy: -1, health: 2 }), q.employment === "regular" ? "定年を迎え、長年の仕事を退いた" : q.employment === "self" ? "長年続けた仕事をたたみ、引退した" : "長年の仕事を退いた"), { auto: true, show: (q) => !(q.stats.health < 45 || q.sick), detail: () => "給料や売り上げはなくなり、年金や貯金が中心の暮らしになる。時間はたっぷりできる。" }),
           opt("retire_health", "体調を優先して、退職する", (q) => ((q.occ = "retired"), (q.parttime = null), bump(q, { health: 5, joy: -2 }), "体調のことを考えて、仕事を退いた"), { auto: true, show: (q) => q.stats.health < 45 || !!q.sick, detail: () => "無理をしない暮らしになる。収入は、年金や貯金が中心になる。" }),
-          opt("rehire", fixed ? "再雇用・嘱託で、もう少し働く" : self ? "規模を小さくして、もう少し続ける" : "契約を更新して、もう少し働く", (q) => ((q.payMult *= 0.6), (q.workLong = true), bump(q, { money: 2, health: -1, bonds: 1 }), q.employment === "regular" ? "再雇用で、もうしばらく、働くことにした" : q.employment === "self" ? "規模を小さくして、もうしばらく、続けることにした" : "契約を更新して、もうしばらく、働くことにした"), { show: (q) => q.age < 80 && !(q.stats.health < 45 || q.sick), detail: () => "収入は、これまでの6割ほどに下がる。体力の続くかぎり、働ける。" }),
+          opt("rehire", fixed ? "再雇用・嘱託で、もう少し働く" : self ? "規模を小さくして、もう少し続ける" : "契約を更新して、もう少し働く", (q) => ((q.payMult *= 0.6), (q.workLong = true), bump(q, { money: 2, health: -1, bonds: 1 }), q.employment === "regular" ? "再雇用で、もうしばらく働くことにした" : q.employment === "self" ? "規模を小さくして、もうしばらく続けることにした" : "契約を更新して、もうしばらく働くことにした"), { show: (q) => q.age < 80 && !(q.stats.health < 45 || q.sick), detail: () => "収入は、これまでの6割ほどに下がる。体力の続くかぎり、働ける。" }),
           opt("push", "無理をしてでも働きつづける", (q) => (bump(q, { health: -7, joy: -2, money: 2 }), "体にむち打って、働きつづけることにした"), { show: (q) => q.age < 80 && (q.stats.health < 45 || !!q.sick), detail: () => "収入は続くが、体への負担が大きい。また、退職をせまられることがある。" }),
         ],
       };
@@ -1464,7 +1464,7 @@ export const eventQuestions: EventQuestionDef[] = [
               const b = round10(next);
               const diff = b - a;
               const rate = Math.round((p.jobOfferFactor - 1) * 100);
-              return `年収の目安: いま約${a}万円 → 転職後 約${b}万円(${diff >= 0 ? "+" : "-"}${Math.abs(diff)}万円)。前の職との比べ方は、厚生労働省「雇用動向調査」(令和6年)で、転職した人の約40.5%が賃金が増え、約29.4%が減った、という分布から決めています(今回は ${rate === 0 ? "変わらず" : `${rate > 0 ? "+" : ""}${rate}%`})。学び+3、つながり-2、幸福度-1(慣れるまで)。${j ? j.note : ""}`;
+              return `年収の目安: いま約${a}万円 → 転職後 約${b}万円(${diff >= 0 ? "+" : "-"}${Math.abs(diff)}万円)。前の職との比べ方は、厚生労働省「雇用動向調査」(令和6年)で転職した人の約40.5%が賃金が増え、約29.4%が減ったという分布から決めています(今回は ${rate === 0 ? "変わらず" : `${rate > 0 ? "+" : ""}${rate}%`})。学び+3、つながり-2、幸福度-1(慣れるまで)。${j ? j.note : ""}`;
             },
           }),
           // 話が来た職種以外にも、自分で、業界と職種を選んで、転職できる(未経験の業界も)。
@@ -1806,7 +1806,7 @@ export const eventQuestions: EventQuestionDef[] = [
           if (r() < 0.6) return (bump(p, { bonds: 5 }), "パートナーに打ち明け、時間をかけて話し合った");
           bump(p, { bonds: -6, money: -2 });
           return "打ち明けたことで、夫婦のあいだに深い溝ができた";
-        }, { detail: () => "関係が深まるか、壊れるかは、相手しだい。" }),
+        }, { detail: () => "関係が深まるか壊れるかは、相手しだい。" }),
       ],
     }),
   },
@@ -1876,7 +1876,7 @@ export const eventQuestions: EventQuestionDef[] = [
           p.scheduled.push({ years: 1 + Math.floor(r() * 2), event: "事件が明るみに出て逮捕され、仕事を失った", weight: 70, delta: { bonds: -15, money: -12, health: -4 }, cashMan: -80, fired: true });
           bump(p, { bonds: -2 });
           return "出来心で、してはならない一線を越えてしまった";
-        }, { detail: () => "発覚すれば、仕事も、家族や友人の信頼も、大きく失う。" }),
+        }, { detail: () => "発覚すれば、仕事も家族や友人の信頼も大きく失う。" }),
       ],
     }),
   },
@@ -1983,7 +1983,7 @@ export const eventQuestions: EventQuestionDef[] = [
     intro: (p) => `${p.abroad?.country ?? "異国"}で暮らしはじめて、数年がたった`,
     question: () => ({
       title: "帰るか、残るか",
-      prompt: "このまま、この国で暮らし続けるか、日本に帰るか。",
+      prompt: "このままこの国で暮らし続けるか、日本に帰るか。",
       options: [
         opt("home", "日本に帰国する", (p, r, d) => {
           const city = moveHome(p, r, d);
@@ -2066,7 +2066,7 @@ export const eventQuestions: EventQuestionDef[] = [
           bump(p, { health: 20, joy: 6 });
           if (r() < 0.7) {
             p.sick = false;
-            return "入院して治療に専念し、少しずつ、体力が戻ってきた";
+            return "入院して治療に専念し、少しずつ体力が戻ってきた";
           }
           return "入院して治療を受けたが、長い付き合いになりそうだ";
         }, { auto: true, detail: () => "費用は数万〜数十万円ほど(高額療養費制度で、自己負担には上限がある)。" }),
@@ -2153,7 +2153,7 @@ const pickW = (r: () => number, items: [DeathInfo, number][]): DeathInfo => {
   }
   return items[items.length - 1][0];
 };
-const sudden = (label: string, phrase: string): DeathInfo => ({ label, text: (age) => `${age}歳のとき、${phrase}、突然、人生を終えた` });
+const sudden = (label: string, phrase: string): DeathInfo => ({ label, text: (age) => `${age}歳のとき、${phrase}、突然人生を終えた` });
 const quiet = (label: string, phrase: string): DeathInfo => ({ label, text: (age) => `${age}歳で、${phrase}、静かに人生を終えた` });
 
 export function causeOfDeath(p: Person, isSudden: boolean, r: () => number): DeathInfo {

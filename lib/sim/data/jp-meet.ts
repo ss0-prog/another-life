@@ -13,7 +13,7 @@ export const MEETINGS: MeetDef[] = [
   { id: "circle", label: "趣味・スポーツのサークルに顔を出す", note: "気の合う仲間や、恋人と出会えることも。", costMan: 0.3, question: "meet_circle", did: "サークルに、顔を出した", show: (p) => p.age >= 15 && p.age <= 80 },
   { id: "app", label: "マッチングアプリを使ってみる", note: "恋人探し。いい出会いもあれば、がっかりすることも、だまされることも。", costMan: 0.3, question: "meet_app", did: "マッチングアプリで、会う約束をした", show: (p) => p.age >= 18 && p.age <= 55 && single(p) && yearOf(p) >= SINCE.matching },
   { id: "pet", label: "保護犬・保護猫の譲渡会に行く", note: "ペットを家族に迎えられる。ボランティアの仲間にも出会える。", costMan: 0, question: "meet_pet", did: "保護犬・保護猫の譲渡会に、足を運んだ", show: (p) => p.age >= 20 && p.age <= 78 },
-  { id: "local", label: "地域のイベント・ボランティアに参加する", note: "近所の人や、同じ思いの人と、つながれる。", costMan: 0, question: "meet_local", did: "地域のイベントに、参加した", show: (p) => p.age >= 15 && p.age <= 85 },
+  { id: "local", label: "地域のイベント・ボランティアに参加する", note: "近所の人や同じ思いの人と、つながれる。", costMan: 0, question: "meet_local", did: "地域のイベントに、参加した", show: (p) => p.age >= 15 && p.age <= 85 },
 ];
 
 export const meetById = (id: string) => MEETINGS.find((m) => m.id === id);

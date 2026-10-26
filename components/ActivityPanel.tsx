@@ -207,7 +207,7 @@ export function ActivityPanel({ t, state, onStartLesson, onStopLesson, onStartPa
           {viewNow === "office" && (
             <div className="mt-4 rounded-sm border border-line bg-panel/60 px-4 py-3">
               <p className="text-xs tracking-[0.3em] text-warm">出馬(選挙に立候補する)</p>
-              <p className="mt-1 whitespace-pre-line text-[11px] leading-4 tracking-wider text-dim">{"費用は、供託金と、選挙運動の費用の合計です。供託金は、当選するか、一定の得票があれば戻ります(得票が基準に届かないと没収)。選挙運動の費用は、戻りません。\n当選すれば、議員などの仕事に就きます。供託金は法律の定め、運動費は収支報告の平均を目安にしています(市区町村・知事は仮定)。当選の確率は、設計上の目安です。"}</p>
+              <p className="mt-1 whitespace-pre-line text-[11px] leading-4 tracking-wider text-dim">{"費用は、供託金と選挙運動の費用の合計です。供託金は、当選するか、一定の得票があれば戻ります(得票が基準に届かないと没収)。選挙運動の費用は、戻りません。\n当選すれば、議員などの仕事に就きます。供託金は法律の定め、運動費は収支報告の平均を目安にしています(市区町村・知事は仮定)。当選の確率は、設計上の目安です。"}</p>
               {p.office ? (
                 <p className="mt-3 text-sm tracking-wider text-mist">いま、{jpData.offices.find((x) => x.id === p.office!.id)?.label}として活動中です。</p>
               ) : (

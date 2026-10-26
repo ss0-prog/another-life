@@ -40,7 +40,7 @@ export default function ContactPage() {
   const label = "text-xs tracking-[0.3em] text-haze";
 
   return (
-    <PageShell title="お問い合わせ" lead="ご意見、ご感想、不具合のご報告など、お気軽にお寄せください。">
+    <PageShell title="お問い合わせ" lead="ご意見・ご感想・不具合のご報告など、お気軽にお寄せください。">
       {!contactAvailable ? (
         <p className="rounded-sm border border-warm/50 bg-panel/70 px-5 py-8 text-left text-base leading-9 tracking-wider text-haze sm:px-10 sm:py-12">現在、お問い合わせの受け付けを準備しています。しばらくお待ちください。</p>
       ) : (
@@ -79,7 +79,7 @@ export default function ContactPage() {
                 : popup === "mailto"
                   ? "メールソフトの画面から、内容を確認して、送信してください。"
                   : popup === "wait"
-                    ? "続けて送るときは、1分ほど、時間をあけてください。"
+                    ? "続けて送るときは、1分ほど時間をあけてください。"
                     : "通信がうまくいかなかったようです。時間をおいて、もう一度お試しください。"}
             </p>
             <button type="button" autoFocus onClick={() => setPopup(null)} className={`${primaryButtonClass} mt-8`}>

@@ -144,10 +144,10 @@ export const jpData: CountryData = {
   // 実際の株価・将来の値動きを再現するものではない。
   assets: [
     { id: "index", label: "日本株インデックス", desc: "日本の株式市場全体に、広く分散して投資する。", mu: 0.085, sigma: 0.17, crashP: 0.05, crash: [0.15, 0.35], ruinP: 0 },
-    { id: "world", label: "全世界株式の投資信託", desc: "世界の株式に広く分散して投資する投資信託(インデックス型)。積み立てに向く。日本株と、ほぼ同じ時期に、下がりやすい。", mu: 0.07, sigma: 0.16, crashP: 0, crash: [0, 0], ruinP: 0 },
-    { id: "balanced", label: "バランス型の投資信託", desc: "株式と債券を、組み合わせた投資信託。値動きは、株式だけより、おだやか。", mu: 0.04, sigma: 0.08, crashP: 0, crash: [0, 0], ruinP: 0 },
-    { id: "reit", label: "不動産の投資信託(REIT)", desc: "オフィスビルや商業施設などの不動産に投資する。分配金が出るが、株と同じように、値動きがある。", mu: 0.045, sigma: 0.15, crashP: 0, crash: [0, 0], ruinP: 0 },
-    { id: "gold", label: "金(ゴールド)", desc: "株とは、ちがう動きをしやすい。値上がり益のみで、利息や配当は、つかない。", mu: 0.03, sigma: 0.14, crashP: 0, crash: [0, 0], ruinP: 0 },
+    { id: "world", label: "全世界株式の投資信託", desc: "世界の株式に広く分散して投資する投資信託(インデックス型)。積み立てに向く。日本株とほぼ同じ時期に下がりやすい。", mu: 0.07, sigma: 0.16, crashP: 0, crash: [0, 0], ruinP: 0 },
+    { id: "balanced", label: "バランス型の投資信託", desc: "株式と債券を、組み合わせた投資信託。値動きは株式だけより、おだやか。", mu: 0.04, sigma: 0.08, crashP: 0, crash: [0, 0], ruinP: 0 },
+    { id: "reit", label: "不動産の投資信託(REIT)", desc: "オフィスビルや商業施設などの不動産に投資する。分配金が出るが、株と同じように値動きがある。", mu: 0.045, sigma: 0.15, crashP: 0, crash: [0, 0], ruinP: 0 },
+    { id: "gold", label: "金(ゴールド)", desc: "株とは、ちがう動きをしやすい。値上がり益のみで、利息や配当はつかない。", mu: 0.03, sigma: 0.14, crashP: 0, crash: [0, 0], ruinP: 0 },
     { id: "growth", label: "個別の成長株", desc: "値動きが大きい。大きく伸びることも、ほぼ無価値になることもある。", mu: 0.15, sigma: 0.38, crashP: 0, crash: [0, 0], ruinP: 0.01 },
     { id: "crypto", label: "暗号資産(仮想通貨)", desc: "値動きがきわめて大きい。何倍にもなることも、ほぼ無価値になることもある。", mu: 0.12, sigma: 0.75, crashP: 0, crash: [0, 0], ruinP: 0.03 },
     { id: "bond", label: "債券・預金", desc: "値動きは小さいが、増え方もゆるやか。", mu: 0.012, sigma: 0.03, crashP: 0, crash: [0, 0], ruinP: 0 },

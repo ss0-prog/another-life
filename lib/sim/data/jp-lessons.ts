@@ -65,12 +65,12 @@ for (const l of LESSONS) l.tags = TAGS[l.id];
 // 性格によって、はじめて選べる活動(あてはまる MBTI の人にだけ出る)。
 const X = (id: string, label: string, minAge: number, costMan: number, effect: LessonDef["effect"], note: string, needs: string, tags: LessonDef["tags"], milestone: LessonDef["milestones"]): LessonDef => ({ id, label, group: "あなたの性格にあう活動", minAge, costMan, effect, note, milestones: milestone, needs, tags });
 LESSONS.push(
-  X("debate", "ディベート・弁論", 12, 4, { learn: 1.1, bonds: 0.6 }, "議論で相手を説得する力が鍛えられる(外向きで、論理を重んじる人向け)。", "^E.T", ["social", "logic", "stage"], [{ years: 2, text: "大会で、堂々と意見を述べて、拍手を受けた", delta: { joy: 5, learn: 3 } }]),
+  X("debate", "ディベート・弁論", 12, 4, { learn: 1.1, bonds: 0.6 }, "議論で相手を説得する力が鍛えられる(外向きで、論理を重んじる人向け)。", "^E.T", ["social", "logic", "stage"], [{ years: 2, text: "大会で堂々と意見を述べて、拍手を受けた", delta: { joy: 5, learn: 3 } }]),
   X("meditation", "座禅・瞑想", 14, 2, { health: 0.8, joy: 1.2 }, "静かに自分と向き合う時間(内向的な人向け)。", "^I", ["solo", "steady"], [{ years: 2, text: "心が落ち着き、ささいなことに動じなくなった", delta: { joy: 6, health: 2 } }]),
   X("creative_writing", "小説・創作の会", 12, 3, { learn: 0.7, joy: 1.0 }, "想像の世界を、言葉にする(直感型の人向け)。", "^.N", ["creative", "solo"], [{ years: 2, text: "書いた作品が、はじめて人に読まれた", delta: { joy: 6, bonds: 2 } }]),
   X("startup_club", "起業サークル・ビジネスの勉強会", 16, 6, { learn: 1.0, money: 0.5, bonds: 0.6 }, "新しいことを始める人たちの輪(外向きで、直感型の人向け)。", "^EN", ["social", "creative", "logic"], [{ years: 2, text: "仲間と、小さな事業のアイデアを形にした", delta: { money: 3, joy: 4, bonds: 3 } }]),
-  X("community_lead", "地域のまとめ役(自治会・PTAの役員など)", 24, 1, { bonds: 1.5, joy: 0.5, health: -0.2 }, "人の世話をして、地域をつなぐ(人づきあいを大切にする人向け)。", "^(E.F|.SF)", ["service", "social", "steady"], [{ years: 3, text: "地域の行事を、無事にやり遂げ、感謝された", delta: { bonds: 6, joy: 4 } }]),
-  X("workshop", "職人の工房に通う(木工・革細工など)", 14, 5, { learn: 0.8, joy: 0.6, money: 0.3 }, "手を動かして、技を磨く(現実的で、柔軟な人向け)。", "^.S.P", ["craft", "solo"], [{ years: 2, text: "自分で作った品を、人に喜んでもらえた", delta: { joy: 6, money: 2 } }]),
+  X("community_lead", "地域のまとめ役(自治会・PTAの役員など)", 24, 1, { bonds: 1.5, joy: 0.5, health: -0.2 }, "人の世話をして、地域をつなぐ(人づきあいを大切にする人向け)。", "^(E.F|.SF)", ["service", "social", "steady"], [{ years: 3, text: "地域の行事を無事にやり遂げ、感謝された", delta: { bonds: 6, joy: 4 } }]),
+  X("workshop", "職人の工房に通う(木工・革細工など)", 14, 5, { learn: 0.8, joy: 0.6, money: 0.3 }, "手を動かして技を磨く(現実的で柔軟な人向け)。", "^.S.P", ["craft", "solo"], [{ years: 2, text: "自分で作った品を、人に喜んでもらえた", delta: { joy: 6, money: 2 } }]),
   X("improv", "即興劇・お笑いライブ", 14, 4, { joy: 1.2, bonds: 0.8 }, "その場の空気で、人を笑わせる(外向きで、柔軟な人向け)。", "^E..P", ["stage", "social"], [{ years: 1, text: "ステージで、はじめて大きな笑いをとった", delta: { joy: 8, bonds: 2 } }]),
   X("study_circle", "研究会・読書会(深く掘り下げる)", 14, 3, { learn: 1.3, joy: 0.5 }, "ひとつの題材を、とことん考える(内向的で、直感型の人向け)。", "^IN", ["solo", "logic", "creative"], [{ years: 2, text: "掘り下げたテーマが、発表の場で評価された", delta: { learn: 4, joy: 5 } }]),
 );

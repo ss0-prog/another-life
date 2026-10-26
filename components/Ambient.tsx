@@ -190,6 +190,18 @@ function makeCity(seed: number, minH: number, maxH: number, windowRate: number, 
           const tone: 0 | 1 | 2 = coolBuilding ? (t < 0.75 ? 2 : 1) : t < 0.58 ? 1 : t < 0.93 ? 0 : 2;
           windows.push({ x: 5 + c * 7, y: 8 + r * 10, lit, warm: tone !== 2, tone, flicker: winRng() < 0.05, delay: winRng() * 8 });
         }
+      // 上・中・下の、どの三分の一にも、灯りが、ある程度ともるようにする(上のほうだけ、極端に暗いビルを、なくす)。
+      for (let band = 0; band < 3; band++) {
+        const idx = windows.map((_, i) => i).filter((i) => Math.floor(((i % rows) * 3) / rows) === band);
+        const lit = idx.filter((i) => windows[i].lit).length;
+        for (let k = 0, left = Math.max(1, Math.ceil(idx.length * 0.12)) - lit; left > 0 && k < idx.length * 4; k++) {
+          const w = windows[idx[Math.floor(winRng() * idx.length)]];
+          if (!w.lit) {
+            w.lit = true;
+            left--;
+          }
+        }
+      }
       // どのビルにも、最低でも、窓の16%は、灯りをともす(灯りが、ほとんどないビルを、なくす)。
       const need = Math.ceil(windows.length * 0.16) - windows.filter((w) => w.lit).length;
       for (let k = 0, left = need; left > 0 && k < windows.length * 4; k++) {

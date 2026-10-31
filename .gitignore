@@ -6,3 +6,7 @@ next-env.d.ts
 .env*.local
 .vercel
 .DS_Store
+
+# 作業ツールの個人設定・自動生成ファイル
+.claude/
+AGENTS.md

@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import { CompareResult } from "@/components/CompareResult";
 import { PlayScreen } from "@/components/PlayScreen";
 import { RandomHistory } from "@/components/RandomHistory";
+import { GuideNote } from "@/components/GuideNote";
 import { TreeWizard } from "@/components/TreeWizard";
 import { primaryButtonClass } from "@/components/controls";
 import { branchLabelOf, entryFrom, publishEntry } from "@/lib/archive";
@@ -187,6 +188,11 @@ export default function Home() {
       )}
 
       <div className="flex flex-1 flex-col">
+        {(phase.name === "wizard" || phase.name === "play") && (
+          <div className="relative">
+            <GuideNote section={phase.name} place="top-right" />
+          </div>
+        )}
         <AnimatePresence mode="wait">
           {phase.name === "home" && (
             <motion.div
@@ -265,12 +271,15 @@ export default function Home() {
               )}
               {/* 「もうひとつの人生をはじめる」は、アニメーションで出さず、はじめから、表示しておく */}
               <div className="flex w-full justify-center mt-12">
-                <button type="button" onClick={() => { setPrefill(null); setPhase({ name: "wizard" }); }} className={`${primaryButtonClass} w-full lg:whitespace-nowrap lg:w-[calc((100%-2rem)/3)] lg:px-3 lg:text-[15px] lg:tracking-[0.15em]`}>
-                  <span className="absolute inset-0 border border-warm/60 bg-warm/5 transition-colors group-hover:border-warm group-hover:bg-warm/10" />
-                  {t.home.start}
-                </button>
+                <div className="relative w-full lg:w-[calc((100%-2rem)/3)]">
+                  <button type="button" onClick={() => { setPrefill(null); setPhase({ name: "wizard" }); }} className={`${primaryButtonClass} w-full lg:whitespace-nowrap lg:px-3 lg:text-[15px] lg:tracking-[0.15em]`}>
+                    <span className="absolute inset-0 border border-warm/60 bg-warm/5 transition-colors group-hover:border-warm group-hover:bg-warm/10" />
+                    {t.home.start}
+                  </button>
+                  <GuideNote section="home" place="below" />
+                </div>
               </div>
-              <motion.div className="mt-20 w-full" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1.0, duration: 0.7 }}>
+                            <motion.div className="mt-20 w-full" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1.0, duration: 0.7 }}>
                 <SectionTitle>{t.home.howTo}</SectionTitle>
               </motion.div>
               <motion.ol className="mt-4 grid w-full gap-4 lg:grid-cols-3" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1.1, duration: 0.8 }}>

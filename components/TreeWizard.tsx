@@ -756,6 +756,18 @@ export function TreeWizard({ t, onSubmit, onRandom, auth, prefill }: Props) {
     const raw = rawForStep(step, values);
     if (raw !== null) commit(raw);
   };
+  // 「わからない」にあたる選択肢が、どこにもない質問(数字や文字を入力する質問)には、「この質問はスキップする」を出す。
+  // 数字は、おまかせで決める。任意の入力は、空欄(見積もり・ランダムな名前)にして、先へ進む。
+  const canSkip = !!step && !canUnsure && (step.input === "number" || step.input === "optionalNumber" || step.input === "optionalText");
+  const skip = () => {
+    if (!step) return;
+    if (step.input === "number") {
+      const raw = rawForStep(step, values);
+      if (raw !== null) commit(raw);
+    } else {
+      commit("");
+    }
+  };
   // 「ここまでの条件ではじめる」: 答えた分はそのまま使い、のこりは、ランダムに決めて、はじめる。
   const startHere = () => {
     if (rewinding) return;
@@ -1085,6 +1097,11 @@ export function TreeWizard({ t, onSubmit, onRandom, auth, prefill }: Props) {
             {canUnsure && (
               <button type="button" onClick={unsure} className="w-full max-w-sm border border-line bg-panel/90 px-5 py-2 text-xs tracking-[0.15em] text-haze hover:border-haze hover:text-mist sm:text-sm">
                 わからない・その他(おまかせで決める)
+              </button>
+            )}
+            {canSkip && (
+              <button type="button" onClick={skip} className="w-full max-w-sm border border-line bg-panel/90 px-5 py-2 text-xs tracking-[0.15em] text-haze hover:border-haze hover:text-mist sm:text-sm">
+                この質問はスキップする{step?.input === "number" ? "(おまかせで決める)" : ""}
               </button>
             )}
             {answers.length > 0 && (

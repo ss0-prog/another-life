@@ -64,6 +64,7 @@ export default function PrivacyPage() {
       <Section title="5. 外部サービスの利用">
         <ul className="list-disc space-y-3 pl-6">
           <li>ログインと結果の保管には、Google の提供するサービスを利用しています。これらの取り扱いは、Google のプライバシーポリシーに従います。</li>
+          <li>サイトの閲覧状況(どのページが見られたか、どこから来たかなど)を知るため、Google アナリティクスと Cloudflare Web Analytics を利用しています。Google アナリティクスは、Cookie を使って情報を集めます。入力していただいた人生の内容や、お名前・連絡先は送りません。Google アナリティクスについては、<a href="https://policies.google.com/technologies/partner-sites" className={link} target="_blank" rel="noopener noreferrer">Google のポリシー</a>をご覧ください。</li>
           <li>職業を「声で探す」機能は、お使いのブラウザの音声認識機能を利用します。本サービスは、音声を受け取らず、保存もしません。</li>
         </ul>
       </Section>
@@ -86,7 +87,7 @@ export default function PrivacyPage() {
 
       <Section title="9. 本ポリシーの変更">
         <p>必要に応じて、本ポリシーの内容を変更することがあります。変更した場合は、このページに掲載した時点で効力を生じます。</p>
-        <p className="text-sm text-haze">最終改定日: 2026年10月21日</p>
+        <p className="text-sm text-haze">最終改定日: 2026年11月5日</p>
       </Section>
     </PageShell>
   );

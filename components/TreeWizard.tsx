@@ -816,7 +816,7 @@ export function TreeWizard({ t, onSubmit, onRandom, auth, prefill }: Props) {
         </button>
       )}
       {/* 木 */}
-      <div className={`relative w-full sm:h-[24vh] sm:min-h-48 ${choosing ? "h-14 min-h-0" : "h-[18vh] min-h-36"}`}>
+      <div className={`relative h-[18vh] min-h-36 w-full sm:h-[24vh] sm:min-h-48 ${choosing ? "max-sm:-mt-14" : ""}`}>
       <div ref={box} className={full ? "fixed inset-0 z-[80] overflow-hidden bg-void/95 animate-[fadein_0.8s_ease-out]" : "absolute inset-0 overflow-hidden [mask-image:linear-gradient(to_bottom,transparent,black_10%,black_94%,transparent)]"}>
         <svg viewBox={`0 0 ${size.w} ${size.h}`} className="absolute inset-0 h-full w-full" role="img" aria-label={t.title}>
           <motion.g initial={false} animate={{ x: camX, y: camY }} transition={{ type: "spring", stiffness: 40, damping: 15 }}>

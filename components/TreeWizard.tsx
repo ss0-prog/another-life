@@ -911,24 +911,29 @@ export function TreeWizard({ t, onSubmit, onRandom, auth, prefill }: Props) {
             <h2 className="cq mt-3 text-lg font-bold leading-9 tracking-[0.12em] text-mist sm:text-2xl"><span className="fit-line [--fit:17.9]">どのくらいくわしく答えますか？</span></h2>
             <p className="mt-2 text-sm leading-7 tracking-wider text-haze">答えなかった項目はふつうの値でおぎないます。あとからいつでも変えられます。</p>
             <p className="font-gothic mt-1 text-[11px] leading-5 tracking-wider text-dim">{PRIVACY_NOTE}</p>
-            <div className="mt-6 grid gap-3 sm:grid-cols-3">
+            <div className="mt-4 grid gap-2 sm:mt-6 sm:grid-cols-3 sm:gap-3">
               {LEVELS.map((l) => (
-                <button key={l.level} type="button" onClick={() => setLevel(l.level)} className="group relative flex flex-col items-center border border-line bg-panel/95 px-4 py-5 text-center transition-colors hover:border-warm">
-                  <span className="text-base font-bold tracking-[0.2em] text-mist sm:text-lg">{l.name}</span>
-                  <span className="font-gothic mt-1 text-sm font-bold tracking-wider text-warm">{l.sub}</span>
-                  <span className="font-gothic mt-3 text-xs leading-6 tracking-wider text-haze">{l.note}</span>
-                  <span className="mt-4 flex gap-1" aria-hidden>
+                <button key={l.level} type="button" onClick={() => setLevel(l.level)} className="group relative grid grid-cols-[1fr_auto] items-center gap-x-3 border border-line bg-panel/95 px-3 py-2.5 text-left transition-colors hover:border-warm sm:flex sm:flex-col sm:px-4 sm:py-5 sm:text-center">
+                  <span className="flex items-baseline gap-2 sm:flex-col sm:items-center sm:gap-0">
+                    <span className="text-base font-bold tracking-[0.2em] text-mist sm:text-lg">{l.name}</span>
+                    <span className="font-gothic text-xs font-bold tracking-wider text-warm sm:mt-1 sm:text-sm">{l.sub}</span>
+                  </span>
+                  <span className="flex gap-1 sm:order-last sm:mt-4" aria-hidden>
                     {[1, 2, 3].map((i) => (
-                      <span key={i} className={`h-1.5 w-6 rounded-full ${i <= l.level ? "bg-warm" : "bg-line/70"}`} />
+                      <span key={i} className={`h-1.5 w-5 rounded-full sm:w-6 ${i <= l.level ? "bg-warm" : "bg-line/70"}`} />
                     ))}
                   </span>
-                  {lastLevel === l.level && <span className="font-gothic mt-3 text-[11px] tracking-wider text-dim">前回えらんだ詳しさ</span>}
+                  <span className="font-gothic col-span-2 mt-1 text-xs leading-5 tracking-wider text-haze sm:mt-3 sm:leading-6">
+                    <span className="sm:hidden">{l.note.split("。")[0]}。</span>
+                    <span className="max-sm:hidden">{l.note}</span>
+                  </span>
+                  {lastLevel === l.level && <span className="font-gothic col-span-2 mt-1 text-[11px] tracking-wider text-dim sm:mt-3">前回えらんだ詳しさ</span>}
                 </button>
               ))}
             </div>
-            <button type="button" onClick={startRandom} disabled={rewinding} className="group mt-4 flex w-full flex-col items-center border border-warm/60 bg-warm/5 px-4 py-4 text-center transition-colors hover:border-warm hover:bg-warm/10 disabled:opacity-50">
+            <button type="button" onClick={startRandom} disabled={rewinding} className="group mt-2 flex w-full flex-col items-center border border-warm/60 bg-warm/5 px-3 py-2.5 sm:mt-4 sm:px-4 sm:py-4 text-center transition-colors hover:border-warm hover:bg-warm/10 disabled:opacity-50">
               <span className="text-base font-bold tracking-[0.2em] text-mist sm:text-lg">ランダムで始める</span>
-              <span className="font-gothic mt-1 text-xs leading-6 tracking-wider text-haze">年齢・仕事・ターニングポイントまで、すべてランダムに決めて、すぐに始めます。</span>
+              <span className="font-gothic mt-1 text-xs leading-5 tracking-wider text-haze sm:leading-6">年齢・仕事・ターニングポイントまで、すべてランダムに決めて、すぐに始めます。</span>
             </button>
           </motion.div>
         ) : (

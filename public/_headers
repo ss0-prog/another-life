@@ -1,0 +1,10 @@
+# Cloudflare Pages が、すべてのページに付けるセキュリティヘッダー。
+# マイクは、職業を「声で探す」機能(ブラウザの音声認識)のために、このサイト自身にだけ許す。
+# Google ログインは別ウィンドウで開くので、Cross-Origin-Opener-Policy は付けない(付けるとログインが壊れる)。
+/*
+  X-Content-Type-Options: nosniff
+  X-Frame-Options: DENY
+  Content-Security-Policy: frame-ancestors 'none'
+  Referrer-Policy: strict-origin-when-cross-origin
+  Strict-Transport-Security: max-age=31536000
+  Permissions-Policy: camera=(), geolocation=(), microphone=(self), payment=(), usb=(), interest-cohort=()

@@ -1,7 +1,7 @@
 "use client";
 
 import { getApp, getApps, initializeApp, type FirebaseApp } from "firebase/app";
-import { initializeAppCheck, ReCaptchaV3Provider } from "firebase/app-check";
+import { initializeAppCheck, ReCaptchaEnterpriseProvider } from "firebase/app-check";
 import { getAuth, type Auth } from "firebase/auth";
 import { getFirestore, initializeFirestore, type Firestore } from "firebase/firestore";
 
@@ -16,7 +16,7 @@ const config = {
 // 未設定の場合はログイン機能を無効にし、ゲスト(ブラウザ保存)のみで動かす。
 export const firebaseEnabled = Boolean(config.apiKey && config.authDomain && config.projectId && config.appId);
 
-// App Check(reCAPTCHA v3)のサイトキー。設定されているときだけ有効にする(サイトキーは公開前提の値)。
+// App Check(Fraud Defense: 旧 reCAPTCHA Enterprise)のサイトキー。設定されているときだけ有効にする(サイトキーは公開前提の値)。
 // 有効にすると、このサイトの画面から来た通信だけを Firestore が受け付けられる(ルールの強制は Firebase コンソールで行う)。
 const appCheckSiteKey = process.env.NEXT_PUBLIC_APPCHECK_SITE_KEY;
 
@@ -26,7 +26,7 @@ function app(): FirebaseApp {
   if (appCheckSiteKey && typeof window !== "undefined") {
     // 手元の開発(localhost)では、デバッグ用のトークンを使う。コンソールに出る値を Firebase に登録すると通る。
     if (location.hostname === "localhost") (self as unknown as { FIREBASE_APPCHECK_DEBUG_TOKEN?: boolean }).FIREBASE_APPCHECK_DEBUG_TOKEN = true;
-    initializeAppCheck(created, { provider: new ReCaptchaV3Provider(appCheckSiteKey), isTokenAutoRefreshEnabled: true });
+    initializeAppCheck(created, { provider: new ReCaptchaEnterpriseProvider(appCheckSiteKey), isTokenAutoRefreshEnabled: true });
   }
   return created;
 }
